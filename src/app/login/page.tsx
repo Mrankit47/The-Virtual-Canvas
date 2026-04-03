@@ -1,0 +1,425 @@
+"use client";
+
+import { signIn, useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, Suspense, useState, useRef } from "react";
+import type { FormEvent } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { LogIn, User, ShieldCheck, Palette, ArrowRight, Smartphone, Mail, KeyRound, ChevronDown, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import ArtLoader from "@/components/ui/ArtLoader";
+
+type Role = "admin" | "artist" | "user";
+type AuthMethod = "password" | "otp";
+
+function LoginContent() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // UI State
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [role, setRole] = useState<Role>("user");
+  const [method, setMethod] = useState<AuthMethod>("password");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Form State
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const callbackUrl = searchParams.get("callbackUrl") || "";
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      if ((session.user as any).id === "verify-only") {
+          return;
+      }
+      const userRole = (session.user as any).role || "user";
+      let targetPath = callbackUrl;
+
+      // Force redirection based on role if no specific callbackUrl or if it's the default dashboard
+      if (!targetPath || targetPath === "/dashboard" || targetPath === "/") {
+        switch (userRole) {
+          case "admin": targetPath = "/admin"; break;
+          case "artist": targetPath = "/artist"; break;
+          default: targetPath = "/dashboard";
+        }
+      }
+      router.push(targetPath);
+    }
+  }, [status, session, router, callbackUrl]);
+
+  // Handle Login/Signup Toggle
+  const toggleMode = () => {
+      setIsSignUp(!isSignUp);
+      setError("");
+      setOtpSent(false);
+  };
+
+  useEffect(() => {
+    const reason = searchParams.get("reason");
+    if (reason === "idle") {
+      setError("You have been signed out due to inactivity (10m).");
+    }
+  }, [searchParams]);
+
+  const handleAuth = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    if (isSignUp) {
+        if (!name) { 
+            setError("Name is required"); 
+            setLoading(false); 
+            return; 
+        }
+        
+        if (method === 'password') {
+            try {
+                const res = await fetch("/api/auth/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, email, password, role, type: 'email' }),
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                await signIn("credentials", { 
+                    email, 
+                    password, 
+                    role, // Passed for role enforcement
+                    type: "password", 
+                    redirect: true, 
+                    callbackUrl: role === 'artist' ? '/artist' : '/dashboard' 
+                });
+            } catch (err: any) {
+                setError(err.message);
+                setLoading(false);
+            }
+        }
+    } else {
+        const result = await signIn("credentials", {
+            email,
+            password,
+            type: "password",
+            role,
+            redirect: false,
+        });
+
+        if (result?.error) {
+            setError(result.error);
+            setLoading(false);
+        }
+    }
+  };
+
+  const handleSendOtp = async () => {
+    if (!mobile) return setError("Please enter your mobile number");
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/otp/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mobile, mode: isSignUp ? 'register' : 'login' }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      setOtpSent(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+        const result = await signIn("credentials", {
+          mobile,
+          otp,
+          role, // Passed for role enforcement
+          type: "otp",
+          redirect: false,
+        });
+
+        if (result?.error) {
+          setError(result.error);
+          setLoading(false);
+            const res = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, mobile, role, type: 'mobile' }),
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            router.push(role === 'artist' ? '/artist' : '/dashboard');
+        } else {
+            const userRole = (session?.user as any)?.role || "user";
+            router.push(userRole === 'artist' ? '/artist' : '/dashboard');
+        }
+    } catch (err: any) {
+        setError("Something went wrong. Please try again.");
+        setLoading(false);
+    }
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  if (status === "loading") {
+      return (
+          <div className="min-h-screen flex items-center justify-center bg-canvas">
+              <ArtLoader variant="fullscreen" size="md" />
+          </div>
+      );
+  }
+
+  return (
+    <div className="min-h-screen bg-canvas text-ink flex items-center justify-center px-6 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none opacity-10">
+        <div className="absolute -top-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-ink blur-[150px] opacity-20" />
+        <div className="absolute -bottom-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-ink blur-[120px] opacity-10" />
+      </div>
+
+      <motion.div 
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-[480px] bg-canvas border border-ink/10 rounded-[48px] p-10 md:p-14 shadow-2xl shadow-ink/5 relative backdrop-blur-sm"
+      >
+        <div className="text-center mb-10">
+            <h1 className="text-3xl font-playfair font-bold tracking-tight mb-3">
+                {isSignUp ? "Create Account" : "Login"}
+            </h1>
+            <p className="text-ink/40 text-[10px] uppercase tracking-[0.3em] font-medium">Authentic Art Experience</p>
+        </div>
+
+        {/* Role Selection (UI Refined) */}
+        <div className="relative mb-8">
+            <p className="text-[10px] uppercase tracking-widest text-ink/40 mb-3 text-center font-bold">
+                {isSignUp ? "Join As" : "Login As"}
+            </p>
+            <div className="flex p-1 bg-ink/5 rounded-2xl">
+                {(isSignUp ? ["user", "artist"] : ["user", "artist", "admin"] as Role[]).map((r) => (
+                    <button
+                        key={r}
+                        onClick={() => { setRole(r as Role); setMethod("password"); }}
+                        className={`flex-1 h-11 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${role === r ? "bg-canvas shadow-lg text-ink" : "text-ink/30 hover:text-ink/60"}`}
+                    >
+                        {r === 'artist' ? <Palette className="w-3.5 h-3.5" /> : (r === 'admin' ? <ShieldCheck className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />)}
+                        {r}
+                    </button>
+                ))}
+            </div>
+        </div>
+
+        {(role === "user" || isSignUp) && (
+            <div className="flex p-1 bg-ink/5 rounded-2xl mb-8">
+                <button 
+                    onClick={() => { setMethod("password"); setOtpSent(false); }}
+                    className={`flex-1 h-11 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${method === "password" ? "bg-canvas shadow-sm text-ink" : "text-ink/40 hover:text-ink/60"}`}
+                >
+                    <Mail className="w-3.5 h-3.5" /> Email
+                </button>
+                <button 
+                    onClick={() => { setMethod("otp"); setOtpSent(false); }}
+                    className={`flex-1 h-11 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${method === "otp" ? "bg-canvas shadow-sm text-ink" : "text-ink/40 hover:text-ink/60"}`}
+                >
+                    <Smartphone className="w-3.5 h-3.5" /> Mobile
+                </button>
+            </div>
+        )}
+
+        <div className="min-h-[220px]">
+        <AnimatePresence mode="wait">
+            {method === "password" ? (
+                <motion.form 
+                    key="form-pw"
+                    initial={{ opacity: 0, x: -10 }} 
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    onSubmit={handleAuth}
+                    className="space-y-4"
+                >
+                    {isSignUp && (
+                        <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-4 font-bold">Full Name</label>
+                            <div className="relative group">
+                                <User className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/20 group-focus-within:text-ink/60" />
+                                <input 
+                                    type="text" value={name} onChange={(e) => setName(e.target.value)} required
+                                    className="w-full h-14 bg-ink/5 border border-ink/5 rounded-2xl pl-14 pr-6 text-sm focus:outline-none focus:border-ink/20 focus:bg-ink/[0.07] transition-all"
+                                    placeholder="your name"
+                                />
+                            </div>
+                        </div>
+                    )}
+                    <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-4 font-bold">Email Address</label>
+                        <div className="relative group">
+                            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/20 group-focus-within:text-ink/60" />
+                            <input 
+                                type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
+                                className="w-full h-14 bg-ink/5 border border-ink/5 rounded-2xl pl-14 pr-6 text-sm focus:outline-none focus:border-ink/20 focus:bg-ink/[0.07] transition-all"
+                                placeholder="name@example.com"
+                            />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-4 font-bold">Password</label>
+                        <div className="relative group">
+                            <KeyRound className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/20 group-focus-within:text-ink/60" />
+                            <input 
+                                type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required
+                                className="w-full h-14 bg-ink/5 border border-ink/5 rounded-2xl pl-14 pr-12 text-sm focus:outline-none focus:border-ink/20 focus:bg-ink/[0.07] transition-all"
+                                placeholder="••••••••"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 hover:bg-ink/5 rounded-xl transition-all text-ink/20 hover:text-ink/60"
+                            >
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
+                    </div>
+                    {error && <p className="text-red-500 text-[10px] ml-4 font-bold uppercase tracking-wider">{error}</p>}
+                    <button 
+                        disabled={loading}
+                        className="w-full h-14 bg-ink text-canvas rounded-2xl text-sm font-bold tracking-widest uppercase mt-6 flex items-center justify-center gap-3 hover:shadow-xl hover:shadow-ink/20 transition-all disabled:opacity-50"
+                    >
+                        {loading ? <ArtLoader variant="inline" size="sm" className="text-canvas" /> : (isSignUp ? "Create Account" : "Sign In")}
+                        <ArrowRight className="w-4 h-4" />
+                    </button>
+                </motion.form>
+            ) : (
+                <motion.div 
+                    key="form-otp"
+                    initial={{ opacity: 0, x: -10 }} 
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    className="space-y-4"
+                >
+                    {isSignUp && !otpSent && (
+                        <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-4 font-bold">Full Name</label>
+                            <div className="relative group">
+                                <User className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/20 group-focus-within:text-ink/60" />
+                                <input 
+                                    type="text" value={name} onChange={(e) => setName(e.target.value)} required
+                                    className="w-full h-14 bg-ink/5 border border-ink/5 rounded-2xl pl-14 pr-6 text-sm focus:outline-none focus:border-ink/20 focus:bg-ink/[0.07] transition-all"
+                                    placeholder="your name"
+                                />
+                            </div>
+                        </div>
+                    )}
+                    {!otpSent ? (
+                        <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-4 font-bold">Mobile Number</label>
+                            <div className="relative group">
+                                <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/20 group-focus-within:text-ink/60" />
+                                <input 
+                                    type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} required
+                                    className="w-full h-14 bg-ink/5 border border-ink/5 rounded-2xl pl-14 pr-6 text-sm focus:outline-none focus:border-ink/20 focus:bg-ink/[0.07] transition-all"
+                                    placeholder="+91 00000 00000"
+                                />
+                            </div>
+                            {error && <p className="text-red-500 text-[10px] ml-4 font-bold uppercase tracking-wider mt-2">{error}</p>}
+                            <button 
+                                onClick={handleSendOtp} disabled={loading}
+                                className="w-full h-14 bg-ink text-canvas rounded-2xl text-sm font-bold tracking-widest uppercase mt-6 flex items-center justify-center gap-3 hover:shadow-xl hover:shadow-ink/20 transition-all disabled:opacity-50"
+                            >
+                                {loading ? <ArtLoader variant="inline" size="sm" className="text-canvas" /> : "Send OTP"}
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleVerifyOtp} className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-4 font-bold">Enter Code</label>
+                            <div className="relative group">
+                                <KeyRound className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/20 group-focus-within:text-ink/60" />
+                                <input 
+                                    type="text" value={otp} onChange={(e) => setOtp(e.target.value)} required maxLength={6}
+                                    className="w-full h-14 bg-ink/5 border border-ink/5 rounded-2xl pl-14 pr-6 text-sm tracking-[1em] font-bold focus:outline-none focus:border-ink/20 focus:bg-ink/[0.07] transition-all"
+                                    placeholder="000000"
+                                />
+                            </div>
+                            <p className="text-[10px] text-ink/40 ml-4 mt-2">Code sent to {mobile}. <button onClick={() => setOtpSent(false)} className="underline">Change Number</button></p>
+                            {error && <p className="text-red-500 text-[10px] ml-4 font-bold uppercase tracking-wider mt-2">{error}</p>}
+                            <button 
+                                disabled={loading}
+                                className="w-full h-14 bg-ink text-canvas rounded-2xl text-sm font-bold tracking-widest uppercase mt-6 flex items-center justify-center gap-3 hover:shadow-xl hover:shadow-ink/20 transition-all disabled:opacity-50"
+                            >
+                                {loading ? <ArtLoader variant="inline" size="sm" className="text-canvas" /> : (isSignUp ? "Verify & Register" : "Verify & Sign In")}
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </form>
+                    )}
+                </motion.div>
+            )}
+        </AnimatePresence>
+        </div>
+
+        <div className="mt-8 text-center">
+            <button 
+                onClick={toggleMode}
+                className="text-xs font-bold uppercase tracking-widest text-ink/40 hover:text-ink transition-colors"
+            >
+                {isSignUp ? "Already have an account? Login" : "New here? Create an account"}
+            </button>
+        </div>
+
+        <div className="mt-10 pt-8 border-t border-ink/5 text-center relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-canvas px-4 text-[10px] uppercase tracking-widest text-ink/20 font-bold">Or</div>
+            <button 
+                onClick={() => signIn("google")}
+                className="w-full h-12 flex items-center justify-center gap-3 text-[11px] font-bold uppercase tracking-widest border border-ink/10 rounded-2xl hover:bg-ink/5 transition-all grayscale hover:grayscale-0 opacity-60 hover:opacity-100"
+            >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Google Exhibition Access
+            </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-canvas">
+        <ArtLoader variant="fullscreen" size="md" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
+  );
+}

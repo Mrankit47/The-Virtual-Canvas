@@ -1,0 +1,38 @@
+import Link from 'next/link';
+
+export function Footer() {
+  return (
+    <footer className="w-full mt-auto py-12 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center text-xs uppercase tracking-widest text-gray-500 bg-canvas border-t border-ink/10">
+      <div className="text-center md:text-left mb-6 md:mb-0">
+        <p>&copy; {new Date().getFullYear()} The Virtual Canvas. All rights reserved.</p>
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+        <Link 
+          href="/privacy-policy" 
+          className="hover:text-black transition-all"
+        >
+          Privacy
+        </Link>
+        <Link 
+          href="/terms" 
+          className="hover:text-black transition-all"
+        >
+          Terms
+        </Link>
+        <Link 
+          href="/refund-policy" 
+          className="hover:text-black transition-all"
+        >
+          Refund
+        </Link>
+        <Link 
+          href="/shipping-policy" 
+          className="hover:text-black transition-all"
+        >
+          Shipping
+        </Link>
+      </div>
+    </footer>
+  );
+}

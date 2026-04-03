@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f5f5f0;
+  --foreground: #111111;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #111111;
+    --foreground: #f5f5f0;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background-color: var(--background);
+  /* Subtle Film Grain Noise Texture for Premium Artistic Feel */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* Custom Webkit Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* CUSTOM ARTISTIC LOADER */
+.loader {
+  width: 80px;
+  height: 40px;
+  border-radius: 100px 100px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+.loader:before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -100%;
+  background: 
+    radial-gradient(farthest-side,#ffd738 80%,#0000) left 70% top    20%/15px 15px,
+    radial-gradient(farthest-side,#020308 92%,#0000) left 65% bottom 19%/12px 12px,
+    radial-gradient(farthest-side,#ecfefe 92%,#0000) left 70% bottom 20%/15px 15px,
+    linear-gradient(#9eddfe 50%,#020308 0);
+  background-repeat: no-repeat;
+  animation: l5 2s infinite;
+}
+@keyframes l5 {
+  0%,20%   {transform: rotate(0)}
+  40%,60%  {transform: rotate(.5turn)}
+  80%,100% {transform: rotate(1turn)}
+}
