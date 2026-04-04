@@ -512,8 +512,13 @@ export default function CommissionForm() {
                     </div>
 
                     <div className="p-8 bg-ink text-canvas flex flex-col gap-2 mt-4 shadow-xl">
-                       <span className="text-[9px] uppercase tracking-[0.2em] opacity-70 text-green-300">Quoted Price</span>
-                       <span className="font-sans font-medium text-5xl md:text-6xl tracking-tight">₹{price}.00</span>
+                       <div className="flex items-baseline gap-1.5 font-serif text-canvas leading-none">
+                         <span className="text-xl md:text-2xl opacity-40 font-sans">₹</span>
+                         <span className="text-5xl md:text-6xl font-bold tracking-tighter">
+                           {price.toLocaleString()}
+                         </span>
+                         <span className="text-sm opacity-20 font-sans ml-0.5">.00</span>
+                       </div>
                        <span className="text-[10px] opacity-50 mt-2 font-sans leading-relaxed">System estimated based on '{artworkType}' base complexity.</span>
                     </div>
                  </div>
@@ -546,8 +551,13 @@ export default function CommissionForm() {
                             </div>
 
                             <div className="py-8 border-y border-ink/5 flex flex-col items-center gap-2">
-                                <p className="text-[11px] uppercase tracking-[0.2em] opacity-50">You are about to pay</p>
-                                <p className="font-sans font-bold text-6xl md:text-7xl tracking-tighter text-ink leading-none">₹{price}.00</p>
+                                <div className="flex items-baseline justify-center gap-2 font-serif text-ink leading-none">
+                                  <span className="text-2xl md:text-3xl opacity-40 font-sans">₹</span>
+                                  <p className="text-6xl md:text-7xl font-bold tracking-tighter">
+                                    {price.toLocaleString()}
+                                  </p>
+                                  <span className="text-base opacity-20 font-sans ml-1">.00</span>
+                                </div>
                                 <p className="text-[10px] opacity-40 lowercase tracking-[0.2em] mt-2 italic">Official Art Acquisition Fee</p>
                             </div>
                         </div>

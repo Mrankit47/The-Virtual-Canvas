@@ -320,13 +320,13 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
          </div>
 
          <div className="space-y-6">
-            {selectedStyle ? (
+             {selectedStyle ? (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex justify-between items-start gap-4">
                  <div className="flex-1">
                     <p className="text-[9px] uppercase tracking-widest opacity-40 font-bold mb-1">Style</p>
                     <p className="text-xs font-medium leading-tight">{selectedStyle.title}</p>
                  </div>
-                 <p className="text-[10px] font-mono">₹{selectedStyle.basePrice.toLocaleString()}</p>
+                 <p className="text-xs font-serif font-bold">₹{selectedStyle.basePrice.toLocaleString()}</p>
               </motion.div>
             ) : <p className="text-[10px] italic opacity-20">No style selected</p>}
 
@@ -336,7 +336,7 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                     <p className="text-[9px] uppercase tracking-widest opacity-40 font-bold mb-1">Format</p>
                     <p className="text-xs font-medium">{selectedSize.label}</p>
                  </div>
-                 <p className="text-[10px] font-mono">×{selectedSize.multiplier}</p>
+                 <p className="text-[11px] font-sans font-bold text-ink/60">×{selectedSize.multiplier}</p>
               </motion.div>
             )}
 
@@ -346,7 +346,7 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                     <p className="text-[9px] uppercase tracking-widest opacity-40 font-bold mb-1">Medium</p>
                     <p className="text-xs font-medium">{selectedPaper.title}</p>
                  </div>
-                 <p className="text-[10px] font-mono">+{selectedPaper.extraCost}</p>
+                 <p className="text-[11px] font-sans font-bold text-ink/60">+{selectedPaper.extraCost}</p>
               </motion.div>
             )}
          </div>
@@ -403,28 +403,43 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                    <p className="text-sm text-ink/50 max-w-lg leading-relaxed">Select a foundational style for your commission. Each direction is handled by specialized artists.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                    {styles.map((style) => (
                      <button
                         key={style._id}
                         onClick={() => handleSelectStyle(style)}
-                        className={`group relative flex items-center gap-5 p-4 border transition-all duration-500 text-left rounded-sm
+                        className={`group relative flex items-center gap-6 p-6 border transition-all duration-500 text-left rounded-sm
                           ${selectedStyle?._id === style._id ? 'border-ink bg-ink/[0.02] shadow-xl' : 'border-ink/5 hover:border-ink/20'}`}
                      >
-                        <div className="relative w-24 h-24 shrink-0 overflow-hidden bg-ink/5 rounded-sm">
+                        <div className="relative w-32 h-32 shrink-0 overflow-hidden bg-ink/5 rounded-sm">
                            {style.imageUrl ? (
                              <Image src={style.imageUrl} alt={style.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                            ) : <div className="w-full h-full flex items-center justify-center"><ImageIcon className="opacity-10" /></div>}
+                           
+                           {/* Selection Badge - Now on Image */}
+                           {selectedStyle?._id === style._id && (
+                             <motion.div 
+                               initial={{ scale: 0, opacity: 0 }}
+                               animate={{ scale: 1, opacity: 1 }}
+                               className="absolute top-2 right-2 w-7 h-7 rounded-full bg-ink text-white flex items-center justify-center shadow-lg z-10"
+                             >
+                               <Check size={14} strokeWidth={4} />
+                             </motion.div>
+                           )}
                         </div>
-                        <div>
-                           <h3 className="font-serif text-lg leading-tight mb-1">{style.title}</h3>
-                           <p className="text-[10px] text-ink/40 line-clamp-2 leading-relaxed mb-3">{style.description}</p>
-                           <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-mono bg-ink/5 px-2 py-0.5 rounded-full">From ₹{style.basePrice}</span>
-                              {style.requiresReference && <span className="text-[9px] uppercase tracking-widest text-amber-600 font-bold">Ref Required</span>}
+                        <div className="flex-1">
+                           <h3 className="font-serif text-xl leading-tight mb-2 pr-4">{style.title}</h3>
+                           <p className="text-[11px] text-ink/50 line-clamp-2 leading-relaxed mb-4">{style.description}</p>
+                           <div className="flex flex-wrap items-center gap-3">
+                              <span className="text-[10px] font-serif font-bold bg-ink text-white px-3 py-1 rounded-full">From ₹{style.basePrice.toLocaleString()}</span>
+                              {style.requiresReference && (
+                                <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-amber-600 font-extrabold bg-amber-50 px-2 py-1 rounded-sm">
+                                  <div className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
+                                  Ref Required
+                                </span>
+                              )}
                            </div>
                         </div>
-                        {selectedStyle?._id === style._id && <div className="absolute top-4 right-4 text-ink"><Check size={18} /></div>}
                      </button>
                    ))}
                 </div>

@@ -27,8 +27,9 @@ export function OrderButton({ artworkId, title, price, imageUrl = '' }: OrderBut
   const handleOrder = async () => {
     // Phase 1: Authentication Guard
     if (!session) {
-      addToast('Please sign in with Google to secure your order.', 'info');
-      router.push(`/order?artworkId=${artworkId}&title=${encodeURIComponent(title)}&price=${price}`);
+      addToast('Please sign in to buy this artwork.', 'info');
+      const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+      router.push(`/login?callbackUrl=${encodeURIComponent(currentUrl)}`);
       return;
     }
 
@@ -79,7 +80,7 @@ export function OrderButton({ artworkId, title, price, imageUrl = '' }: OrderBut
           loading ? 'bg-ink/20 cursor-not-allowed' : 'bg-ink text-canvas hover:opacity-90 active:scale-[0.98]'
         }`}
       >
-        <span className="relative z-10">{loading ? 'Processing...' : 'Secure Acquisition'}</span>
+        <span className="relative z-10">{loading ? 'Processing...' : 'Buy now'}</span>
         <div className="absolute inset-x-0 bottom-0 h-1 bg-green-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
       </button>
 

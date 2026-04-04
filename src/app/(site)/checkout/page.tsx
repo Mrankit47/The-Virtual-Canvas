@@ -240,16 +240,16 @@ function CheckoutInner() {
                 <div className="p-6">
                   <p className="text-[10px] uppercase tracking-widest text-ink/40 mb-4">Artworks</p>
                   {items.map((item) => (
-                    <div key={item.artworkId} className="flex justify-between py-2 text-sm">
+                     <div key={item.artworkId} className="flex justify-between py-2 text-sm">
                       <span className="font-serif text-ink truncate max-w-[300px]">{item.title}</span>
-                      <span className="font-mono text-ink/60 flex-shrink-0 ml-4">₹{item.price.toLocaleString()}</span>
+                      <span className="font-serif text-ink/70 font-bold flex-shrink-0 ml-4">₹{item.price.toLocaleString()}.00</span>
                     </div>
                   ))}
                   <div className="w-full h-[1px] bg-ink/10 my-4" />
                   {discountFromCart > 0 && (
-                    <div className="flex justify-between text-sm text-green-600 mb-2">
-                      <span>Coupon Discount ({couponFromCart})</span>
-                      <span className="font-mono">−₹{discountFromCart.toLocaleString()}</span>
+                     <div className="flex justify-between text-sm text-green-600 mb-2">
+                      <span className="font-sans text-[10px] uppercase font-bold tracking-widest">Coupon Discount ({couponFromCart})</span>
+                      <span className="font-serif font-bold text-green-700">−₹{discountFromCart.toLocaleString()}.00</span>
                     </div>
                   )}
                   <div className="flex justify-between">

@@ -89,11 +89,12 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
                   <span className="font-sans text-[10px] uppercase tracking-[0.4em] text-ink opacity-40 font-bold">{artwork.subcategory || 'Original Collection'}</span>
                   <h1 className="font-serif text-5xl md:text-6xl tracking-tighter text-ink leading-tight">{artwork.title}</h1>
                </div>
-               <div className="mt-4">
-                  <span className="font-serif text-3xl md:text-4xl text-ink items-center flex gap-3">
-                    <span className="text-xl opacity-30">₹</span>
-                    {artwork.price}.00
+               <div className="mt-6 flex items-baseline gap-1.5 font-serif text-ink">
+                  <span className="text-xl md:text-2xl opacity-40 font-sans select-none">₹</span>
+                  <span className="text-4xl md:text-5xl tracking-tighter tabular-nums font-bold leading-none">
+                    {artwork.price.toLocaleString()}
                   </span>
+                  <span className="text-sm md:text-base opacity-20 font-sans tracking-widest ml-0.5">.00</span>
                </div>
             </header>
 

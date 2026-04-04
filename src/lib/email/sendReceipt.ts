@@ -28,7 +28,7 @@ export async function sendOrderReceipt(data: ReceiptData) {
     });
 
     const customerMailOptions = {
-      from: `"The Virtual Canvas" <ankitkushwah0210k@gmail.com>`,
+      from: `"The Virtual Canvas" <${SMTP_USER}>`,
       to: data.email,
       subject: `Your Order is Confirmed — ${data.orderId} ` + "🎨",
       html: `
@@ -98,8 +98,8 @@ export async function sendOrderReceipt(data: ReceiptData) {
     };
 
     const adminMailOptions = {
-      from: `"The Virtual Canvas System" <ankitkushwah0210k@gmail.com>`,
-      to: "ankitkushwah0210k@gmail.com",
+      from: `"The Virtual Canvas System" <${SMTP_USER}>`,
+      to: SMTP_USER,
       subject: `New Order Received — ${data.orderId}`,
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #111; max-w: 600px; margin: 0 auto; border: 1px solid #eaeaea; background-color: #fafafa;">

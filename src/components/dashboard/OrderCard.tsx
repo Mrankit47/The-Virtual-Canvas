@@ -155,7 +155,7 @@ export default function OrderCard({ order, role }: OrderCardProps) {
               
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-mono text-ink/30 px-2 py-0.5 bg-gray-50 rounded-full border border-ink/5 uppercase">
+                  <span className="text-[10px] font-sans font-bold text-ink/30 px-2 py-0.5 bg-gray-50 rounded-full border border-ink/5 uppercase">
                     #{order.orderId?.slice(-6) || 'UNSET'}
                   </span>
                   <span className={`text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full ${currentStatus.bg} ${currentStatus.text}`}>

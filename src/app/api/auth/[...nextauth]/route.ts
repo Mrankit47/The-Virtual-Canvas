@@ -53,6 +53,8 @@ export const authOptions: NextAuthOptions = {
                         name: user.name || user.email.split('@')[0],
                         email: user.email,
                         role: user.role || "user",
+                        mobile: user.mobileNumber || "",
+                        image: user.image || "",
                     };
                 }
 
@@ -72,10 +74,10 @@ export const authOptions: NextAuthOptions = {
                     const isExpired = new Date(otpData.expiry) < new Date();
                     if (isExpired) throw new Error("OTP expired. Please resend.");
 
-                    // 2a. Role Enforcement for Mobile Login
+                    // 2a. Role Enforcement for Mobile Login (Flexible match)
                     const user = await backendClient.fetch(
-                        `*[_type == "userProfile" && mobileNumber == $cleanMobile][0]`,
-                        { cleanMobile }
+                        `*[_type == "userProfile" && (mobileNumber == $cleanMobile || mobileNumber == $fullMobile)][0]`,
+                        { cleanMobile, fullMobile: `+91${cleanMobile}` }
                     );
 
                     if (user && role && user.role !== role) {
@@ -97,6 +99,8 @@ export const authOptions: NextAuthOptions = {
                         name: user.name || cleanMobile,
                         email: user.email || cleanMobile,
                         role: user.role || "user",
+                        mobile: user.mobileNumber || "",
+                        image: user.image || "",
                     };
                 }
 
@@ -109,10 +113,18 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        async jwt({ token, user }: { token: any, user: any }) {
+        async jwt({ token, user, trigger, session }: { token: any, user: any, trigger?: string, session?: any }) {
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
+                token.mobile = user.mobile;
+                token.image = user.image;
+            }
+            // Allow manual session updates from frontend
+            if (trigger === "update" && session) {
+                token.name = session.name || token.name;
+                token.mobile = session.mobile || token.mobile;
+                token.image = session.image || token.image;
             }
             return token;
         },
@@ -120,6 +132,8 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 (session.user as any).id = token.id;
                 (session.user as any).role = token.role;
+                (session.user as any).mobile = token.mobile;
+                (session.user as any).image = token.image;
             }
             return session;
         }
