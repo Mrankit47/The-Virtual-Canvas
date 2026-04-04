@@ -35,31 +35,14 @@ export function OrderButton({ artworkId, title, price, imageUrl = '' }: OrderBut
 
     try {
       setLoading(true);
-
-      // Phase 2: Create Order via API
-      const res = await fetch('/api/order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerName: session.user?.name || 'Customer',
-          email: session.user?.email,
-          phone: '0000000000',
-          artworkType: 'digital',
-          description: `Direct acquisition of artwork: ${title}`,
-          price: price,
-          artworkId: artworkId,
-        }),
-      });
-
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error);
-      const createdOrderId = result.orderId;
-
-      addToast('Preparing secure checkout...', 'info');
-      router.push(`/track-order?id=${createdOrderId}&pay=true`);
+      // Phase 2: Add to Cart and Redirect to Checkout
+      // This ensures the user can enter Name/Email/Phone and Promo Code before paying.
+      addToCart({ artworkId, title, price, imageUrl });
+      addToast('Redirecting to secure checkout...', 'success');
+      router.push('/checkout');
     } catch (err: any) {
       console.error(err);
-      addToast(`Error initiating order: ${err.message}`, 'error');
+      addToast('Error initiating checkout. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

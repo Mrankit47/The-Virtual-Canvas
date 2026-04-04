@@ -91,6 +91,12 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
   const [submitStage, setSubmitStage] = useState('');
   const [isUploadingRef, setIsUploadingRef] = useState(false);
 
+  // Coupon States
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [unDiscountedPrice, setUnDiscountedPrice] = useState(0);
+
   // ── Restore from localStorage ──
   useEffect(() => {
     try {
@@ -118,11 +124,18 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
   useEffect(() => {
     if (!selectedStyle || !selectedSize || !selectedPaper) {
       setFinalPrice(0);
+      setUnDiscountedPrice(0);
       return;
     }
     const price = Math.round(selectedStyle.basePrice * selectedSize.multiplier + selectedPaper.extraCost);
-    setFinalPrice(price);
-  }, [selectedStyle, selectedSize, selectedPaper]);
+    setUnDiscountedPrice(price);
+    
+    if (appliedCoupon) {
+      setFinalPrice(Math.max(0, price - appliedCoupon.discountAmount));
+    } else {
+      setFinalPrice(price);
+    }
+  }, [selectedStyle, selectedSize, selectedPaper, appliedCoupon]);
 
   // ── Load Razorpay script ──
   useEffect(() => {
@@ -188,6 +201,41 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
     }
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    
+    try {
+      setIsValidatingCoupon(true);
+      const res = await fetch('/api/coupon/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput, total: unDiscountedPrice }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.valid) {
+        setAppliedCoupon({
+          code: couponInput.trim().toUpperCase(),
+          discountAmount: data.discountAmount
+        });
+        addToast(data.message, 'success');
+      } else {
+        addToast(data.message || 'Invalid coupon code', 'error');
+      }
+    } catch (err) {
+      addToast('Failed to validate coupon', 'error');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    addToast('Coupon removed', 'info');
+  };
+
   const validateCustomerInfo = () => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = 'Name is required';
@@ -244,6 +292,8 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
           clientFinalPrice: finalPrice,
           notes: notes.trim() || undefined,
           referenceImageUrl: referenceImageUrl.trim() || undefined,
+          couponCode: appliedCoupon?.code,
+          discountAmount: appliedCoupon?.discountAmount
         }),
       });
 
@@ -351,11 +401,30 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
             )}
          </div>
 
-         <div className="mt-8">
-            <p className="text-[10px] uppercase tracking-widest opacity-40 font-bold mb-2">Estimated Investment</p>
-            <motion.p key={finalPrice} initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="text-3xl font-serif tracking-tighter">
-              ₹{finalPrice.toLocaleString()}
-            </motion.p>
+         <div className="mt-8 border-t border-ink/10 pt-6">
+            <p className="text-[10px] uppercase tracking-widest opacity-40 font-bold mb-4">Investment Summary</p>
+            
+            {appliedCoupon && (
+              <div className="flex justify-between items-center mb-1 text-xs opacity-40 line-through">
+                <span>Original Total</span>
+                <span>₹{unDiscountedPrice.toLocaleString()}</span>
+              </div>
+            )}
+            
+            {appliedCoupon && (
+              <div className="flex justify-between items-center mb-3 text-xs text-green-600 font-medium">
+                <span>Discount ({appliedCoupon.code})</span>
+                <span>-₹{appliedCoupon.discountAmount.toLocaleString()}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between items-baseline mb-4">
+              <span className="text-sm font-bold">Grand Total</span>
+              <motion.p key={finalPrice} initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="text-3xl font-serif tracking-tighter">
+                ₹{finalPrice.toLocaleString()}
+              </motion.p>
+            </div>
+            
             <p className="text-[9px] opacity-30 mt-2 font-medium">Incl. all taxes & digital delivery</p>
          </div>
       </div>
@@ -582,6 +651,56 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                       <p className="text-xs font-bold text-blue-900 mb-1 uppercase tracking-widest">Client Protection Active</p>
                       <p className="text-[11px] text-blue-800/70 leading-relaxed">Your data and payment are secured via industry-standard encryption. Commission tracking will be sent to the email provided above instantly.</p>
                    </div>
+                </div>
+
+                {/* Coupon Section in Step 4 */}
+                <div className="mt-8 p-8 border border-ink/10 rounded-2xl bg-white/50 backdrop-blur-sm shadow-sm max-w-lg">
+                   <div className="flex items-center gap-2 mb-6">
+                      <CreditCard size={16} className="opacity-30" />
+                      <span className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40">Apply Promotion</span>
+                   </div>
+
+                   {!appliedCoupon ? (
+                      <div className="flex gap-4">
+                         <div className="relative flex-1">
+                            <input 
+                               type="text" 
+                               placeholder="Coupon Code" 
+                               value={couponInput}
+                               onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                               className="w-full bg-transparent border-b border-ink/20 py-3 outline-none focus:border-ink transition-all font-mono text-xs tracking-widest placeholder:font-sans placeholder:tracking-normal"
+                            />
+                            {isValidatingCoupon && (
+                               <div className="absolute right-0 bottom-3">
+                                  <ArtLoader variant="inline" size="sm" />
+                                </div>
+                            )}
+                         </div>
+                         <button 
+                            onClick={handleApplyCoupon}
+                            disabled={!couponInput || isValidatingCoupon}
+                            className="px-6 py-3 bg-ink text-white text-[10px] font-bold uppercase tracking-widest rounded-sm disabled:opacity-30 transition-opacity"
+                         >
+                            Apply
+                         </button>
+                      </div>
+                   ) : (
+                      <div className="flex items-center justify-between bg-green-50 px-6 py-4 border border-green-100 rounded-xl">
+                         <div className="flex items-center gap-4">
+                            <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                            <div>
+                               <p className="text-[11px] font-mono tracking-widest text-green-700 font-bold uppercase">{appliedCoupon.code}</p>
+                               <p className="text-[10px] text-green-600/70 font-medium tracking-tight">₹{appliedCoupon.discountAmount.toLocaleString()} discount secured ✓</p>
+                            </div>
+                         </div>
+                         <button 
+                            onClick={removeCoupon}
+                            className="text-[10px] font-bold uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors"
+                         >
+                            Remove
+                         </button>
+                      </div>
+                   )}
                 </div>
               </motion.div>
             )}

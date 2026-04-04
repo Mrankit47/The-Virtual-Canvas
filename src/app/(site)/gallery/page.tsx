@@ -12,6 +12,7 @@ export default async function GalleryPage() {
       imageSource,
       imageUrl,
       "image": image.asset->url,
+      "imageLqip": image.asset->metadata.lqip,
       "category": category->{ title, "slug": slug.current }
     }`),
     client.fetch(`*[_type == "category"] | order(order asc, title asc) {

@@ -33,7 +33,8 @@ export async function POST(req: Request) {
 
     const { 
       customerName, email, phone, artworkType, 
-      description, referenceImage, price, paymentProof 
+      description, referenceImage, price, paymentProof,
+      couponCode, discountAmount
     } = parsed.data;
 
     const orderId = `TVC-${Math.floor(100 + Math.random() * 900)}-${Date.now().toString().slice(-4)}`;
@@ -52,6 +53,8 @@ export async function POST(req: Request) {
       referenceImage: referenceImage,
       paymentProof: paymentProof,
       artworkId: body.artworkId ? { _type: 'reference', _ref: body.artworkId } : undefined,
+      couponCode: couponCode || undefined,
+      discountAmount: discountAmount || 0,
     
       paymentStatus: 'pending',
       orderStatus: 'pending',

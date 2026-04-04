@@ -14,12 +14,18 @@ export function PhotographyClient({ photos }: { photos: any[] }) {
   const { openLightbox } = useGalleryStore();
 
   // Dynamically extract unique categories from the photos array
-  const uniqueCategories = Array.from(new Set(photos.filter(p => !!p.category).map(p => p.category))).sort() as string[];
+  const uniqueCategories = Array.from(new Set(
+    photos
+      .filter(p => !!p.category)
+      .map(p => typeof p.category === 'object' ? p.category.title : p.category)
+  )).sort() as string[];
 
-  // Filter logic
   const filteredPhotos = activeCategory === 'all' 
     ? photos 
-    : photos.filter(p => p.category === activeCategory);
+    : photos.filter(p => {
+        const catValue = typeof p.category === 'object' ? p.category.title : p.category;
+        return catValue === activeCategory;
+      });
 
   useEffect(() => { 
     setMounted(true);
@@ -160,7 +166,7 @@ export function PhotographyClient({ photos }: { photos: any[] }) {
                     <div className="absolute bottom-0 left-0 p-5 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none flex flex-col gap-1 ease-[cubic-bezier(0.22,1,0.36,1)]">
                       <h3 className="font-serif text-xl md:text-2xl tracking-tighter text-[#f5f5f0]">{photo.title}</h3>
                       <span className="text-[8px] uppercase tracking-[0.2em] text-[#f5f5f0]/60">
-                        {photo.location || photo.category}
+                        {photo.location || (typeof photo.category === 'object' ? photo.category.title : photo.category)}
                       </span>
                     </div>
                   </motion.div>

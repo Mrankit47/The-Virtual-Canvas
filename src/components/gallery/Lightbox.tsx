@@ -5,10 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { optimizedUrl } from '@/lib/utils';
-import { useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export default function Lightbox() {
   const { lightboxIsOpen, activeArtwork, artworksContext, closeLightbox, nextArtwork, prevArtwork } = useGalleryStore();
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (lightboxIsOpen) {
+      setIsLoaded(false); // Reset load state when artwork changes
+    }
+  }, [activeArtwork?._id, lightboxIsOpen]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') closeLightbox();
@@ -74,15 +81,24 @@ export default function Lightbox() {
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="relative w-full h-[55vh] md:h-full flex-grow flex items-center justify-center"
             >
-              <Image
-                src={optimizedUrl(activeArtwork.imageUrl)}
-                alt={activeArtwork.title || "Artwork"}
-                fill
-                className="object-contain drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]"
-                sizes="100vw"
-                placeholder="blur"
-                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88eJNPAAIvwNIGP1SswAAAABJRU5ErkJggg=="
-              />
+              <div className="relative w-full h-full flex items-center justify-center">
+                {!isLoaded && (
+                  <div className="absolute inset-x-0 inset-y-0 flex items-center justify-center z-10 pointer-events-none">
+                    <div className="w-12 h-12 border-t-2 border-canvas/20 rounded-full animate-spin" />
+                  </div>
+                )}
+                <Image
+                  src={optimizedUrl(activeArtwork.imageUrl)}
+                  alt={activeArtwork.title || "Artwork"}
+                  fill
+                  className={`object-contain drop-shadow-[0_0_30px_rgba(0,0,0,0.4)] transition-all duration-1000 ease-out ${isLoaded ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-[0.98] blur-xl'}`}
+                  sizes="100vw"
+                  placeholder="blur"
+                  blurDataURL={activeArtwork.imageLqip || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88eJNPAAIvwNIGP1SswAAAABJRU5ErkJggg=="}
+                  onLoad={() => setIsLoaded(true)}
+                  priority
+                />
+              </div>
             </motion.div>
           </AnimatePresence>
           
@@ -97,7 +113,7 @@ export default function Lightbox() {
             >
               <h2 className="font-serif text-3xl md:text-4xl tracking-tighter">{activeArtwork.title}</h2>
               <div className="flex gap-3 items-center justify-center md:justify-start text-[10px] md:text-xs uppercase tracking-widest opacity-60">
-                <span>{activeArtwork.category}</span>
+                <span>{typeof activeArtwork.category === 'object' ? activeArtwork.category.title : activeArtwork.category}</span>
                 {activeArtwork.price && <span>• ₹{activeArtwork.price}</span>}
               </div>
               {activeArtwork.description && (

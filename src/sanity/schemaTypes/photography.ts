@@ -19,16 +19,8 @@ export default defineType({
     defineField({
       name: 'category',
       title: 'Category',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'Flowers', value: 'flowers' },
-          { title: 'Sky', value: 'sky' },
-          { title: 'Landscape', value: 'landscape' },
-          { title: 'Nature', value: 'nature' },
-          { title: 'Street', value: 'street' },
-        ],
-      },
+      type: 'reference',
+      to: [{ type: 'photographyCategory' }],
       fieldset: 'details',
     }),
     defineField({
