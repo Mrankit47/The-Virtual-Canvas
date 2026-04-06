@@ -5,10 +5,11 @@ import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 
-function AuthButton({ session, status }: { session: any, status: string }) {
+function AuthButton({ session, status, isPhotography }: { session: any, status: string, isPhotography: boolean }) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -23,14 +24,14 @@ function AuthButton({ session, status }: { session: any, status: string }) {
   }, []);
 
   if (status === 'loading') {
-    return <div className="w-8 h-8 rounded-full border border-white/20 animate-pulse bg-white/5" />;
+    return <div className={`w-8 h-8 rounded-full border border-current opacity-20 animate-pulse bg-current/5`} />;
   }
 
   if (!session) {
     return (
       <Link
         href="/login"
-        className="text-[10px] uppercase tracking-[0.3em] font-bold border border-white/20 px-6 py-2 hover:bg-white hover:text-black transition-all duration-500 rounded-full bg-white/5 backdrop-blur-sm pointer-events-auto"
+        className={`text-[10px] uppercase tracking-[0.3em] font-bold border ${isPhotography ? 'border-white/20 hover:bg-white hover:text-black' : 'border-black/20 hover:bg-black hover:text-white'} px-6 py-2 transition-all duration-500 rounded-full bg-current/5 backdrop-blur-sm pointer-events-auto`}
       >
         Sign In
       </Link>
@@ -56,17 +57,18 @@ function AuthButton({ session, status }: { session: any, status: string }) {
       {/* Avatar Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="group flex items-center gap-3 p-1 pr-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all duration-300 backdrop-blur-md"
+        className={`group flex items-center gap-3 p-1 pr-4 bg-current/5 hover:bg-current/10 border ${isPhotography ? 'border-white/10' : 'border-black/10'} rounded-full transition-all duration-300 backdrop-blur-md`}
       >
         {avatarUrl ? (
           <div className="relative w-8 h-8">
             <Image 
               src={avatarUrl} alt={name} fill
-              className="rounded-full border border-white/20 object-cover" 
+              sizes="32px"
+              className={`rounded-full border ${isPhotography ? 'border-white/20' : 'border-black/20'} object-cover`} 
             />
           </div>
         ) : (
-          <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">
+          <div className={`w-8 h-8 rounded-full ${isPhotography ? 'bg-white text-black' : 'bg-black text-white'} flex items-center justify-center text-[10px] font-bold`}>
             {name[0]}
           </div>
         )}
@@ -142,36 +144,43 @@ function AuthButton({ session, status }: { session: any, status: string }) {
 export function Navbar() {
   const { data: session, status } = useSession();
   const { itemCount } = useCart();
+  const pathname = usePathname();
+
+  const isPhotography = pathname?.startsWith('/photography');
+  const navColor = isPhotography ? 'text-white' : 'text-black';
+  const navBg = isPhotography 
+    ? 'bg-black/10 md:bg-black/20 backdrop-blur-xl border-b border-white/5' 
+    : 'bg-transparent';
 
   return (
-    <header className="fixed top-0 w-full z-50 mix-blend-difference text-white px-6 md:px-12 py-8 flex justify-between items-center bg-transparent pointer-events-none">
+    <header className={`fixed top-0 w-full z-50 ${navColor} px-6 md:px-12 py-6 flex justify-between items-center ${navBg} pointer-events-none transition-all duration-500`}>
       <Link href="/" aria-label="Home - The Virtual Canvas" className="font-serif text-3xl md:text-4xl tracking-tighter hover:opacity-70 transition-opacity pointer-events-auto">
         The Virtual Canvas
       </Link>
       <nav aria-label="Main Navigation" className="hidden md:flex gap-10 text-xs uppercase tracking-[0.2em] font-medium items-center pointer-events-none">
         <Link href="/artworks" className="group relative pointer-events-auto">
           Artworks
-          <span className="absolute -bottom-2 left-0 w-0 h-[1.5px] bg-white group-hover:w-full transition-all duration-300"></span>
+          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300`}></span>
         </Link>
         <Link href="/gallery" className="group relative pointer-events-auto">
           Gallery
-          <span className="absolute -bottom-2 left-0 w-0 h-[1.5px] bg-white group-hover:w-full transition-all duration-300"></span>
+          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300`}></span>
         </Link>
         <Link href="/photography" className="group relative pointer-events-auto">
           Photography
-          <span className="absolute -bottom-2 left-0 w-0 h-[1.5px] bg-white group-hover:w-full transition-all duration-300 delay-75"></span>
+          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-75`}></span>
         </Link>
         <Link href="/process" className="group relative pointer-events-auto">
           Process
-          <span className="absolute -bottom-2 left-0 w-0 h-[1.5px] bg-white group-hover:w-full transition-all duration-300 delay-100"></span>
+          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-100`}></span>
         </Link>
         <Link href="/order" className="group relative pointer-events-auto">
           Commission Art
-          <span className="absolute -bottom-2 left-0 w-0 h-[1.5px] bg-white group-hover:w-full transition-all duration-300 delay-150"></span>
+          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-150`}></span>
         </Link>
         <Link href="/track-order" className="group relative pointer-events-auto">
           Track Order
-          <span className="absolute -bottom-2 left-0 w-0 h-[1.5px] bg-white group-hover:w-full transition-all duration-300 delay-200"></span>
+          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-200`}></span>
         </Link>
 
         {/* Cart Icon (Only show if logged in as a normal User) */}
@@ -181,7 +190,7 @@ export function Navbar() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
             {itemCount > 0 && (
-              <span className="absolute -top-2 -right-2 w-4 h-4 bg-white text-black text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+              <span className={`absolute -top-2 -right-2 w-4 h-4 ${isPhotography ? 'bg-white text-black' : 'bg-black text-white'} text-[9px] font-bold rounded-full flex items-center justify-center leading-none`}>
                 {itemCount > 9 ? '9+' : itemCount}
               </span>
             )}
@@ -190,7 +199,7 @@ export function Navbar() {
 
         {/* Auth Button */}
         <div className="pointer-events-auto">
-          <AuthButton session={session} status={status} />
+          <AuthButton session={session} status={status} isPhotography={isPhotography} />
         </div>
       </nav>
     </header>

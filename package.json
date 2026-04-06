@@ -56,10 +56,5 @@
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.19",
     "typescript": "^5"
-  },
-  "overrides": {
-    "slate": "0.117.2",
-    "slate-react": "0.117.3",
-    "slate-dom": "0.116.0"
   }
 }
