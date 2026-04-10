@@ -8,7 +8,7 @@ import config from '../../../../sanity.config';
 import ArtLoader from '@/components/ui/ArtLoader';
 
 const NextStudio = dynamic(
-  () => import('next-sanity/studio').then((mod) => mod.NextStudio),
+  () => import('sanity').then((mod) => mod.Studio),
   { ssr: false }
 );
 

@@ -1,4 +1,4 @@
-import { groq } from 'next-sanity';
+import groq from 'groq';
 
 export const GET_ALL_ARTWORKS_QUERY = groq`
   *[_type == "artwork"] | order(order asc) {

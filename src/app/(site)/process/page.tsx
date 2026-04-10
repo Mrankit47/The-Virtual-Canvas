@@ -1,4 +1,4 @@
-import { client } from '@/sanity/client';
+import { client } from '@/lib/sanity';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { ProcessTimeline } from '@/components/process/ProcessTimeline';
 import { ProcessComparison } from '@/components/process/ProcessComparison';

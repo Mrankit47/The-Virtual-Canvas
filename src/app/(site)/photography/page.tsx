@@ -1,4 +1,4 @@
-import { client } from '@/sanity/client';
+import { client } from '@/lib/sanity';
 import { GET_PHOTOGRAPHY_QUERY } from '@/sanity/queries';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { PhotographyClient } from '@/components/gallery/PhotographyClient';

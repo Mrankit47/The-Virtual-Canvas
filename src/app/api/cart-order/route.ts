@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from 'next-sanity';
+import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { sendOrderReceipt } from '@/lib/email/sendReceipt';
 
 // Token is validated inside the handler — not at module level

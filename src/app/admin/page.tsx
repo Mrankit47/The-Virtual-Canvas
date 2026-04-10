@@ -1,18 +1,13 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from '@/lib/auth';
 import { redirect } from "next/navigation";
-import { createClient } from 'next-sanity';
+import { client } from '@/lib/sanity';
 import { env } from '@/config/env';
 import AdminOrderTable from "@/components/dashboard/AdminOrderTable";
 import StatsCard from "@/components/dashboard/StatsCard";
 import { ShoppingBag, DollarSign, BarChart3, CheckCircle2, Clock, Ticket } from "lucide-react";
 
-const client = createClient({
-  projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: env.NEXT_PUBLIC_SANITY_DATASET,
-  apiVersion: '2024-03-22',
-  useCdn: false,
-});
+
 
 export default async function AdminDashboard() {
   const session: any = await getServerSession(authOptions);

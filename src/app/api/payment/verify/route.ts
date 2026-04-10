@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { createClient } from "next-sanity";
+import { authOptions } from '@/lib/auth';
+import { createClient } from '@sanity/client';
 import { env } from "@/config/env";
 import { verifyPaymentSignature } from "@/lib/razorpay";
 import { sendNotificationEmail } from "@/lib/email";

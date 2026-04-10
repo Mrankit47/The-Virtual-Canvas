@@ -1,13 +1,8 @@
-import { createClient } from 'next-sanity';
+import { client } from '@/lib/sanity';
 import { env } from '@/config/env';
 import AdminOrderTable from "@/components/dashboard/AdminOrderTable";
 
-const client = createClient({
-  projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: env.NEXT_PUBLIC_SANITY_DATASET,
-  apiVersion: '2024-03-22',
-  useCdn: false,
-});
+
 
 export default async function AdminOrdersManagementPage() {
   const [orders, artists] = await Promise.all([
