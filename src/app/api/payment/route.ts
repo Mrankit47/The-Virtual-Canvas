@@ -1,24 +1,35 @@
 import Razorpay from "razorpay";
-import { NextResponse } from "next/server";
 import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
 
-const backendClient = createClient({
-  projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: env.NEXT_PUBLIC_SANITY_DATASET,
-  apiVersion: '2024-03-22',
-  useCdn: false,
-  token: env.SANITY_API_WRITE_TOKEN,
-});
+// 3. Add at top of file:
+export const dynamic = "force-dynamic";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY!,
-  key_secret: process.env.RAZORPAY_SECRET!,
-});
-
+// 4. Ensure correct App Router syntax:
 export async function POST(req: Request) {
   try {
+    // 5. Replace any req.body usage with:
     const { amount, orderId, couponCode } = await req.json();
+
+    // 6. Use process.env safely inside function:
+    if (!process.env.RAZORPAY_KEY || !process.env.RAZORPAY_SECRET) {
+        console.error("CRITICAL: Razorpay credentials missing");
+        return Response.json({ success: false, error: "Server configuration error" }, { status: 500 });
+    }
+
+    // 1 & 2. Move initialization inside function:
+    const backendClient = createClient({
+      projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+      dataset: env.NEXT_PUBLIC_SANITY_DATASET,
+      apiVersion: '2024-03-22',
+      useCdn: false,
+      token: env.SANITY_API_WRITE_TOKEN,
+    });
+
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY,
+      key_secret: process.env.RAZORPAY_SECRET,
+    });
 
     // Safety Layer: Double-Submit Protection
     const order = await backendClient.fetch(
@@ -27,14 +38,14 @@ export async function POST(req: Request) {
     );
 
     if (!order) {
-       return NextResponse.json({ error: "Order not found" }, { status: 404 });
+       return Response.json({ success: false, error: "Order not found" }, { status: 404 });
     }
 
     if (order.paymentStatus === "paid") {
-      return NextResponse.json({ error: "Order already paid" }, { status: 400 });
+      return Response.json({ success: false, error: "Order already paid" }, { status: 400 });
     }
 
-    // ── RE-VALIDATE COUPON on server (if provided) ──────────────────────────
+    // ── RE-VALIDATE COUPON on server ──────────────────────────
     let serverTotal = order.price;
     let discountAmount = 0;
 
@@ -53,17 +64,16 @@ export async function POST(req: Request) {
         }
         serverTotal = Math.max(0, order.price - discountAmount);
 
-        // Update the order in Sanity with coupon info if it's new
         await backendClient.patch(order._id)
           .set({ couponCode: couponCode.trim().toUpperCase(), discountAmount, price: serverTotal })
           .commit();
       }
     }
 
-    // Fraud check — client amount must match server total
+    // Fraud check
     if (amount !== undefined && Math.abs(amount - serverTotal) > 1) {
       console.error(`FRAUD ATTEMPT: clientAmount=${amount}, serverTotal=${serverTotal}`);
-      return NextResponse.json({ error: 'Invalid payment amount. Please refresh and try again.' }, { status: 400 });
+      return Response.json({ success: false, error: 'Invalid payment amount. Please refresh and try again.' }, { status: 400 });
     }
 
     const options = {
@@ -74,11 +84,13 @@ export async function POST(req: Request) {
 
     const razorpayOrder = await razorpay.orders.create(options);
 
-    return NextResponse.json(razorpayOrder);
+    // 7 & 9. Return clean, production-ready Response
+    return Response.json(razorpayOrder);
   } catch (error: any) {
+    // 7. Wrap logic in try-catch
     console.error("Razorpay Order Creation Error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to create payment order" },
+    return Response.json(
+      { success: false, error: error.message || "Failed to create payment order" },
       { status: 500 }
     );
   }
