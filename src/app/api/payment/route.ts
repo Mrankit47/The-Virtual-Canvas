@@ -11,8 +11,8 @@ export async function POST(req: Request) {
     // 5. Replace any req.body usage with:
     const { amount, orderId, couponCode } = await req.json();
 
-    // 6. Use process.env safely inside function:
-    if (!process.env.RAZORPAY_KEY || !process.env.RAZORPAY_SECRET) {
+    // 6. Use env validation:
+    if (!env.NEXT_PUBLIC_RAZORPAY_KEY || !env.RAZORPAY_KEY_SECRET) {
         console.error("CRITICAL: Razorpay credentials missing");
         return Response.json({ success: false, error: "Server configuration error" }, { status: 500 });
     }
@@ -27,8 +27,8 @@ export async function POST(req: Request) {
     });
 
     const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY,
-      key_secret: process.env.RAZORPAY_SECRET,
+      key_id: env.NEXT_PUBLIC_RAZORPAY_KEY,
+      key_secret: env.RAZORPAY_KEY_SECRET,
     });
 
     // Safety Layer: Double-Submit Protection
@@ -88,9 +88,15 @@ export async function POST(req: Request) {
     return Response.json(razorpayOrder);
   } catch (error: any) {
     // 7. Wrap logic in try-catch
-    console.error("Razorpay Order Creation Error:", error);
+    console.error("❌ Razorpay Order Creation Detailed Error (Route):", {
+        message: error.message,
+        stack: error.stack,
+        ...error
+    });
+
+    const errorMessage = error.message || (error.error && error.error.description) || "Failed to create payment order";
     return Response.json(
-      { success: false, error: error.message || "Failed to create payment order" },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
