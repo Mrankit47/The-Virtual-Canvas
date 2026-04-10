@@ -43,24 +43,34 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Order already paid" }, { status: 400 });
     }
 
-    const amount = order.totalAmount || order.price;
-    if (!amount) return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+    const totalAmount = order.totalAmount || order.price;
+    if (!totalAmount || isNaN(Number(totalAmount))) {
+        return NextResponse.json({ error: "Invalid order amount on server" }, { status: 400 });
+    }
 
     // 3. Create Razorpay Order
+    console.log(`💳 Attempting to create Razorpay order for ${totalAmount} INR...`);
+    
     const razorpayOrder = await razorpay.orders.create({
-        amount: amount * 100, // in paise
+        amount: Math.round(Number(totalAmount) * 100), // in paise
         currency: "INR",
-        receipt: order.orderId,
+        receipt: order.orderId || order._id, // Fallback to _id if orderId field is missing
     });
 
     return NextResponse.json({
         id: razorpayOrder.id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        order_id: order.orderId,
+        order_id: order.orderId || order._id,
     });
   } catch (error: any) {
-    console.error("Create Payment Error:", error.message);
-    return NextResponse.json({ error: "Failed to create payment" }, { status: 500 });
+    console.error("❌ Razorpay Order Creation Detailed Error:", {
+        message: error.message,
+        stack: error.stack,
+        ...error // Spread to catch other properties like 'error' from Razorpay SDK
+    });
+
+    const errorMessage = error.message || (error.error && error.error.description) || "Failed to create payment order";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
