@@ -1,4 +1,4 @@
-import { client } from '@/sanity/client';
+import { client } from '@/lib/sanity';
 import { PageTransition } from '@/components/layout/PageTransition';
 import Image from 'next/image';
 import { optimizedUrl } from '@/lib/utils';

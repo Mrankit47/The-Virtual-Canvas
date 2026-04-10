@@ -1,6 +1,6 @@
 import Razorpay from "razorpay";
 import { NextResponse } from "next/server";
-import { createClient } from 'next-sanity';
+import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
 
 const backendClient = createClient({

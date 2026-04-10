@@ -1,13 +1,8 @@
-import { createClient } from 'next-sanity';
+import { client } from '@/lib/sanity';
 import imageUrlBuilder from '@sanity/image-url';
 import { env } from '@/config/env';
 
-const client = createClient({
-  projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: env.NEXT_PUBLIC_SANITY_DATASET,
-  apiVersion: '2024-03-22',
-  useCdn: true,
-});
+
 
 const builder = imageUrlBuilder(client);
 

@@ -14,7 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { orderFormSchema, OrderFormValues } from '@/lib/validations/order';
 import { useUIStore } from '@/store/useUIStore';
 import { env } from '@/config/env';
-import { client } from '@/sanity/client';
+import { client } from '@/lib/sanity';
 import { GET_ART_STYLES_QUERY } from '@/sanity/queries';
 
 interface ArtStyle {

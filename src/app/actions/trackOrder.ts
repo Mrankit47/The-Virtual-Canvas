@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from 'next-sanity';
+import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
 
 const backendClient = createClient({
