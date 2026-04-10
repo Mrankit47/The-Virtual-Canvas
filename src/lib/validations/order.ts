@@ -10,6 +10,8 @@ export const orderFormSchema = z.object({
   price: z.number().min(1, "Price calculation error."), 
   paymentProof: z.string().optional(), 
   artworkId: z.string().optional(),
+  couponCode: z.string().optional(),
+  discountAmount: z.number().optional(),
 });
 
 export type OrderFormValues = z.infer<typeof orderFormSchema>;

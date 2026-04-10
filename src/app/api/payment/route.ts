@@ -18,7 +18,7 @@ const razorpay = new Razorpay({
 
 export async function POST(req: Request) {
   try {
-    const { amount, orderId } = await req.json();
+    const { amount, orderId, couponCode } = await req.json();
 
     // Safety Layer: Double-Submit Protection
     const order = await backendClient.fetch(
@@ -34,8 +34,40 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Order already paid" }, { status: 400 });
     }
 
+    // ── RE-VALIDATE COUPON on server (if provided) ──────────────────────────
+    let serverTotal = order.price;
+    let discountAmount = 0;
+
+    if (couponCode) {
+      const couponData = await backendClient.fetch(
+        `*[_type == "coupon" && code == $code][0]`,
+        { code: couponCode.trim().toUpperCase() }
+      );
+
+      if (couponData && couponData.isActive && new Date(couponData.expiry) >= new Date() &&
+          (!couponData.usageLimit || couponData.usedCount < couponData.usageLimit)) {
+        if (couponData.type === 'percentage') {
+          discountAmount = Math.round((order.price * couponData.discount) / 100);
+        } else if (couponData.type === 'flat') {
+          discountAmount = Math.min(couponData.discount, order.price);
+        }
+        serverTotal = Math.max(0, order.price - discountAmount);
+
+        // Update the order in Sanity with coupon info if it's new
+        await backendClient.patch(order._id)
+          .set({ couponCode: couponCode.trim().toUpperCase(), discountAmount, price: serverTotal })
+          .commit();
+      }
+    }
+
+    // Fraud check — client amount must match server total
+    if (amount !== undefined && Math.abs(amount - serverTotal) > 1) {
+      console.error(`FRAUD ATTEMPT: clientAmount=${amount}, serverTotal=${serverTotal}`);
+      return NextResponse.json({ error: 'Invalid payment amount. Please refresh and try again.' }, { status: 400 });
+    }
+
     const options = {
-      amount: amount * 100, // Razorpay expects paise
+      amount: serverTotal * 100, // Razorpay expects paise
       currency: "INR",
       receipt: orderId,
     };

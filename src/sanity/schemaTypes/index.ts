@@ -2,6 +2,7 @@ import { type SchemaTypeDefinition } from 'sanity';
 import category from './category';
 import artwork from './artwork';
 import photography from './photography';
+import photographyCategory from './photographyCategory';
 import order from './order';
 import gallery from './gallery';
 import userProfile from './userProfile';
@@ -18,6 +19,7 @@ export const schemaTypes = [
   artwork,
   gallery,
   photography,
+  photographyCategory,
   category,
   order,
   coupon,

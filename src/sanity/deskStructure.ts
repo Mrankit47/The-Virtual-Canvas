@@ -16,6 +16,7 @@ export const deskStructure = (S: StructureBuilder) =>
               S.documentTypeListItem('artwork').title('Artworks').id('artworks'),
               S.documentTypeListItem('gallery').title('Gallery').id('gallery'),
               S.documentTypeListItem('photography').title('Photography').id('photography'),
+              S.documentTypeListItem('photographyCategory').title('Photography Categories').id('photographyCategories'),
               S.documentTypeListItem('category').title('Categories').id('categories'),
               S.documentTypeListItem('processStep').title('Process Steps').id('processSteps'),
             ])

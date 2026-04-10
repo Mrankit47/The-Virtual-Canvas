@@ -128,14 +128,14 @@ export default function CartPage() {
                   </div>
 
                   {/* Info */}
-                  <div className="flex-1 min-w-0">
+                   <div className="flex-1 min-w-0">
                     <h2 className="font-serif text-lg tracking-tight text-ink truncate">{item.title}</h2>
-                    <p className="font-mono text-xs text-ink/40 mt-1 truncate">{item.artworkId}</p>
+                    <p className="font-sans text-[10px] uppercase tracking-widest text-ink/20 mt-1 truncate">ID: {item.artworkId.slice(-8)}</p>
                   </div>
 
-                  {/* Price */}
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-serif text-xl text-ink">₹{item.price.toLocaleString()}</p>
+                  <div className="text-right flex-shrink-0 flex items-baseline gap-1 font-serif text-ink">
+                    <span className="text-sm opacity-40 font-sans">₹</span>
+                    <p className="text-xl font-bold">{item.price.toLocaleString()}</p>
                   </div>
 
                   {/* Remove */}
@@ -166,7 +166,7 @@ export default function CartPage() {
                 {items.map((item) => (
                   <div key={item.artworkId} className="flex justify-between text-sm">
                     <span className="font-serif text-ink/70 truncate max-w-[200px]">{item.title}</span>
-                    <span className="font-mono text-ink/60 flex-shrink-0 ml-4">₹{item.price.toLocaleString()}</span>
+                    <span className="font-serif text-xs font-bold text-ink/60 flex-shrink-0 ml-4">₹{item.price.toLocaleString()+(item.price % 1 === 0 ? '.00' : '')}</span>
                   </div>
                 ))}
               </div>
@@ -177,9 +177,9 @@ export default function CartPage() {
               <div className="mb-6">
                 <p className="font-sans text-[10px] uppercase tracking-widest text-ink/40 mb-3">Coupon Code</p>
                 {couponResult?.valid ? (
-                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-sm">
+                   <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-sm">
                     <div>
-                      <span className="font-mono text-xs text-green-700 font-bold">{couponCode.toUpperCase()}</span>
+                      <span className="font-sans text-xs text-green-700 font-bold tracking-widest">{couponCode.toUpperCase()}</span>
                       <p className="text-[10px] text-green-600 mt-0.5">−₹{appliedDiscount.toLocaleString()} applied</p>
                     </div>
                     <button onClick={handleRemoveCoupon} className="text-green-500 hover:text-green-700 text-xs">
@@ -194,7 +194,7 @@ export default function CartPage() {
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                       onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                      className="flex-1 bg-transparent border-b border-ink/20 py-2 text-xs font-mono uppercase outline-none focus:border-ink transition-colors placeholder:tracking-widest placeholder:text-ink/30"
+                       className="flex-1 bg-transparent border-b border-ink/20 py-2 text-xs font-sans font-bold uppercase outline-none focus:border-ink transition-colors placeholder:tracking-widest placeholder:text-ink/30"
                     />
                     <button
                       onClick={handleApplyCoupon}
@@ -212,9 +212,9 @@ export default function CartPage() {
 
               {/* Totals */}
               <div className="flex flex-col gap-2 mb-8">
-                <div className="flex justify-between text-sm">
+                 <div className="flex justify-between text-sm">
                   <span className="text-ink/50">Subtotal</span>
-                  <span className="font-mono">₹{total.toLocaleString()}</span>
+                  <span className="font-serif font-bold text-ink/70">₹{total.toLocaleString()}.00</span>
                 </div>
                 {appliedDiscount > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
@@ -223,9 +223,12 @@ export default function CartPage() {
                   </div>
                 )}
                 <div className="w-full h-[1px] bg-ink/10 my-2" />
-                <div className="flex justify-between">
+                <div className="flex justify-between items-baseline">
                   <span className="font-serif text-lg text-ink">Total</span>
-                  <span className="font-serif text-2xl text-ink">₹{finalTotal.toLocaleString()}</span>
+                  <div className="flex items-baseline gap-1 font-serif text-ink">
+                    <span className="text-base opacity-40 font-sans">₹</span>
+                    <span className="text-3xl font-bold">{finalTotal.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
 

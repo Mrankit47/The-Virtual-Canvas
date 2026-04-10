@@ -53,5 +53,10 @@ export default defineType({
         type: 'datetime',
         hidden: true,
     }),
+    defineField({
+      name: 'image',
+      title: 'Profile Picture',
+      type: 'url',
+    }),
   ],
 });

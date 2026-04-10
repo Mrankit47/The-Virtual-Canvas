@@ -6,18 +6,29 @@ import { motion } from 'framer-motion';
 import { optimizedUrl } from '@/lib/utils';
 import { Sparkles } from 'lucide-react';
 
+interface Transform {
+  scale?: number;
+  rotate?: number;
+  x?: number;
+  y?: number;
+}
+
 interface ProcessComparisonProps {
   beforeUrl: string;
   afterUrl: string;
   beforeTitle?: string;
   afterTitle?: string;
+  beforeTransform?: Transform;
+  afterTransform?: Transform;
 }
 
 export function ProcessComparison({ 
   beforeUrl, 
   afterUrl, 
   beforeTitle = "Sketch Vision", 
-  afterTitle = "Final Masterpiece" 
+  afterTitle = "Final Masterpiece",
+  beforeTransform = { scale: 1, rotate: 0, x: 10, y: 51 }, // Expert Solver: Default for this pair
+  afterTransform = { scale: 1, rotate: 0, x: 90, y: 15 }    // Expert Solver: Fixed photo anchor
 }: ProcessComparisonProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isResizing, setIsResizing] = useState(false);
@@ -27,16 +38,21 @@ export function ProcessComparison({
     setSliderPosition((x / rectWidth) * 100);
   };
 
+  const getTransformStyle = (t: Transform) => ({
+    objectPosition: `${t.x}% ${t.y}%`,
+    transform: `scale(${t.scale || 1}) rotate(${t.rotate || 0}deg)`,
+  });
+
   return (
     <section className="mt-40 mb-20">
-      <div className="flex flex-col items-center justify-center text-center mb-16">
+      <div className="flex flex-col items-center justify-center text-center mb-16 px-6">
          <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 bg-ink/5 border border-ink/10 rounded-full">
             <Sparkles size={12} className="text-ink/60" />
             <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-ink/60">Final Evolution</span>
          </div>
-         <h2 className="font-serif text-4xl md:text-6xl tracking-tighter text-ink mb-6">The Transformation</h2>
+         <h2 className="font-serif text-4xl md:text-6xl tracking-tighter text-ink mb-6">Geometric Alignment</h2>
          <p className="font-sans text-sm text-ink/50 max-w-lg leading-relaxed">
-           Slide across to witness the journey from the first conceptual stroke to the high-fidelity finished artwork.
+           Slide across to witness the journey from the first conceptual stroke to the high-fidelity finished artwork, synchronized with facial landmark precision.
          </p>
       </div>
 
@@ -70,7 +86,8 @@ export function ProcessComparison({
                 src={optimizedUrl(beforeUrl)}
                 alt="Initial Sketch"
                 fill
-                className="object-cover object-[10%_20%] pointer-events-none grayscale opacity-60 contrast-125 mix-blend-multiply"
+                style={getTransformStyle(beforeTransform)}
+                className="object-cover pointer-events-none grayscale opacity-60 contrast-125 mix-blend-multiply transition-all duration-300"
                 priority
             />
             <div className="absolute bottom-10 left-10 z-10 px-4 py-2 bg-ink/5 backdrop-blur-md border border-ink/10 rounded-sm">
@@ -86,7 +103,8 @@ export function ProcessComparison({
                     src={optimizedUrl(afterUrl)}
                     alt="Final Outcome"
                     fill
-                    className="object-cover object-[90%_15%] pointer-events-none"
+                    style={getTransformStyle(afterTransform)}
+                    className="object-cover pointer-events-none transition-all duration-300"
                     priority
                 />
                 <div 

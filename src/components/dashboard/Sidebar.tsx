@@ -12,7 +12,8 @@ import {
   Wallet,
   Settings,
   MessageSquare,
-  Compass
+  Compass,
+  Database
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -38,6 +39,7 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
   const adminLinks = [
     { name: 'Manage Artists', href: '/admin/artists', icon: Settings },
     { name: 'All Communications', href: '/admin/messages', icon: MessageSquare },
+    { name: 'CMF Dashboard', href: '/studio', icon: Database },
   ];
 
   const links = [

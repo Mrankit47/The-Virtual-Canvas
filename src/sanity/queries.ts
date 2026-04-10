@@ -34,7 +34,7 @@ export const GET_PHOTOGRAPHY_QUERY = groq`
   *[_type == "photography"] | order(_createdAt desc) {
     _id,
     title,
-    category,
+    "category": category->title,
     location,
     capturedAt,
     tags,

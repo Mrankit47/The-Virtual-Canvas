@@ -30,6 +30,8 @@ interface StudioOrderBody {
   // Optional
   notes?: string;
   referenceImageUrl?: string;
+  couponCode?: string;
+  discountAmount?: number;
 }
 
 export async function POST(req: Request) {
@@ -41,7 +43,11 @@ export async function POST(req: Request) {
     const session: any = await getServerSession(authOptions);
     const body: StudioOrderBody = await req.json();
 
-    const { customerName, email, phone, styleId, sizeId, paperId, clientFinalPrice, notes, referenceImageUrl } = body;
+    const { 
+      customerName, email, phone, styleId, sizeId, paperId, 
+      clientFinalPrice, notes, referenceImageUrl,
+      couponCode, discountAmount 
+    } = body;
 
     // ── Input Validation ──────────────────────────────────────────────────────
     if (!customerName?.trim() || !email?.trim() || !phone?.trim()) {
@@ -71,7 +77,39 @@ export async function POST(req: Request) {
     }
 
     // ── ANTI-FRAUD: Re-compute price on server ────────────────────────────────
-    const serverComputedPrice = Math.round(style.basePrice * size.multiplier + paper.extraCost);
+    const baseServerPrice = Math.round(style.basePrice * size.multiplier + paper.extraCost);
+    let serverComputedPrice = baseServerPrice;
+
+    // ── Server-Side Coupon Re-Validation ─────────────────────────────────────
+    if (couponCode) {
+      const coupon = await backendClient.fetch(
+        `*[_type == "coupon" && code == $code && isActive == true][0]`,
+        { code: couponCode.trim().toUpperCase() }
+      );
+
+      if (coupon && 
+          (!coupon.expiry || new Date(coupon.expiry) >= new Date()) &&
+          (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit) &&
+          (!coupon.minimumOrderAmount || baseServerPrice >= coupon.minimumOrderAmount)) {
+        
+        let calculatedDiscount = 0;
+        if (coupon.type === 'percentage') {
+          calculatedDiscount = Math.round((baseServerPrice * coupon.discount) / 100);
+        } else {
+          calculatedDiscount = Math.min(coupon.discount, baseServerPrice);
+        }
+        
+        serverComputedPrice = Math.max(0, baseServerPrice - calculatedDiscount);
+        
+        // Verify discount amount matches client claim (within 1 Re rounding)
+        if (discountAmount && Math.abs(calculatedDiscount - discountAmount) > 1) {
+           console.error(`DISCOUNT FRAUD: client=${discountAmount}, server=${calculatedDiscount}`);
+           return NextResponse.json({ error: 'Discount mismatch. Please retry.' }, { status: 400 });
+        }
+      } else if (couponCode) {
+        return NextResponse.json({ error: 'Applied coupon is no longer valid.' }, { status: 400 });
+      }
+    }
 
     if (Math.abs(serverComputedPrice - clientFinalPrice) > 1) {
       console.error(`PRICE FRAUD: client=${clientFinalPrice}, server=${serverComputedPrice}`);
@@ -102,6 +140,8 @@ export async function POST(req: Request) {
       // Pricing breakdown
       price: serverComputedPrice,
       totalAmount: serverComputedPrice,
+      couponCode: couponCode || undefined,
+      discountAmount: discountAmount || 0,
 
       // Cart-compatible fields
       cartItems: [{

@@ -9,7 +9,8 @@ import {
   ShoppingBag, 
   Clock, 
   CheckCircle2, 
-  PlusCircle
+  PlusCircle,
+  User
 } from 'lucide-react';
 import { StatsCardSkeleton, OrderCardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import Link from 'next/link';
@@ -53,9 +54,18 @@ export default function UserDashboard() {
     <div className="space-y-12">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-bold font-playfair text-ink leading-tight">Welcome back, {session?.user?.name || 'User'}</h1>
-          <p className="text-sm text-ink/40 mt-1 uppercase tracking-widest font-medium">Manage your artwork requests and orders</p>
+        <div className="flex items-center gap-6">
+          <div className="w-16 h-16 rounded-2xl bg-ink/5 border border-ink/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
+            {session?.user?.image ? (
+              <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+                <div className="text-ink/10"><User size={24} /></div>
+            )}
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold font-playfair text-ink leading-tight">Welcome back, {session?.user?.name || 'User'}</h1>
+            <p className="text-sm text-ink/40 mt-1 uppercase tracking-widest font-medium">Manage your artwork requests and orders</p>
+          </div>
         </div>
         <Link 
           href="/order" 

@@ -20,12 +20,28 @@ function CheckoutInner() {
   const totalFromCart = Number(searchParams.get('total') || '0');
 
   const subtotal = items.reduce((s, i) => s + i.price, 0);
-  const finalTotal = totalFromCart || subtotal;
 
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Coupon States (initialized from search params if present)
+  const [couponInput, setCouponInput] = useState(couponFromCart);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(
+    couponFromCart ? { code: couponFromCart, discountAmount: discountFromCart } : null
+  );
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [currentFinalTotal, setCurrentFinalTotal] = useState(totalFromCart || subtotal);
+
+  // Sync final total whenever appliedCoupon or subtotal changes
+  useEffect(() => {
+    if (appliedCoupon) {
+      setCurrentFinalTotal(Math.max(0, subtotal - appliedCoupon.discountAmount));
+    } else {
+      setCurrentFinalTotal(subtotal);
+    }
+  }, [subtotal, appliedCoupon]);
 
   // Load Razorpay script
   useEffect(() => {
@@ -46,6 +62,41 @@ function CheckoutInner() {
     if (!form.phone.trim() || form.phone.replace(/\D/g, '').length < 10) e.phone = 'Valid phone required';
     setErrors(e);
     return Object.keys(e).length === 0;
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    
+    try {
+      setIsValidatingCoupon(true);
+      const res = await fetch('/api/coupon/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput, total: subtotal }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.valid) {
+        setAppliedCoupon({
+          code: couponInput.trim().toUpperCase(),
+          discountAmount: data.discountAmount
+        });
+        addToast(data.message, 'success');
+      } else {
+        addToast(data.message || 'Invalid coupon code', 'error');
+      }
+    } catch (err) {
+      addToast('Failed to validate coupon', 'error');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    addToast('Coupon removed', 'info');
   };
 
   const handlePay = async () => {
@@ -77,8 +128,8 @@ function CheckoutInner() {
           email: form.email,
           phone: form.phone,
           items,
-          clientTotal: finalTotal,
-          couponCode: couponFromCart || undefined,
+          clientTotal: currentFinalTotal,
+          couponCode: appliedCoupon?.code || undefined,
         }),
       });
 
@@ -115,12 +166,12 @@ function CheckoutInner() {
           if (verifyRes.ok) {
             clearCart(); // Clear cart on success
             // Increment coupon usage if applied
-            if (couponFromCart) {
+            if (appliedCoupon?.code) {
               try {
                 await fetch('/api/coupon/use', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ code: couponFromCart }),
+                  body: JSON.stringify({ code: appliedCoupon.code }),
                 });
               } catch {}
             }
@@ -167,7 +218,7 @@ function CheckoutInner() {
     <main className="min-h-screen pt-40 pb-24 px-6 md:px-12 max-w-[1100px] mx-auto">
       <header className="mb-16 text-center">
         <h1 className="font-serif text-5xl md:text-6xl tracking-tighter text-ink mb-4">Checkout</h1>
-        <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-ink/40">{itemCount} artwork{itemCount > 1 ? 's' : ''} • ₹{finalTotal.toLocaleString()}</p>
+        <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-ink/40">{itemCount} artwork{itemCount > 1 ? 's' : ''} • ₹{currentFinalTotal.toLocaleString()}</p>
       </header>
 
       {/* Step indicator */}
@@ -240,21 +291,63 @@ function CheckoutInner() {
                 <div className="p-6">
                   <p className="text-[10px] uppercase tracking-widest text-ink/40 mb-4">Artworks</p>
                   {items.map((item) => (
-                    <div key={item.artworkId} className="flex justify-between py-2 text-sm">
+                     <div key={item.artworkId} className="flex justify-between py-2 text-sm">
                       <span className="font-serif text-ink truncate max-w-[300px]">{item.title}</span>
-                      <span className="font-mono text-ink/60 flex-shrink-0 ml-4">₹{item.price.toLocaleString()}</span>
+                      <span className="font-serif text-ink/70 font-bold flex-shrink-0 ml-4">₹{item.price.toLocaleString()}.00</span>
                     </div>
                   ))}
-                  <div className="w-full h-[1px] bg-ink/10 my-4" />
-                  {discountFromCart > 0 && (
-                    <div className="flex justify-between text-sm text-green-600 mb-2">
-                      <span>Coupon Discount ({couponFromCart})</span>
-                      <span className="font-mono">−₹{discountFromCart.toLocaleString()}</span>
+                  
+                  {/* Coupon Section directly in Review */}
+                  <div className="mt-8 pt-6 border-t border-ink/5">
+                    <p className="text-[10px] uppercase tracking-widest text-ink/40 mb-3">Apply Promotion</p>
+                    {!appliedCoupon ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="ENTER CODE"
+                          value={couponInput}
+                          onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                          onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                          className="flex-1 bg-transparent border-b border-ink/20 py-2 text-xs font-sans font-bold uppercase outline-none focus:border-ink transition-colors placeholder:tracking-widest placeholder:text-ink/30"
+                        />
+                        <button
+                          onClick={handleApplyCoupon}
+                          disabled={isValidatingCoupon || !couponInput.trim()}
+                          className="text-[10px] uppercase tracking-widest text-ink font-bold hover:opacity-70 transition-opacity disabled:opacity-30 whitespace-nowrap"
+                        >
+                          {isValidatingCoupon ? 'Checking...' : 'Apply'}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between p-3 bg-green-50/50 border border-green-100 rounded-sm">
+                        <div className="flex items-center gap-3">
+                           <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                           <span className="font-sans text-xs text-green-700 font-bold tracking-widest">{appliedCoupon.code}</span>
+                        </div>
+                        <button onClick={removeCoupon} className="text-red-400 hover:text-red-600 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="w-full h-[1px] bg-ink/10 my-6" />
+                  
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink/40">Subtotal</span>
+                      <span className="font-serif text-ink/60">₹{subtotal.toLocaleString()}.00</span>
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="font-serif text-xl text-ink">Total</span>
-                    <span className="font-serif text-2xl text-ink">₹{finalTotal.toLocaleString()}</span>
+                    {appliedCoupon && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span className="font-sans text-[10px] uppercase font-bold tracking-widest">Coupon Savings</span>
+                        <span className="font-serif font-bold text-green-700">−₹{appliedCoupon.discountAmount.toLocaleString()}.00</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between mt-2 pt-4 border-t border-ink/5">
+                      <span className="font-serif text-xl text-ink">Total</span>
+                      <span className="font-serif text-2xl text-ink font-bold">₹{currentFinalTotal.toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -281,10 +374,13 @@ function CheckoutInner() {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-serif text-3xl text-ink">₹{finalTotal.toLocaleString()}</p>
+                  <p className="font-serif text-3xl text-ink">₹{currentFinalTotal.toLocaleString()}</p>
                   <p className="text-[10px] uppercase tracking-widest text-ink/40 mt-2">
                     {itemCount} artwork{itemCount > 1 ? 's' : ''} · Secured via Razorpay
                   </p>
+                  {appliedCoupon && (
+                    <p className="text-[9px] text-green-600 font-bold uppercase tracking-widest mt-1">₹{appliedCoupon.discountAmount.toLocaleString()} Discount Applied ✓</p>
+                  )}
                 </div>
                 <div className="flex gap-4 text-[9px] uppercase tracking-widest text-ink/30">
                   <span>All Cards</span><span>·</span><span>UPI</span><span>·</span><span>Net Banking</span>
@@ -297,7 +393,7 @@ function CheckoutInner() {
                   disabled={isSubmitting}
                   className={`px-10 py-4 text-white text-[10px] uppercase tracking-widest transition-all ${isSubmitting ? 'bg-ink/40 cursor-not-allowed' : 'bg-ink hover:opacity-90'}`}
                 >
-                  {isSubmitting ? 'Processing...' : `Pay ₹${finalTotal.toLocaleString()}`}
+                  {isSubmitting ? 'Processing...' : `Pay ₹${currentFinalTotal.toLocaleString()}`}
                 </button>
               </div>
             </motion.div>

@@ -40,6 +40,12 @@ export default function CommissionForm() {
   const [artStyles, setArtStyles] = useState<ArtStyle[]>([]);
   const [isLoadingStyles, setIsLoadingStyles] = useState(true);
   const [showUploadSuccess, setShowUploadSuccess] = useState(false);
+  
+  // Coupon States
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [originalPrice, setOriginalPrice] = useState<number>(0);
 
   const { register, handleSubmit, setValue, watch, trigger, formState: { errors } } = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
@@ -70,6 +76,10 @@ export default function CommissionForm() {
       const selectedStyle = artStyles.find(style => style.title === artworkType);
       if (selectedStyle) {
         setValue('price', selectedStyle.basePrice);
+        setOriginalPrice(selectedStyle.basePrice);
+        // Clear coupon if style changes
+        setAppliedCoupon(null);
+        setCouponInput('');
       }
     }
   }, [artworkType, artStyles, setValue]);
@@ -127,6 +137,43 @@ export default function CommissionForm() {
       setUploadingImage(false);
     }
   };
+  
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    
+    try {
+      setIsValidatingCoupon(true);
+      const res = await fetch('/api/coupon/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput, total: originalPrice }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.valid) {
+        setAppliedCoupon({
+          code: couponInput.trim().toUpperCase(),
+          discountAmount: data.discountAmount
+        });
+        setValue('price', data.discountedTotal);
+        addToast(data.message, 'success');
+      } else {
+        addToast(data.message || 'Invalid coupon code', 'error');
+      }
+    } catch (err) {
+      addToast('Failed to validate coupon', 'error');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setValue('price', originalPrice);
+    addToast('Coupon removed', 'info');
+  };
 
   const onSubmit = async (data: OrderFormValues) => {
     if (currentStep !== 3) return;
@@ -156,7 +203,11 @@ export default function CommissionForm() {
       const res = await fetch('/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          couponCode: appliedCoupon?.code,
+          discountAmount: appliedCoupon?.discountAmount
+        }),
       });
       
       const result = await res.json();
@@ -512,8 +563,13 @@ export default function CommissionForm() {
                     </div>
 
                     <div className="p-8 bg-ink text-canvas flex flex-col gap-2 mt-4 shadow-xl">
-                       <span className="text-[9px] uppercase tracking-[0.2em] opacity-70 text-green-300">Quoted Price</span>
-                       <span className="font-sans font-medium text-5xl md:text-6xl tracking-tight">₹{price}.00</span>
+                       <div className="flex items-baseline gap-1.5 font-serif text-canvas leading-none">
+                         <span className="text-xl md:text-2xl opacity-40 font-sans">₹</span>
+                         <span className="text-5xl md:text-6xl font-bold tracking-tighter">
+                           {price.toLocaleString()}
+                         </span>
+                         <span className="text-sm opacity-20 font-sans ml-0.5">.00</span>
+                       </div>
                        <span className="text-[10px] opacity-50 mt-2 font-sans leading-relaxed">System estimated based on '{artworkType}' base complexity.</span>
                     </div>
                  </div>
@@ -545,10 +601,67 @@ export default function CommissionForm() {
                                 <p className="text-sm font-serif italic text-ink/60">Finalizing Commission Details</p>
                             </div>
 
+                            {/* Coupon Section */}
+                            <div className="w-full max-w-md mx-auto pt-4 pb-2">
+                                {!appliedCoupon ? (
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <input 
+                                                type="text" 
+                                                placeholder="Enter Coupon Code" 
+                                                value={couponInput}
+                                                onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                                                className="w-full bg-transparent border-b border-ink/20 py-2 outline-none focus:border-ink transition-colors font-mono text-xs tracking-widest placeholder:font-sans placeholder:tracking-normal"
+                                            />
+                                            {isValidatingCoupon && (
+                                                <div className="absolute right-0 bottom-2">
+                                                    <ArtLoader variant="inline" size="sm" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            onClick={handleApplyCoupon}
+                                            disabled={!couponInput || isValidatingCoupon}
+                                            className="px-4 py-2 bg-ink text-canvas text-[9px] uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-30"
+                                        >
+                                            Apply
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between bg-green-50 px-4 py-3 border border-green-100 rounded-sm">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                                            <div className="flex flex-col items-start">
+                                                <span className="text-[10px] font-mono tracking-widest text-green-700 font-bold">{appliedCoupon.code}</span>
+                                                <span className="text-[8px] uppercase tracking-widest text-green-600/70">Discount Applied: ₹{appliedCoupon.discountAmount}</span>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            type="button" 
+                                            onClick={removeCoupon}
+                                            className="text-[9px] uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="py-8 border-y border-ink/5 flex flex-col items-center gap-2">
-                                <p className="text-[11px] uppercase tracking-[0.2em] opacity-50">You are about to pay</p>
-                                <p className="font-sans font-bold text-6xl md:text-7xl tracking-tighter text-ink leading-none">₹{price}.00</p>
-                                <p className="text-[10px] opacity-40 lowercase tracking-[0.2em] mt-2 italic">Official Art Acquisition Fee</p>
+                                {appliedCoupon && (
+                                    <span className="text-[10px] opacity-30 line-through font-sans">₹{originalPrice.toLocaleString()}.00</span>
+                                )}
+                                <div className="flex items-baseline justify-center gap-2 font-serif text-ink leading-none">
+                                  <span className="text-2xl md:text-3xl opacity-40 font-sans">₹</span>
+                                  <p className="text-6xl md:text-7xl font-bold tracking-tighter">
+                                    {price.toLocaleString()}
+                                  </p>
+                                  <span className="text-base opacity-20 font-sans ml-1">.00</span>
+                                </div>
+                                <p className="text-[10px] opacity-40 lowercase tracking-[0.2em] mt-2 italic">
+                                    {appliedCoupon ? `Discount of ₹${appliedCoupon.discountAmount} applied` : 'Official Art Acquisition Fee'}
+                                </p>
                             </div>
                         </div>
 

@@ -27,38 +27,22 @@ export function OrderButton({ artworkId, title, price, imageUrl = '' }: OrderBut
   const handleOrder = async () => {
     // Phase 1: Authentication Guard
     if (!session) {
-      addToast('Please sign in with Google to secure your order.', 'info');
-      router.push(`/order?artworkId=${artworkId}&title=${encodeURIComponent(title)}&price=${price}`);
+      addToast('Please sign in to buy this artwork.', 'info');
+      const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+      router.push(`/login?callbackUrl=${encodeURIComponent(currentUrl)}`);
       return;
     }
 
     try {
       setLoading(true);
-
-      // Phase 2: Create Order via API
-      const res = await fetch('/api/order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerName: session.user?.name || 'Customer',
-          email: session.user?.email,
-          phone: '0000000000',
-          artworkType: 'digital',
-          description: `Direct acquisition of artwork: ${title}`,
-          price: price,
-          artworkId: artworkId,
-        }),
-      });
-
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error);
-      const createdOrderId = result.orderId;
-
-      addToast('Preparing secure checkout...', 'info');
-      router.push(`/track-order?id=${createdOrderId}&pay=true`);
+      // Phase 2: Add to Cart and Redirect to Checkout
+      // This ensures the user can enter Name/Email/Phone and Promo Code before paying.
+      addToCart({ artworkId, title, price, imageUrl });
+      addToast('Redirecting to secure checkout...', 'success');
+      router.push('/checkout');
     } catch (err: any) {
       console.error(err);
-      addToast(`Error initiating order: ${err.message}`, 'error');
+      addToast('Error initiating checkout. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -79,7 +63,7 @@ export function OrderButton({ artworkId, title, price, imageUrl = '' }: OrderBut
           loading ? 'bg-ink/20 cursor-not-allowed' : 'bg-ink text-canvas hover:opacity-90 active:scale-[0.98]'
         }`}
       >
-        <span className="relative z-10">{loading ? 'Processing...' : 'Secure Acquisition'}</span>
+        <span className="relative z-10">{loading ? 'Processing...' : 'Buy now'}</span>
         <div className="absolute inset-x-0 bottom-0 h-1 bg-green-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
       </button>
 

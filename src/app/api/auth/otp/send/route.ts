@@ -19,14 +19,14 @@ export async function POST(req: Request) {
 
         const cleanMobile = mobile.replace(/^\+91/, '');
 
-        // 1. Check User in Sanity
+        // 1. Check User in Sanity (flexible match)
         const user = await backendClient.fetch(
-            `*[_type == "userProfile" && mobileNumber == $cleanMobile][0]`,
-            { cleanMobile }
+            `*[_type == "userProfile" && (mobileNumber == $cleanMobile || mobileNumber == $fullMobile)][0]`,
+            { cleanMobile, fullMobile: `+91${cleanMobile}` }
         );
 
         if (mode === 'login' && !user) {
-            return NextResponse.json({ error: "User not found. Please sign up first." }, { status: 404 });
+            return NextResponse.json({ error: "Mobile number not available" }, { status: 404 });
         }
 
         if (mode === 'register' && user) {

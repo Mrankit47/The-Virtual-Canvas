@@ -41,10 +41,8 @@ export function ArtCard({ artwork, priority, onClick }: ArtCardProps) {
         
         <div className="absolute flex flex-col justify-end bottom-0 left-0 w-full p-8 md:p-10 translate-y-6 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] text-canvas">
           <h3 className="font-serif text-3xl tracking-tighter mb-2 drop-shadow-lg">{artwork.title}</h3>
-          <div className="flex justify-between items-center text-[10px] md:text-xs uppercase tracking-[0.2em] opacity-80">
-            <span>{artwork.category}</span>
+            <span>{typeof artwork.category === 'object' ? artwork.category.title : artwork.category}</span>
             <span className="opacity-0 group-hover:opacity-100 transition-opacity delay-200">View Masterpiece</span>
-          </div>
         </div>
       </div>
     </motion.div>
