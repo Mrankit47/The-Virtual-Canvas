@@ -22,7 +22,11 @@ export async function POST(request: Request) {
 
     // 1. Validation
     if (!name) return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    if (type === 'email' && (!email || !password)) {
+    
+    // Normalize email if present
+    const normalizedEmail = email ? email.toLowerCase().trim() : null;
+
+    if (type === 'email' && (!normalizedEmail || !password)) {
         return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
     if (type === 'mobile' && !mobile) {
@@ -35,7 +39,7 @@ export async function POST(request: Request) {
         (defined(email) && $email != null && email == $email) || 
         (defined(mobileNumber) && $mobile != null && mobileNumber == $mobile)
       )][0]`,
-      { email: email || null, mobile: mobile || null }
+      { email: normalizedEmail, mobile: mobile || null }
     );
 
     if (existingUser) {
@@ -52,7 +56,7 @@ export async function POST(request: Request) {
     const newUser = await backendClient.create({
       _type: "userProfile",
       name,
-      email: email || undefined,
+      email: normalizedEmail || undefined,
       mobileNumber: mobile || undefined,
       password: hashedPassword,
       role: role || "user",

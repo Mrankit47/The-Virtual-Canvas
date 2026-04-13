@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().default('test_id'),
+  NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().default('testid'),
   NEXT_PUBLIC_SANITY_DATASET: z.string().default('production'),
   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().optional(),
   NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: z.string().optional(),
@@ -15,6 +15,8 @@ const envSchema = z.object({
   EMAIL_PASS: z.string().optional(),
   EMAIL_HOST: z.string().default('smtp.gmail.com'),
   EMAIL_PORT: z.coerce.number().default(465),
+  NEXTAUTH_SECRET: z.string().optional(),
+  NEXTAUTH_URL: z.string().optional(),
 });
 
 const _env = envSchema.safeParse({
@@ -30,6 +32,8 @@ const _env = envSchema.safeParse({
   EMAIL_PASS: process.env.EMAIL_PASS,
   EMAIL_HOST: process.env.EMAIL_HOST,
   EMAIL_PORT: process.env.EMAIL_PORT,
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL,
 });
 
 if (!_env.success) {

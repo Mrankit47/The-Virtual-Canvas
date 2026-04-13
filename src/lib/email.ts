@@ -65,14 +65,14 @@ export async function sendNotificationEmail(
   `;
 
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"The Virtual Canvas" <${env.EMAIL_USER}>`,
       to,
       subject: subjects[type],
       html,
     });
-    console.log(`✅ Email sent to ${to} for event: ${type}`);
-  } catch (error) {
-    console.error('❌ Failed to send email:', error);
+    console.log(`✅ [Email Success] Sent to ${to} for event: ${type}. MessageId: ${info.messageId}`);
+  } catch (error: any) {
+    console.error(`❌ [Email Error] Failed to send ${type} email to ${to}:`, error.message);
   }
 }

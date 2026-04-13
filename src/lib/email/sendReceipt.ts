@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { env } from '@/config/env';
 
 interface ReceiptData {
   orderId: string;
@@ -9,18 +10,18 @@ interface ReceiptData {
 }
 
 export async function sendOrderReceipt(data: ReceiptData) {
-  const { SMTP_USER, SMTP_PASS } = process.env;
+  const { EMAIL_USER: SMTP_USER, EMAIL_PASS: SMTP_PASS } = env;
 
-  // Fallback to strict console diagnostics if environment lacks SMTP credentials
   if (!SMTP_USER || !SMTP_PASS) {
-    console.log('📧 [MOCK EMAIL dispatched via Nodemailer hook] ->', data.email);
-    console.log('Payload:', data);
-    return { success: true, mocked: true };
+    console.error('❌ [Email Error] Missing credentials for sendOrderReceipt');
+    return { success: false, error: 'Missing credentials' };
   }
 
   try {
     const transporter = nodemailer.createTransport({
-      service: 'gmail', // Default service provider mapping
+      host: env.EMAIL_HOST,
+      port: env.EMAIL_PORT,
+      secure: env.EMAIL_PORT === 465,
       auth: {
         user: SMTP_USER,
         pass: SMTP_PASS,
