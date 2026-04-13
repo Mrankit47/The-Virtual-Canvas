@@ -1,0 +1,356 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useSession, signIn } from 'next-auth/react';
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
+import ArtLoader from '@/components/ui/ArtLoader';
+import { useUIStore } from '@/store/useUIStore';
+import { useRouter } from 'next/navigation';
+import { env } from '@/config/env';
+import { 
+  Check, 
+  ChevronRight, 
+  ChevronLeft, 
+  Image as ImageIcon, 
+  Type, 
+  Maximize2, 
+  Layers, 
+  ShieldCheck,
+  CreditCard,
+  UploadCloud,
+  FileText
+} from 'lucide-react';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface ArtStyle {
+  _id: string;
+  title: string;
+  description?: string;
+  basePrice: number;
+  imageUrl?: string;
+  requiresReference: boolean;
+}
+
+export interface SizeOption {
+  _id: string;
+  label: string;
+  description?: string;
+  multiplier: number;
+}
+
+export interface PaperType {
+  _id: string;
+  title: string;
+  description?: string;
+  extraCost: number;
+}
+
+interface StudioConfiguratorProps {
+  styles: ArtStyle[];
+  sizes: SizeOption[];
+  papers: PaperType[];
+}
+
+const STORAGE_KEY = 'tvc_studio_config';
+
+// ─── Steps ──────────────────────────────────────────────────────────────────
+
+const STEPS = [
+  { id: 1, title: 'Vision', sub: 'Art Style' },
+  { id: 2, title: 'Format', sub: 'Size & Paper' },
+  { id: 3, title: 'Context', sub: 'Details & Ref' },
+  { id: 4, title: 'Verify', sub: 'Final Review' }
+];
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export function StudioConfigurator({ styles, sizes, papers }: StudioConfiguratorProps) {
+  const { data: session, status } = useSession();
+  const { addToast } = useUIStore();
+  const router = useRouter();
+
+  // ── State ──
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedStyle, setSelectedStyle] = useState<ArtStyle | null>(null);
+  const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
+  const [selectedPaper, setSelectedPaper] = useState<PaperType | null>(null);
+  const [notes, setNotes] = useState('');
+  const [referenceImageUrl, setReferenceImageUrl] = useState('');
+  const [finalPrice, setFinalPrice] = useState(0);
+
+  // Customer info
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Flow state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStage, setSubmitStage] = useState('');
+  const [isUploadingRef, setIsUploadingRef] = useState(false);
+
+  // Coupon States
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [unDiscountedPrice, setUnDiscountedPrice] = useState(0);
+
+  // ── Restore from localStorage ──
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      const { styleId, sizeId, paperId } = JSON.parse(saved);
+      if (styleId) setSelectedStyle(styles.find(s => s._id === styleId) || null);
+      if (sizeId) setSelectedSize(sizes.find(s => s._id === sizeId) || null);
+      if (paperId) setSelectedPaper(papers.find(p => p._id === paperId) || null);
+    } catch {}
+  }, [styles, sizes, papers]);
+
+  // ── Save selection to localStorage ──
+  const persistConfig = useCallback((style: ArtStyle | null, size: SizeOption | null, paper: PaperType | null) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        styleId: style?._id,
+        sizeId: size?._id,
+        paperId: paper?._id,
+      }));
+    } catch {}
+  }, []);
+
+  // ── Live price calculation ──
+  useEffect(() => {
+    if (!selectedStyle || !selectedSize || !selectedPaper) {
+      setFinalPrice(0);
+      setUnDiscountedPrice(0);
+      return;
+    }
+    const price = Math.round(selectedStyle.basePrice * selectedSize.multiplier + selectedPaper.extraCost);
+    setUnDiscountedPrice(price);
+    
+    if (appliedCoupon) {
+      setFinalPrice(Math.max(0, price - appliedCoupon.discountAmount));
+    } else {
+      setFinalPrice(price);
+    }
+  }, [selectedStyle, selectedSize, selectedPaper, appliedCoupon]);
+
+  // ── Load Razorpay script ──
+  useEffect(() => {
+    const existing = document.getElementById('rzp-studio-script');
+    if (!existing) {
+      const s = document.createElement('script');
+      s.id = 'rzp-studio-script';
+      s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      s.async = true;
+      document.body.appendChild(s);
+    }
+  }, []);
+
+  // ── Handlers ──
+
+  const handleSelectStyle = (style: ArtStyle) => {
+    setSelectedStyle(style);
+    persistConfig(style, selectedSize, selectedPaper);
+    if (!style.requiresReference) setReferenceImageUrl('');
+    addToast(`"${style.title}" added to vision`, 'info');
+    setTimeout(() => setCurrentStep(2), 600); // Auto-advance for better UX
+  };
+
+  const handleSelectSize = (size: SizeOption) => {
+    setSelectedSize(size);
+    persistConfig(selectedStyle, size, selectedPaper);
+  };
+
+  const handleSelectPaper = (paper: PaperType) => {
+    setSelectedPaper(paper);
+    persistConfig(selectedStyle, selectedSize, paper);
+  };
+
+  const handleUploadReference = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !preset) {
+      addToast('Image upload not configured', 'error');
+      return;
+    }
+
+    try {
+      setIsUploadingRef(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', preset);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      setReferenceImageUrl(data.secure_url);
+      addToast('Reference vision captured ✓', 'success');
+    } catch {
+      addToast('Upload failed. Try again.', 'error');
+    } finally {
+      setIsUploadingRef(false);
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    
+    try {
+      setIsValidatingCoupon(true);
+      const res = await fetch('/api/coupon/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput, total: unDiscountedPrice }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.valid) {
+        setAppliedCoupon({
+          code: couponInput.trim().toUpperCase(),
+          discountAmount: data.discountAmount
+        });
+        addToast(data.message, 'success');
+      } else {
+        addToast(data.message || 'Invalid coupon code', 'error');
+      }
+    } catch (err) {
+      addToast('Failed to validate coupon', 'error');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    addToast('Coupon removed', 'info');
+  };
+
+  const validateCustomerInfo = () => {
+    const errs: Record<string, string> = {};
+    if (!name.trim()) errs.name = 'Name is required';
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) errs.email = 'Valid email required';
+    if (!phone.trim() || phone.replace(/\D/g, '').length < 10) errs.phone = 'Valid 10-digit phone required';
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const isReadyToOrder = Boolean(selectedStyle && selectedSize && selectedPaper && finalPrice > 0);
+
+  const handleProceed = async () => {
+    if (!isReadyToOrder) return;
+
+    if (status !== 'authenticated') {
+      addToast('Please sign in to place your order', 'info');
+      signIn('credentials', { callbackUrl: window.location.href });
+      return;
+    }
+
+    if (currentStep !== 4) {
+      setCurrentStep(4);
+      return;
+    }
+
+    if (!validateCustomerInfo()) {
+      addToast('Please fill in your details', 'error');
+      return;
+    }
+
+    if (selectedStyle?.requiresReference && !referenceImageUrl.trim()) {
+      addToast(`"${selectedStyle.title}" requires a reference image`, 'error');
+      setCurrentStep(3);
+      return;
+    }
+
+    if (!(window as any).Razorpay) {
+      addToast('Payment system loading...', 'error');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setSubmitStage('Drafting your commission...');
+
+      const orderRes = await fetch('/api/custom-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: name, email, phone,
+          styleId: selectedStyle!._id,
+          sizeId: selectedSize!._id,
+          paperId: selectedPaper!._id,
+          clientFinalPrice: finalPrice,
+          notes: notes.trim() || undefined,
+          referenceImageUrl: referenceImageUrl.trim() || undefined,
+          couponCode: appliedCoupon?.code,
+          discountAmount: appliedCoupon?.discountAmount
+        }),
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) throw new Error(orderData.error);
+      const { orderId, totalAmount } = orderData;
+      
+      setSubmitStage('Contacting Secure Gateway...');
+      const payRes = await fetch('/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: totalAmount, orderId }),
+      });
+      const payData = await payRes.json();
+      if (!payRes.ok) throw new Error(payData.error);
+
+      const options = {
+        key: env.NEXT_PUBLIC_RAZORPAY_KEY,
+        amount: payData.amount,
+        currency: 'INR',
+        name: 'The Virtual Canvas',
+        description: `Studio: ${selectedStyle!.title}`,
+        order_id: payData.id,
+        handler: async (response: any) => {
+          setSubmitStage('Verifying transaction...');
+          const verifyRes = await fetch('/api/payment/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...response, orderId }),
+          });
+
+          if (verifyRes.ok) {
+            try { localStorage.removeItem(STORAGE_KEY); } catch {}
+            addToast('Success! Your masterpiece is being scheduled.', 'success');
+            router.push(`/track-order?id=${orderId}`);
+          } else {
+            router.push(`/track-order?id=${orderId}`);
+          }
+        },
+        prefill: { name, email, contact: phone },
+        theme: { color: '#000000' },
+        modal: {
+          ondismiss: () => {
+            addToast('Commission saved. You can pay anytime via tracking.', 'info');
+            router.push(`/track-order?id=${orderId}`);
+          },
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+
+    } catch (err: any) {
+      addToast(`❌ ${err.message || 'Transmission error'}`, 'error');
+    } finally {
+      setIsSubmitting(false);
+      setSubmitStage('');
+    }
+  };
+

@@ -136,11 +136,11 @@ export function ProcessTimeline({ steps }: { steps: ProcessStep[] }) {
   }
 
   return (
-    <div className="relative w-full mt-24 md:mt-32 pb-32 overflow-hidden">
+    <div className="relative w-full mt-16 sm:mt-24 md:mt-32 pb-32 overflow-hidden">
        {/* Sketchy Center timeline line */}
-       <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-[0px] border-l-2 border-dashed border-ink/20 -translate-x-1/2 z-0" />
+       <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-[0px] border-l-2 border-dashed border-ink/10 -translate-x-1/2 z-0" />
 
-       <div className="flex flex-col gap-24 md:gap-40">
+       <div className="flex flex-col gap-16 md:gap-40">
          {steps.map((step, idx) => {
            const isLeft = step.layout === 'left';
            
@@ -154,34 +154,34 @@ export function ProcessTimeline({ steps }: { steps: ProcessStep[] }) {
                  isLeft ? "md:items-end" : "md:items-start"
                )}>
                   <div className={cn(
-                    "absolute -top-4 -z-10 select-none",
+                    "absolute -top-6 -z-10 select-none",
                     isLeft ? "right-0 md:-right-8 lg:-right-16" : "left-0 md:-left-8 lg:-left-16"
                   )}>
                     <svg className="absolute inset-0 w-full h-full scale-[1.5] -translate-x-2 -translate-y-2 opacity-[0.03] stroke-ink fill-none" viewBox="0 0 100 100">
                       <path d="M 50 10 A 40 40 0 1 0 50 90 A 40 40 0 1 0 50 10" strokeDasharray="50 10 20 5" strokeWidth="2" strokeLinecap="round" />
                     </svg>
-                    <span className="font-serif text-[80px] md:text-[140px] leading-none opacity-5 inline-block -rotate-6">
+                    <span className="font-serif text-[70px] sm:text-[100px] md:text-[140px] leading-none opacity-5 inline-block -rotate-6">
                       {String(step.stepNumber).padStart(2, '0')}
                     </span>
                   </div>
                   
-                  <div className={cn("inline-flex items-center gap-2 mb-2 w-max border border-ink/10 px-3 py-1 bg-ink/5 rotate-[-1deg]", isLeft ? "origin-bottom-right" : "origin-bottom-left")}>
-                     <span className="w-1.5 h-1.5 rounded-full bg-ink/40 animate-pulse" />
-                     <span className="text-[9px] uppercase font-mono tracking-widest text-ink/60 font-bold">Draft {step.stepNumber} // {step.subtitle || 'PROGRESS'}</span>
+                  <div className={cn("inline-flex items-center gap-2 mb-2 w-max border border-ink/10 px-3 py-1 bg-ink shadow-2xl rotate-[-1deg]", isLeft ? "origin-bottom-right" : "origin-bottom-left")}>
+                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                     <span className="text-[8px] sm:text-[10px] uppercase font-extrabold tracking-[0.2em] text-white">Draft {step.stepNumber} // {step.subtitle || 'PROGRESS'}</span>
                   </div>
-                  <h3 className="font-serif text-3xl md:text-5xl tracking-tighter text-ink relative inline-block mt-2">
+                  <h3 className="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tighter text-ink relative inline-block mt-2">
                     {step.title}
                   </h3>
                </div>
                
-               <p className="font-sans text-sm md:text-base leading-relaxed text-ink/70 max-w-sm mt-6 p-5 bg-[#faf9f6]/80 backdrop-blur-sm border shadow-sm relative group decoration-ink/20">
+               <p className="font-serif italic text-sm md:text-base leading-relaxed text-ink/70 max-w-sm mt-6 p-6 sm:p-8 bg-[#faf9f6]/95 backdrop-blur-xl border border-ink/5 shadow-2xl relative group decoration-ink/20 rounded-sm">
                   {/* Artist frame corners */}
-                  <span className="absolute -top-[1px] -left-[1px] w-2 h-2 border-t border-l border-ink/40 transition-all duration-500 group-hover:scale-150" />
-                  <span className="absolute -bottom-[1px] -right-[1px] w-2 h-2 border-b border-r border-ink/40 transition-all duration-500 group-hover:scale-150" />
+                  <span className="absolute -top-[2px] -left-[2px] w-3 h-3 border-t border-l border-ink/20 transition-all duration-500 group-hover:scale-150" />
+                  <span className="absolute -bottom-[2px] -right-[2px] w-3 h-3 border-b border-r border-ink/20 transition-all duration-500 group-hover:scale-150" />
                   {isLeft ? step.leftText : step.rightText}
                </p>
                {step.aiCaption && (
-                 <p className="font-serif italic text-sm text-ink/50 max-w-md mt-4 hidden md:block">
+                 <p className="font-serif italic text-[11px] sm:text-xs text-ink/40 max-w-md mt-6 hidden md:block uppercase tracking-widest font-extrabold">
                    {step.aiCaption}
                  </p>
                )}
@@ -190,11 +190,13 @@ export function ProcessTimeline({ steps }: { steps: ProcessStep[] }) {
 
            const MediaContent = (
              <div className="flex justify-center flex-col gap-6 w-full max-w-lg mx-auto relative group">
-                {renderMedia(step)}
+                <div className="transition-transform duration-1000 group-hover:scale-[1.02]">
+                    {renderMedia(step)}
+                </div>
                 
                 {/* AI Caption Mobile Only */}
                 {step.aiCaption && (
-                  <p className="font-serif italic text-sm text-center text-ink/50 max-w-sm mx-auto px-4 md:hidden mt-2">
+                  <p className="font-serif italic text-[10px] text-center text-ink/30 max-w-sm mx-auto px-4 md:hidden mt-4 uppercase tracking-[0.2em] font-extrabold">
                     {step.aiCaption}
                   </p>
                 )}
@@ -204,14 +206,14 @@ export function ProcessTimeline({ steps }: { steps: ProcessStep[] }) {
            return (
              <motion.div
                key={step._id}
-               initial={{ opacity: 0, y: 50 }}
+               initial={{ opacity: 0, y: 30 }}
                whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true, margin: "-100px" }}
+               viewport={{ once: true, margin: "-50px" }}
                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-               className="relative grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center px-4 md:px-8 z-10 w-full max-w-6xl mx-auto"
+               className="relative grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-center px-4 md:px-8 z-10 w-full max-w-6xl mx-auto"
              >
                {/* Center Circle Indicator */}
-               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#f5f5f0] border-2 border-ink/10 flex items-center justify-center z-20 shadow-lg hidden md:flex font-serif text-xs text-ink isolate">
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#f5f5f0] border border-ink/5 flex items-center justify-center z-20 shadow-2xl hidden md:flex font-serif text-xs text-ink isolate">
                  {step.stepNumber}
                </div>
 

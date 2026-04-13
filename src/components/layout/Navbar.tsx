@@ -145,6 +145,7 @@ export function Navbar() {
   const { data: session, status } = useSession();
   const { itemCount } = useCart();
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isPhotography = pathname?.startsWith('/photography');
   const navColor = isPhotography ? 'text-white' : 'text-black';
@@ -152,57 +153,139 @@ export function Navbar() {
     ? 'bg-black/10 md:bg-black/20 backdrop-blur-xl border-b border-white/5' 
     : 'bg-transparent';
 
+  const navLinks = [
+    { name: 'Artworks', href: '/artworks' },
+    { name: 'Gallery', href: '/gallery' },
+    { name: 'Photography', href: '/photography' },
+    { name: 'Process', href: '/process' },
+    { name: 'Commission Art', href: '/order' },
+    { name: 'Track Order', href: '/track-order' },
+  ];
+
   return (
-    <header className={`fixed top-0 w-full z-50 ${navColor} px-6 md:px-12 py-6 flex justify-between items-center ${navBg} pointer-events-none transition-all duration-500`}>
-      <Link href="/" aria-label="Home - The Virtual Canvas" className="font-serif text-3xl md:text-4xl tracking-tighter hover:opacity-70 transition-opacity pointer-events-auto">
-        The Virtual Canvas
-      </Link>
-      <nav aria-label="Main Navigation" className="hidden md:flex gap-10 text-xs uppercase tracking-[0.2em] font-medium items-center pointer-events-none">
-        <Link href="/artworks" className="group relative pointer-events-auto">
-          Artworks
-          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300`}></span>
+    <>
+      <header className={`fixed top-0 w-full z-50 ${navColor} px-6 md:px-12 py-6 flex justify-between items-center ${navBg} pointer-events-none transition-all duration-500`}>
+        <Link href="/" aria-label="Home - The Virtual Canvas" className="font-serif text-2xl md:text-4xl tracking-tighter hover:opacity-70 transition-opacity pointer-events-auto">
+          The Virtual Canvas
         </Link>
-        <Link href="/gallery" className="group relative pointer-events-auto">
-          Gallery
-          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300`}></span>
-        </Link>
-        <Link href="/photography" className="group relative pointer-events-auto">
-          Photography
-          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-75`}></span>
-        </Link>
-        <Link href="/process" className="group relative pointer-events-auto">
-          Process
-          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-100`}></span>
-        </Link>
-        <Link href="/order" className="group relative pointer-events-auto">
-          Commission Art
-          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-150`}></span>
-        </Link>
-        <Link href="/track-order" className="group relative pointer-events-auto">
-          Track Order
-          <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-200`}></span>
-        </Link>
+        
+        {/* Desktop Navigation */}
+        <nav aria-label="Main Navigation" className="hidden lg:flex gap-10 text-[10px] uppercase tracking-[0.2em] font-medium items-center pointer-events-none">
+          {navLinks.map((link, idx) => (
+            <Link key={link.href} href={link.href} className="group relative pointer-events-auto">
+              {link.name}
+              <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-${idx * 25}`}></span>
+            </Link>
+          ))}
 
-        {/* Cart Icon (Only show if logged in as a normal User) */}
-        {session && (session.user as any)?.role === 'user' && (
-          <Link href="/cart" aria-label={`Cart (${itemCount} items)`} className="relative flex items-center justify-center hover:opacity-70 transition-opacity ml-2 pointer-events-auto">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-            {itemCount > 0 && (
-              <span className={`absolute -top-2 -right-2 w-4 h-4 ${isPhotography ? 'bg-white text-black' : 'bg-black text-white'} text-[9px] font-bold rounded-full flex items-center justify-center leading-none`}>
-                {itemCount > 9 ? '9+' : itemCount}
-              </span>
-            )}
-          </Link>
-        )}
+          {/* Cart Icon (Only show if logged in as a normal User) */}
+          {session && (session.user as any)?.role === 'user' && (
+            <Link href="/cart" aria-label={`Cart (${itemCount} items)`} className="relative flex items-center justify-center hover:opacity-70 transition-opacity ml-2 pointer-events-auto">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              {itemCount > 0 && (
+                <span className={`absolute -top-2 -right-2 w-4 h-4 ${isPhotography ? 'bg-white text-black' : 'bg-black text-white'} text-[9px] font-bold rounded-full flex items-center justify-center leading-none`}>
+                  {itemCount > 9 ? '9+' : itemCount}
+                </span>
+              )}
+            </Link>
+          )}
 
-        {/* Auth Button */}
-        <div className="pointer-events-auto">
-          <AuthButton session={session} status={status} isPhotography={isPhotography} />
+          {/* Auth Button */}
+          <div className="pointer-events-auto">
+            <AuthButton session={session} status={status} isPhotography={isPhotography} />
+          </div>
+        </nav>
+
+        {/* Mobile Controls */}
+        <div className="flex lg:hidden items-center gap-6 pointer-events-auto">
+          {session && (session.user as any)?.role === 'user' && (
+             <Link href="/cart" className="relative">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                {itemCount > 0 && (
+                  <span className={`absolute -top-2 -right-2 w-4 h-4 ${isPhotography ? 'bg-white text-black' : 'bg-black text-white'} text-[9px] font-bold rounded-full flex items-center justify-center`}>
+                    {itemCount}
+                  </span>
+                )}
+             </Link>
+          )}
+          
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="relative z-50 w-6 h-6 flex flex-col justify-between items-center"
+            aria-label="Toggle Menu"
+          >
+            <span className={`w-full h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2.5' : ''}`}></span>
+            <span className={`w-full h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+            <span className={`w-full h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2.5' : ''}`}></span>
+          </button>
         </div>
-      </nav>
-    </header>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+            className={`fixed inset-0 z-[45] ${isPhotography ? 'bg-black/95' : 'bg-canvas/95'} backdrop-blur-2xl flex flex-col p-8 pt-40`}
+          >
+            <div className="absolute top-0 right-0 p-20 opacity-[0.03] font-serif text-[200px] leading-none select-none pointer-events-none">
+              TVC
+            </div>
+
+            <nav className="flex flex-col gap-8 relative z-10">
+              {navLinks.map((link, idx) => (
+                <motion.div
+                  key={link.href}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.05 + 0.2 }}
+                >
+                  <Link 
+                    href={link.href} 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="group flex items-baseline gap-4"
+                  >
+                    <span className="font-serif text-[10px] opacity-20 group-hover:opacity-100 transition-opacity">0{idx + 1}</span>
+                    <span className="text-5xl md:text-6xl font-serif tracking-tighter hover:translate-x-3 transition-transform duration-500 inline-block">
+                      {link.name}
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
+            </nav>
+
+            <div className="mt-auto pt-10 border-t border-ink/5 relative z-10">
+               <div className="flex flex-col gap-6">
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-extrabold opacity-30">Identity & Access</p>
+                  <div className="flex items-center justify-between">
+                     <AuthButton session={session} status={status} isPhotography={isPhotography} />
+                     
+                     {session && (session.user as any)?.role === 'user' && (
+                        <Link 
+                          href="/cart" 
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center gap-3 px-6 py-3 border border-ink/10 rounded-full"
+                        >
+                           <span className="text-[10px] uppercase tracking-widest font-bold">Cart Items</span>
+                           <span className="w-6 h-6 rounded-full bg-ink text-white flex items-center justify-center text-[10px] font-bold">
+                              {itemCount}
+                           </span>
+                        </Link>
+                     )}
+                  </div>
+               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 

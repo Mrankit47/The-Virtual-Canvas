@@ -49,7 +49,7 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-ink/5 w-64">
+    <div className="flex flex-col h-full bg-white border-r border-ink/5 w-64 lg:w-72 max-w-[80vw]">
       <div className="p-8">
         <Link href="/" className="font-serif text-xl tracking-tighter">
           The Virtual Canvas
