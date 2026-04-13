@@ -2,14 +2,15 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { createClient } from '@sanity/client';
+import { env } from "@/config/env";
 import bcrypt from 'bcryptjs';
 
 const backendClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  dataset: env.NEXT_PUBLIC_SANITY_DATASET,
   apiVersion: '2024-03-22',
   useCdn: false,
-  token: process.env.SANITY_API_WRITE_TOKEN,
+  token: env.SANITY_API_WRITE_TOKEN,
 });
 
 export const authOptions: NextAuthOptions = {
@@ -31,26 +32,41 @@ export const authOptions: NextAuthOptions = {
 
                 // 1. Handle Email/Password Login
                 if (type === "password" && email && password) {
+                    const normalizedEmail = email.toLowerCase().trim();
+                    console.log(`[Auth] Attempting login for: ${normalizedEmail} with role: ${role}`);
+
                     const user = await backendClient.fetch(
                         `*[_type == "userProfile" && email == $email][0]`,
-                        { email }
+                        { email: normalizedEmail }
                     );
 
-                    if (!user || !user.password) {
+                    if (!user) {
+                        console.error(`[Auth] User not found: ${normalizedEmail}`);
+                        throw new Error("Invalid credentials or method");
+                    }
+
+                    if (!user.password) {
+                        console.error(`[Auth] User found but has no password (maybe Google login?): ${normalizedEmail}`);
                         throw new Error("Invalid credentials or method");
                     }
 
                     const isMatch = await bcrypt.compare(password, user.password);
-                    if (!isMatch) throw new Error("Invalid password");
+                    if (!isMatch) {
+                        console.error(`[Auth] Password mismatch for: ${normalizedEmail}`);
+                        throw new Error("Invalid password");
+                    }
 
                     // 1a. Role Enforcement
                     if (role && user.role !== role) {
+                        console.error(`[Auth] Role mismatch for ${normalizedEmail}. Expected: ${role}, Found: ${user.role}`);
                         throw new Error(`Your account does not have ${role} permissions.`);
                     }
 
+                    console.log(`[Auth] Login successful for: ${normalizedEmail} (Role: ${user.role})`);
+
                     return {
                         id: user._id,
-                        name: user.name || user.email.split('@')[0],
+                        name: user.name || normalizedEmail.split('@')[0],
                         email: user.email,
                         role: user.role || "user",
                         mobile: user.mobileNumber || "",
@@ -143,7 +159,7 @@ export const authOptions: NextAuthOptions = {
     },
     session: {
         strategy: "jwt",
-        maxAge: 600, // 10 Minutes (in seconds)
+        maxAge: 86400, // 24 Hours (in seconds)
     },
     cookies: {
         sessionToken: {
@@ -152,9 +168,9 @@ export const authOptions: NextAuthOptions = {
                 httpOnly: true,
                 sameSite: 'lax',
                 path: '/',
-                secure: process.env.NODE_ENV === 'production',
+                secure: env.NEXT_PUBLIC_SANITY_PROJECT_ID !== 'testid', // Use secure in real environments
             }
         }
     },
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: env.NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET,
 };
