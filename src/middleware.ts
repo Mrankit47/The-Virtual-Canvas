@@ -42,6 +42,9 @@ export default withAuth(
         return true; // Allow all other routes (Landing page, Gallery, etc.)
       },
     },
+    pages: {
+      signIn: "/login",
+    },
   }
 );
 
