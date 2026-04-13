@@ -161,16 +161,5 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt",
         maxAge: 86400, // 24 Hours (in seconds)
     },
-    cookies: {
-        sessionToken: {
-            name: `next-auth.session-token`,
-            options: {
-                httpOnly: true,
-                sameSite: 'lax',
-                path: '/',
-                secure: env.NEXT_PUBLIC_SANITY_PROJECT_ID !== 'testid', // Use secure in real environments
-            }
-        }
-    },
     secret: env.NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET,
 };
