@@ -47,7 +47,7 @@ import Script from 'next/script';
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="antialiased w-full min-h-screen flex flex-col bg-canvas text-ink selection:bg-ink selection:text-canvas text-sm md:text-base font-sans">
+      <body className="antialiased w-full min-h-screen flex flex-col bg-canvas text-ink selection:bg-ink selection:text-canvas text-sm md:text-base font-sans overflow-x-hidden">
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <LoaderWrapper>
           <NextAuthProvider>

@@ -38,9 +38,9 @@ export default async function ArtworksPage() {
     <PageTransition>
       <main className="min-h-screen w-full relative pt-40 px-6 md:px-12 max-w-[1600px] mx-auto pb-24 font-sans">
         
-        <header className="mb-16 md:mb-32 flex flex-col items-center text-center">
-          <h1 className="font-serif text-5xl sm:text-6xl md:text-8xl tracking-tighter text-ink mb-8">Masterpieces</h1>
-          <p className="font-sans text-[10px] sm:text-xs uppercase tracking-[0.3em] opacity-40 max-w-lg leading-relaxed font-extrabold">
+        <header className="mb-16 md:mb-32 flex flex-col items-center text-center max-w-[90%] sm:max-w-xl md:max-w-2xl lg:max-w-4xl mx-auto">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-tight break-words text-ink mb-8">Masterpieces</h1>
+          <p className="font-sans text-sm sm:text-base md:text-lg uppercase tracking-[0.2em] opacity-40 max-w-lg leading-relaxed font-extrabold">
             A curated selection of original artworks available for acquisition. Each piece is a unique synthesis of emotion and technique.
           </p>
         </header>

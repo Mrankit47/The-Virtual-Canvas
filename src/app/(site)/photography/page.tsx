@@ -10,11 +10,11 @@ export default async function PhotographyPage() {
 
   return (
     <PageTransition>
-      <main className="min-h-screen w-full relative pt-32 px-6 md:px-12 pb-24 bg-[#111] text-[#f5f5f0] transition-colors duration-1000 -mt-24">
+      <main className="min-h-screen w-full relative pt-32 px-4 sm:px-6 md:px-8 pb-24 bg-[#111] text-[#f5f5f0] transition-colors duration-1000 -mt-24 overflow-x-hidden">
         <div className="max-w-screen-2xl mx-auto pt-12 md:pt-24">
-          <header className="mb-16 md:mb-24 flex flex-col md:flex-row justify-between items-end gap-6 text-[#f5f5f0]">
-            <h1 className="font-serif text-5xl md:text-7xl tracking-tighter">Photography</h1>
-            <p className="font-sans text-[10px] md:text-xs uppercase tracking-[0.3em] opacity-60">Moments frozen in time.</p>
+          <header className="mb-16 md:mb-24 flex flex-col items-center md:items-start text-center md:text-left gap-6 text-[#f5f5f0] max-w-[90%] sm:max-w-xl md:max-w-2xl lg:max-w-4xl mx-auto md:mx-0">
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-tight break-words">Photography</h1>
+            <p className="font-sans text-sm sm:text-base md:text-lg uppercase tracking-[0.2em] opacity-60">Moments frozen in time.</p>
           </header>
 
           <PhotographyClient photos={photos} />

@@ -164,13 +164,13 @@ export function Navbar() {
 
   return (
     <>
-      <header className={`fixed top-0 w-full z-50 ${navColor} px-6 md:px-12 py-6 flex justify-between items-center ${navBg} pointer-events-none transition-all duration-500`}>
-        <Link href="/" aria-label="Home - The Virtual Canvas" className="font-serif text-2xl md:text-4xl tracking-tighter hover:opacity-70 transition-opacity pointer-events-auto">
+      <header className={`fixed top-0 w-full z-50 ${navColor} px-4 py-3 sm:px-6 sm:py-4 flex justify-between items-center ${navBg} pointer-events-none transition-all duration-500`}>
+        <Link href="/" aria-label="Home - The Virtual Canvas" className="font-serif text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-tighter hover:opacity-70 transition-opacity pointer-events-auto leading-tight break-words">
           The Virtual Canvas
         </Link>
         
         {/* Desktop Navigation */}
-        <nav aria-label="Main Navigation" className="hidden lg:flex gap-10 text-[10px] uppercase tracking-[0.2em] font-medium items-center pointer-events-none">
+        <nav aria-label="Main Navigation" className="hidden lg:flex gap-10 text-xs xl:text-sm uppercase tracking-[0.2em] font-medium items-center pointer-events-none">
           {navLinks.map((link, idx) => (
             <Link key={link.href} href={link.href} className="group relative pointer-events-auto">
               {link.name}
@@ -233,7 +233,7 @@ export function Navbar() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 200 }}
-            className={`fixed inset-0 z-[45] ${isPhotography ? 'bg-black/95' : 'bg-canvas/95'} backdrop-blur-2xl flex flex-col p-8 pt-40`}
+            className={`fixed inset-0 z-[45] ${isPhotography ? 'bg-black/95' : 'bg-canvas/95'} backdrop-blur-2xl flex flex-col px-6 py-8 pt-24 max-h-screen overflow-y-auto`}
           >
             <div className="absolute top-0 right-0 p-20 opacity-[0.03] font-serif text-[200px] leading-none select-none pointer-events-none">
               TVC
@@ -253,7 +253,7 @@ export function Navbar() {
                     className="group flex items-baseline gap-4"
                   >
                     <span className="font-serif text-[10px] opacity-20 group-hover:opacity-100 transition-opacity">0{idx + 1}</span>
-                    <span className="text-5xl md:text-6xl font-serif tracking-tighter hover:translate-x-3 transition-transform duration-500 inline-block">
+                    <span className="text-xl sm:text-2xl md:text-3xl font-serif tracking-tighter hover:translate-x-3 transition-transform duration-500 inline-block">
                       {link.name}
                     </span>
                   </Link>

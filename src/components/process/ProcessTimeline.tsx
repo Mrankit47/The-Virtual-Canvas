@@ -160,7 +160,7 @@ export function ProcessTimeline({ steps }: { steps: ProcessStep[] }) {
                     <svg className="absolute inset-0 w-full h-full scale-[1.5] -translate-x-2 -translate-y-2 opacity-[0.03] stroke-ink fill-none" viewBox="0 0 100 100">
                       <path d="M 50 10 A 40 40 0 1 0 50 90 A 40 40 0 1 0 50 10" strokeDasharray="50 10 20 5" strokeWidth="2" strokeLinecap="round" />
                     </svg>
-                    <span className="font-serif text-[70px] sm:text-[100px] md:text-[140px] leading-none opacity-5 inline-block -rotate-6">
+                    <span className="font-serif text-7xl sm:text-8xl md:text-9xl leading-none opacity-5 inline-block -rotate-6">
                       {String(step.stepNumber).padStart(2, '0')}
                     </span>
                   </div>
@@ -169,7 +169,7 @@ export function ProcessTimeline({ steps }: { steps: ProcessStep[] }) {
                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                      <span className="text-[8px] sm:text-[10px] uppercase font-extrabold tracking-[0.2em] text-white">Draft {step.stepNumber} // {step.subtitle || 'PROGRESS'}</span>
                   </div>
-                  <h3 className="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tighter text-ink relative inline-block mt-2">
+                  <h3 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-tight break-words text-ink relative inline-block mt-2">
                     {step.title}
                   </h3>
                </div>
