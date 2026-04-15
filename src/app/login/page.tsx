@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, Suspense, useState, useRef } from "react";
 import type { FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogIn, User, ShieldCheck, Palette, ArrowRight, Smartphone, Mail, KeyRound, ChevronDown, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { LogIn, User, ShieldCheck, Palette, ArrowRight, Smartphone, Mail, KeyRound, ChevronDown, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 import ArtLoader from "@/components/ui/ArtLoader";
 
 type Role = "admin" | "artist" | "user";
@@ -311,7 +311,7 @@ function LoginContent() {
                         disabled={loading}
                         className="w-full h-14 bg-ink text-canvas rounded-2xl text-sm font-bold tracking-widest uppercase mt-6 flex items-center justify-center gap-3 hover:shadow-xl hover:shadow-ink/20 transition-all disabled:opacity-50"
                     >
-                        {loading ? <ArtLoader variant="inline" size="sm" className="text-canvas" /> : (isSignUp ? "Create Account" : "Sign In")}
+                        {loading ? <Loader2 className="animate-spin" size={16} /> : (isSignUp ? "Create Account" : "Sign In")}
                         <ArrowRight className="w-4 h-4" />
                     </button>
                 </motion.form>
@@ -352,7 +352,7 @@ function LoginContent() {
                                 onClick={handleSendOtp} disabled={loading}
                                 className="w-full h-14 bg-ink text-canvas rounded-2xl text-sm font-bold tracking-widest uppercase mt-6 flex items-center justify-center gap-3 hover:shadow-xl hover:shadow-ink/20 transition-all disabled:opacity-50"
                             >
-                                {loading ? <ArtLoader variant="inline" size="sm" className="text-canvas" /> : "Send OTP"}
+                                {loading ? <Loader2 className="animate-spin" size={16} /> : "Send OTP"}
                                 <ArrowRight className="w-4 h-4" />
                             </button>
                         </div>
@@ -373,7 +373,7 @@ function LoginContent() {
                                 disabled={loading}
                                 className="w-full h-14 bg-ink text-canvas rounded-2xl text-sm font-bold tracking-widest uppercase mt-6 flex items-center justify-center gap-3 hover:shadow-xl hover:shadow-ink/20 transition-all disabled:opacity-50"
                             >
-                                {loading ? <ArtLoader variant="inline" size="sm" className="text-canvas" /> : (isSignUp ? "Verify & Register" : "Verify & Sign In")}
+                                {loading ? <Loader2 className="animate-spin" size={16} /> : (isSignUp ? "Verify & Register" : "Verify & Sign In")}
                                 <ArrowRight className="w-4 h-4" />
                             </button>
                         </form>

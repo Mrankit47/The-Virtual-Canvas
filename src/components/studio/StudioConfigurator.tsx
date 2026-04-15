@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import ArtLoader from '@/components/ui/ArtLoader';
 import { useUIStore } from '@/store/useUIStore';
 import { useRouter } from 'next/navigation';
 import { env } from '@/config/env';
@@ -19,7 +18,8 @@ import {
   ShieldCheck,
   CreditCard,
   UploadCloud,
-  FileText
+  FileText,
+  Loader2
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -84,6 +84,8 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [pincode, setPincode] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Flow state
@@ -239,8 +241,10 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
   const validateCustomerInfo = () => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = 'Name is required';
-    if (!email.trim() || !/\\S+@\\S+\\.\\S+/.test(email)) errs.email = 'Valid email required';
-    if (!phone.trim() || phone.replace(/\\D/g, '').length < 10) errs.phone = 'Valid 10-digit phone required';
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) errs.email = 'Valid email required';
+    if (!phone.trim() || phone.replace(/\D/g, '').length < 10) errs.phone = 'Valid 10-digit phone required';
+    if (!address.trim() || address.length < 10) errs.address = 'Full shipping address required';
+    if (!pincode.trim() || !/^\d{6}$/.test(pincode)) errs.pincode = 'Invalid 6-digit pin code';
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -285,7 +289,7 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerName: name, email, phone,
+          customerName: name, email, phone, address, pincode,
           styleId: selectedStyle!._id,
           sizeId: selectedSize!._id,
           paperId: selectedPaper!._id,
@@ -605,8 +609,8 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                          
                          {isUploadingRef ? (
                             <div className="flex flex-col items-center gap-4">
-                                <ArtLoader variant="inline" size="sm" />
-                                <p className="text-[10px] uppercase tracking-widest font-extrabold animate-pulse">Encoding Vision...</p>
+                                <Loader2 className="animate-spin text-ink/20" size={24} />
+                                <p className="text-[10px] uppercase tracking-widest font-extrabold opacity-40 animate-pulse">Encoding Vision...</p>
                             </div>
                          ) : referenceImageUrl ? (
                             <div className="relative w-full h-full p-4 group">
@@ -677,6 +681,16 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                          <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full p-5 sm:p-6 bg-white border border-ink/10 rounded-xl text-sm sm:text-base outline-none focus:ring-1 focus:ring-ink/20 focus:border-ink transition-all shadow-sm" placeholder="+91 XXXXX XXXXX" />
                          {fieldErrors.phone && <p className="text-[9px] text-rose-500 mt-2 font-bold ml-5 uppercase tracking-widest">{fieldErrors.phone}</p>}
                       </div>
+                      <div className="relative group sm:col-span-2">
+                         <span className="absolute -top-2 left-5 px-2 bg-canvas text-[9px] font-extrabold uppercase tracking-widest z-10 text-ink/40">Shipping Address</span>
+                         <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} className="w-full p-5 sm:p-6 bg-white border border-ink/10 rounded-xl text-sm sm:text-base outline-none focus:ring-1 focus:ring-ink/20 focus:border-ink transition-all shadow-sm resize-none" placeholder="House no, Street, Landmark..." />
+                         {fieldErrors.address && <p className="text-[9px] text-rose-500 mt-2 font-bold ml-5 uppercase tracking-widest">{fieldErrors.address}</p>}
+                      </div>
+                      <div className="relative group max-w-[200px]">
+                         <span className="absolute -top-2 left-5 px-2 bg-canvas text-[9px] font-extrabold uppercase tracking-widest z-10 text-ink/40">Pin Code</span>
+                         <input type="text" value={pincode} onChange={(e) => setPincode(e.target.value)} maxLength={6} className="w-full p-5 sm:p-6 bg-white border border-ink/10 rounded-xl text-sm sm:text-base outline-none focus:ring-1 focus:ring-ink/20 focus:border-ink transition-all shadow-sm font-mono tracking-widest" placeholder="000000" />
+                         {fieldErrors.pincode && <p className="text-[9px] text-rose-500 mt-2 font-bold ml-5 uppercase tracking-widest">{fieldErrors.pincode}</p>}
+                      </div>
                    </div>
                 </div>
 
@@ -712,7 +726,7 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                             />
                             {isValidatingCoupon && (
                                <div className="absolute right-0 bottom-3">
-                                  <ArtLoader variant="inline" size="sm" />
+                                  <Loader2 className="animate-spin text-ink/20" size={16} />
                                 </div>
                             )}
                          </div>
@@ -767,7 +781,7 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                  <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                  {isSubmitting ? (
                    <div className="flex items-center gap-3">
-                     <ArtLoader variant="inline" size="sm" className="text-white" />
+                     <Loader2 className="animate-spin" size={16} />
                      <span className="animate-pulse">Authorizing...</span>
                    </div>
                  ) : (

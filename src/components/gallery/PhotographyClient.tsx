@@ -36,7 +36,7 @@ export function PhotographyClient({ photos }: { photos: any[] }) {
       else if (window.innerWidth >= 1024) setColumns(4);
       else if (window.innerWidth >= 768) setColumns(3);
       else if (window.innerWidth >= 640) setColumns(2);
-      else setColumns(1);
+      else setColumns(2);
     };
     
     updateColumns();
@@ -48,9 +48,9 @@ export function PhotographyClient({ photos }: { photos: any[] }) {
     return (
       <div className="flex gap-4 md:gap-6 w-full">
         {Array.from({ length: 5 }).map((_, colIdx) => (
-          <div key={colIdx} className={`flex flex-col gap-4 md:gap-6 flex-1 min-w-0 ${colIdx > 0 ? 'hidden sm:flex' : ''} ${colIdx > 1 ? 'hidden md:flex' : ''} ${colIdx > 2 ? 'hidden lg:flex' : ''} ${colIdx > 3 ? 'hidden xl:flex' : ''}`}>
+          <div key={colIdx} className={`flex flex-col gap-4 md:gap-6 flex-1 min-w-0 ${colIdx > 1 ? 'hidden sm:flex' : ''} ${colIdx > 1 ? 'hidden md:flex' : ''} ${colIdx > 2 ? 'hidden lg:flex' : ''} ${colIdx > 3 ? 'hidden xl:flex' : ''}`}>
              {[1, 2, 3].map(i => (
-                <Skeleton key={i} className={`w-full bg-[#1a1a1a] rounded-sm shadow-2xl ${i % 2 === 0 ? 'h-[300px]' : 'h-[450px]'}`} />
+                <Skeleton key={i} className={`w-full bg-[#1a1a1a] rounded-sm shadow-2xl ${i % 2 === 0 ? 'h-[200px] md:h-[300px]' : 'h-[300px] md:h-[450px]'}`} />
              ))}
           </div>
         ))}

@@ -32,11 +32,11 @@ export async function POST(req: Request) {
     const session: any = await getServerSession(authOptions);
     const body = await req.json();
 
-    const { customerName, email, phone, items, clientTotal, couponCode } = body;
+    const { customerName, email, phone, address, pincode, items, clientTotal, couponCode } = body;
 
     // ── Validation ────────────────────────────────────────────────────────────
-    if (!customerName || !email || !phone) {
-      return NextResponse.json({ error: 'Customer info is required' }, { status: 400 });
+    if (!customerName || !email || !phone || !address || !pincode) {
+      return NextResponse.json({ error: 'Customer info and shipping details are required' }, { status: 400 });
     }
 
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -100,6 +100,8 @@ export async function POST(req: Request) {
       email,
       userEmail: session?.user?.email || email,
       phone,
+      address,
+      pincode,
 
       // Cart-specific fields
       cartItems: items,
@@ -126,6 +128,8 @@ export async function POST(req: Request) {
         artworkType: `${items.length} artwork${items.length > 1 ? 's' : ''}`,
         price: serverTotal,
         email,
+        address,
+        pincode,
       });
     } catch (emailErr) {
       console.error('Receipt email failed (non-critical):', emailErr);

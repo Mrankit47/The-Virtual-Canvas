@@ -23,7 +23,7 @@ function CheckoutInner() {
 
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', pincode: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Coupon States (initialized from search params if present)
@@ -60,6 +60,8 @@ function CheckoutInner() {
     if (!form.name.trim()) e.name = 'Name is required';
     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Valid email required';
     if (!form.phone.trim() || form.phone.replace(/\D/g, '').length < 10) e.phone = 'Valid phone required';
+    if (!form.address.trim() || form.address.length < 10) e.address = 'Full shipping address required';
+    if (!form.pincode.trim() || !/^\d{6}$/.test(form.pincode)) e.pincode = 'Invalid 6-digit pin code';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -127,6 +129,8 @@ function CheckoutInner() {
           customerName: form.name,
           email: form.email,
           phone: form.phone,
+          address: form.address,
+          pincode: form.pincode,
           items,
           clientTotal: currentFinalTotal,
           couponCode: appliedCoupon?.code || undefined,
@@ -265,6 +269,24 @@ function CheckoutInner() {
                   />
                   {errors.phone && <span className="text-red-500 text-[10px] uppercase tracking-widest">{errors.phone}</span>}
                 </div>
+                <div className="flex flex-col gap-1">
+                  <textarea
+                    placeholder="Shipping Address"
+                    value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    rows={2}
+                    className="w-full bg-transparent border-b border-ink/20 py-3 outline-none focus:border-ink transition-colors font-sans text-sm resize-none"
+                  />
+                  {errors.address && <span className="text-red-500 text-[10px] uppercase tracking-widest">{errors.address}</span>}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <input
+                    type="text" placeholder="Pin Code"
+                    value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })}
+                    maxLength={6}
+                    className="w-full bg-transparent border-b border-ink/20 py-3 outline-none focus:border-ink transition-colors font-sans text-sm font-mono tracking-widest"
+                  />
+                  {errors.pincode && <span className="text-red-500 text-[10px] uppercase tracking-widest">{errors.pincode}</span>}
+                </div>
               </div>
               <div className="flex justify-between mt-12 pt-8 border-t border-ink/10">
                 <Link href="/cart" className="text-[10px] uppercase tracking-widest text-ink/40 hover:text-ink transition-colors">← Back to Cart</Link>
@@ -286,7 +308,10 @@ function CheckoutInner() {
                 <div className="p-6 border-b border-ink/10 bg-ink/[0.02]">
                   <p className="text-[10px] uppercase tracking-widest text-ink/40">Billed To</p>
                   <p className="font-serif text-lg text-ink mt-1">{form.name}</p>
-                  <p className="font-sans text-xs text-ink/50">{form.email} · {form.phone}</p>
+                  <p className="font-sans text-xs text-ink/50 leading-relaxed">
+                    {form.email} · {form.phone}<br/>
+                    <span className="opacity-70">{form.address}</span> · <span className="font-mono">{form.pincode}</span>
+                  </p>
                 </div>
                 <div className="p-6">
                   <p className="text-[10px] uppercase tracking-widest text-ink/40 mb-4">Artworks</p>

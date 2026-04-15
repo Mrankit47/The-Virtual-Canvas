@@ -40,14 +40,14 @@ export default async function ArtworksPage() {
         
         <header className="mb-16 md:mb-32 flex flex-col items-center text-center max-w-[90%] sm:max-w-xl md:max-w-2xl lg:max-w-4xl mx-auto">
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-tight break-words text-ink mb-8">Masterpieces</h1>
-          <p className="font-sans text-sm sm:text-base md:text-lg uppercase tracking-[0.2em] opacity-40 max-w-lg leading-relaxed font-extrabold">
+          <p className="font-sans text-[10px] sm:text-[11px] md:text-xs uppercase tracking-[0.3em] opacity-50 max-w-md leading-relaxed font-medium">
             A curated selection of original artworks available for acquisition. Each piece is a unique synthesis of emotion and technique.
           </p>
         </header>
 
         {artworks.length === 0 ? (
           <div className="w-full h-[40vh] flex flex-col items-center justify-center border border-ink/5 bg-ink/[0.02] rounded-3xl shadow-inner">
-            <p className="font-sans text-[10px] uppercase tracking-widest text-ink/30 font-extrabold">Collections currently in preparation</p>
+            <p className="font-sans text-[9px] uppercase tracking-widest text-ink/30 font-bold">Collections currently in preparation</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-10 gap-y-20">
@@ -85,7 +85,7 @@ export default async function ArtworksPage() {
                     <div className="w-0 h-full bg-ink group-hover:w-full transition-all duration-1000 ease-in-out"></div>
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-[10px] uppercase tracking-[0.3em] font-extrabold opacity-40 text-ink group-hover:opacity-100 transition-opacity">Explore Asset</span>
+                    <span className="text-[9px] uppercase tracking-[0.2em] font-bold opacity-30 text-ink group-hover:opacity-100 transition-opacity">Explore Asset</span>
                     <span className="text-sm font-serif italic text-ink/70">Certified Archive</span>
                   </div>
                 </div>

@@ -31,7 +31,7 @@ function AuthButton({ session, status, isPhotography }: { session: any, status: 
     return (
       <Link
         href="/login"
-        className={`text-[10px] uppercase tracking-[0.3em] font-bold border ${isPhotography ? 'border-white/20 hover:bg-white hover:text-black' : 'border-black/20 hover:bg-black hover:text-white'} px-6 py-2 transition-all duration-500 rounded-full bg-current/5 backdrop-blur-sm pointer-events-auto`}
+        className={`text-[9px] uppercase tracking-[0.2em] font-bold border ${isPhotography ? 'border-white/20 hover:bg-white hover:text-black' : 'border-black/20 hover:bg-black hover:text-white'} px-4 py-1.5 transition-all duration-500 rounded-full bg-current/5 backdrop-blur-sm pointer-events-auto`}
       >
         Sign In
       </Link>
@@ -57,7 +57,7 @@ function AuthButton({ session, status, isPhotography }: { session: any, status: 
       {/* Avatar Button */}
       <button
         onClick={() => setOpen(!open)}
-        className={`group flex items-center gap-3 p-1 pr-4 bg-current/5 hover:bg-current/10 border ${isPhotography ? 'border-white/10' : 'border-black/10'} rounded-full transition-all duration-300 backdrop-blur-md`}
+        className={`group flex items-center gap-2 p-0.5 pr-3 bg-current/5 hover:bg-current/10 border ${isPhotography ? 'border-white/10' : 'border-black/10'} rounded-full transition-all duration-300 backdrop-blur-md`}
       >
         {avatarUrl ? (
           <div className="relative w-8 h-8">
@@ -68,12 +68,12 @@ function AuthButton({ session, status, isPhotography }: { session: any, status: 
             />
           </div>
         ) : (
-          <div className={`w-8 h-8 rounded-full ${isPhotography ? 'bg-white text-black' : 'bg-black text-white'} flex items-center justify-center text-[10px] font-bold`}>
+          <div className={`w-7 h-7 rounded-full ${isPhotography ? 'bg-white text-black' : 'bg-black text-white'} flex items-center justify-center text-[9px] font-bold`}>
             {name[0]}
           </div>
         )}
-        <span className="text-[10px] uppercase tracking-widest font-bold hidden md:block">{name.split(' ')[0]}</span>
-        <svg className={`w-3 h-3 opacity-40 transition-transform duration-500 ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="text-[9px] uppercase tracking-widest font-bold hidden md:block">{name.split(' ')[0]}</span>
+        <svg className={`w-2.5 h-2.5 opacity-40 transition-transform duration-500 ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -85,17 +85,20 @@ function AuthButton({ session, status, isPhotography }: { session: any, status: 
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 top-14 w-64 bg-black/80 backdrop-blur-2xl text-white rounded-2xl shadow-2xl border border-white/10 overflow-hidden z-50 origin-top-right"
+            className={`absolute bg-black/80 backdrop-blur-2xl text-white rounded-2xl shadow-2xl border border-white/10 overflow-hidden z-50 origin-bottom-left lg:origin-top-right ${
+              // Anchor to left on mobile to avoid overflow, right on desktop
+              'left-0 lg:left-auto lg:right-0 w-48 lg:w-64 bottom-14 lg:top-14 lg:bottom-auto'
+            }`}
           >
             {/* User Profile Header */}
-            <div className="px-6 py-6 border-b border-white/10 bg-white/[0.02]">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center text-xs font-bold">
+            <div className="px-4 lg:px-6 py-4 lg:py-6 border-b border-white/10 bg-white/[0.02]">
+              <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
+                 <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-white text-black flex items-center justify-center text-[10px] lg:text-xs font-bold">
                     {name[0]}
                  </div>
                  <div className="overflow-hidden">
-                    <p className="text-xs font-bold truncate">{name}</p>
-                    <p className="text-[9px] opacity-40 truncate uppercase tracking-widest mt-0.5">{session.user?.email}</p>
+                    <p className="text-[10px] lg:text-xs font-bold truncate">{name}</p>
+                    <p className="text-[8px] lg:text-[9px] opacity-40 truncate uppercase tracking-widest mt-0.5">{session.user?.email}</p>
                  </div>
               </div>
               {role && (
@@ -164,24 +167,24 @@ export function Navbar() {
 
   return (
     <>
-      <header className={`fixed top-0 w-full z-50 ${navColor} px-4 py-3 sm:px-6 sm:py-4 flex justify-between items-center ${navBg} pointer-events-none transition-all duration-500`}>
-        <Link href="/" aria-label="Home - The Virtual Canvas" className="font-serif text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-tighter hover:opacity-70 transition-opacity pointer-events-auto leading-tight break-words">
+      <header className={`fixed top-0 w-full z-50 ${navColor} px-4 py-2 sm:px-6 sm:py-3 flex justify-between items-center ${navBg} pointer-events-none transition-all duration-500`}>
+        <Link href="/" aria-label="Home - The Virtual Canvas" className="font-serif text-lg sm:text-xl md:text-2xl lg:text-3xl tracking-tighter hover:opacity-70 transition-opacity pointer-events-auto leading-tight break-words">
           The Virtual Canvas
         </Link>
         
         {/* Desktop Navigation */}
-        <nav aria-label="Main Navigation" className="hidden lg:flex gap-10 text-xs xl:text-sm uppercase tracking-[0.2em] font-medium items-center pointer-events-none">
+        <nav aria-label="Main Navigation" className="hidden lg:flex gap-8 text-[10px] xl:text-[11px] uppercase tracking-[0.15em] font-medium items-center pointer-events-none">
           {navLinks.map((link, idx) => (
             <Link key={link.href} href={link.href} className="group relative pointer-events-auto">
               {link.name}
-              <span className={`absolute -bottom-2 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-${idx * 25}`}></span>
+              <span className={`absolute -bottom-1.5 left-0 w-0 h-[1.5px] ${isPhotography ? 'bg-white' : 'bg-black'} group-hover:w-full transition-all duration-300 delay-${idx * 25}`}></span>
             </Link>
           ))}
 
           {/* Cart Icon (Only show if logged in as a normal User) */}
           {session && (session.user as any)?.role === 'user' && (
-            <Link href="/cart" aria-label={`Cart (${itemCount} items)`} className="relative flex items-center justify-center hover:opacity-70 transition-opacity ml-2 pointer-events-auto">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <Link href="/cart" aria-label={`Cart (${itemCount} items)`} className="relative flex items-center justify-center hover:opacity-70 transition-opacity ml-1 pointer-events-auto">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               {itemCount > 0 && (
@@ -233,12 +236,12 @@ export function Navbar() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 200 }}
-            className={`fixed inset-0 z-[45] ${isPhotography ? 'bg-black/95' : 'bg-canvas/95'} backdrop-blur-2xl flex flex-col px-6 py-8 pt-24 max-h-screen overflow-y-auto`}
+            className={`fixed inset-0 z-[45] ${isPhotography ? 'bg-black/95 text-white' : 'bg-canvas/95 text-ink'} backdrop-blur-2xl flex flex-col px-6 py-8 pt-24 max-h-screen overflow-y-auto`}
           >
-            <div className="absolute top-0 right-0 p-20 opacity-[0.03] font-serif text-[200px] leading-none select-none pointer-events-none">
+            <div className={`absolute inset-0 flex items-center justify-center opacity-[0.03] font-serif text-[35vw] leading-none select-none pointer-events-none z-0 ${isPhotography ? 'text-white' : 'text-ink'}`}>
               TVC
             </div>
-
+          
             <nav className="flex flex-col gap-8 relative z-10">
               {navLinks.map((link, idx) => (
                 <motion.div
@@ -252,8 +255,8 @@ export function Navbar() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="group flex items-baseline gap-4"
                   >
-                    <span className="font-serif text-[10px] opacity-20 group-hover:opacity-100 transition-opacity">0{idx + 1}</span>
-                    <span className="text-xl sm:text-2xl md:text-3xl font-serif tracking-tighter hover:translate-x-3 transition-transform duration-500 inline-block">
+                    <span className={`font-serif text-[10px] uppercase tracking-widest ${isPhotography ? 'text-white/30' : 'text-ink/20'} group-hover:opacity-100 transition-opacity`}>0{idx + 1}</span>
+                    <span className="text-2xl sm:text-3xl font-serif tracking-tighter hover:translate-x-3 transition-transform duration-500 inline-block">
                       {link.name}
                     </span>
                   </Link>

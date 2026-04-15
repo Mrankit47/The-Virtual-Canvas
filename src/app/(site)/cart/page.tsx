@@ -88,10 +88,10 @@ export default function CartPage() {
 
   return (
     <PageTransition>
-      <main className="min-h-screen pt-40 pb-24 px-6 md:px-12 max-w-[1200px] mx-auto">
-        <header className="mb-16">
-          <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-ink/40 mb-3">Your Collection</p>
-          <h1 className="font-serif text-5xl md:text-6xl tracking-tighter text-ink">
+      <main className="min-h-screen pt-24 md:pt-40 pb-24 px-4 sm:px-6 md:px-12 max-w-[1200px] mx-auto">
+        <header className="mb-10 md:mb-16">
+          <p className="font-sans text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-ink/40 mb-2 md:mb-3">Your Collection</p>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl tracking-tighter text-ink">
             Cart <span className="text-ink/30">({itemCount})</span>
           </h1>
         </header>
@@ -108,49 +108,53 @@ export default function CartPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -30 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="flex items-center gap-6 py-8 border-b border-ink/8 group"
+                  className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 py-6 sm:py-8 border-b border-ink/8 group"
                 >
-                  {/* Thumbnail */}
-                  <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-sm bg-ink/5 border border-ink/10">
-                    {item.imageUrl ? (
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="font-serif text-ink/20 text-xs">TVC</span>
-                      </div>
-                    )}
+                  <div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto">
+                    {/* Thumbnail */}
+                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 overflow-hidden rounded-sm bg-ink/5 border border-ink/10">
+                      {item.imageUrl ? (
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                          sizes="80px"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="font-serif text-ink/20 text-[10px]">TVC</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h2 className="font-serif text-base sm:text-lg tracking-tight text-ink leading-tight sm:leading-normal">{item.title}</h2>
+                      <p className="font-sans text-[8px] sm:text-[10px] uppercase tracking-widest text-ink/20 mt-1 truncate">ID: {item.artworkId.slice(-8)}</p>
+                    </div>
                   </div>
 
-                  {/* Info */}
-                   <div className="flex-1 min-w-0">
-                    <h2 className="font-serif text-lg tracking-tight text-ink truncate">{item.title}</h2>
-                    <p className="font-sans text-[10px] uppercase tracking-widest text-ink/20 mt-1 truncate">ID: {item.artworkId.slice(-8)}</p>
-                  </div>
+                  <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
+                    <div className="flex items-baseline gap-1 font-serif text-ink">
+                      <span className="text-xs sm:text-sm opacity-40 font-sans">₹</span>
+                      <p className="text-lg sm:text-xl font-bold">{item.price.toLocaleString()}</p>
+                    </div>
 
-                  <div className="text-right flex-shrink-0 flex items-baseline gap-1 font-serif text-ink">
-                    <span className="text-sm opacity-40 font-sans">₹</span>
-                    <p className="text-xl font-bold">{item.price.toLocaleString()}</p>
+                    {/* Remove */}
+                    <button
+                      onClick={() => {
+                        removeFromCart(item.artworkId);
+                        addToast(`"${item.title}" removed from cart`, 'info');
+                      }}
+                      className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center text-ink/20 hover:text-ink/60 transition-colors border border-ink/5 sm:border-none rounded-full"
+                      aria-label="Remove item"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-
-                  {/* Remove */}
-                  <button
-                    onClick={() => {
-                      removeFromCart(item.artworkId);
-                      addToast(`"${item.title}" removed from cart`, 'info');
-                    }}
-                    className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-ink/20 hover:text-ink/60 transition-colors"
-                    aria-label="Remove item"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -158,15 +162,15 @@ export default function CartPage() {
 
           {/* ── Order Summary ─────────────────────────────────────────────── */}
           <div className="w-full lg:w-[360px] flex-shrink-0">
-            <div className="sticky top-32 border border-ink/10 p-8 bg-ink/[0.02] rounded-sm">
-              <h2 className="font-sans text-[10px] uppercase tracking-widest text-ink/50 mb-8">Order Summary</h2>
+            <div className="sticky top-32 border border-ink/10 p-5 sm:p-8 bg-ink/[0.02] rounded-sm">
+              <h2 className="font-sans text-[9px] sm:text-[10px] uppercase tracking-widest text-ink/50 mb-6 sm:mb-8">Order Summary</h2>
 
               {/* Line items */}
               <div className="flex flex-col gap-3 mb-6">
                 {items.map((item) => (
-                  <div key={item.artworkId} className="flex justify-between text-sm">
-                    <span className="font-serif text-ink/70 truncate max-w-[200px]">{item.title}</span>
-                    <span className="font-serif text-xs font-bold text-ink/60 flex-shrink-0 ml-4">₹{item.price.toLocaleString()+(item.price % 1 === 0 ? '.00' : '')}</span>
+                  <div key={item.artworkId} className="flex justify-between items-baseline text-xs sm:text-sm">
+                    <span className="font-serif text-ink/70 truncate max-w-[150px] sm:max-w-[200px]">{item.title}</span>
+                    <span className="font-serif text-[10px] sm:text-xs font-bold text-ink/60 flex-shrink-0 ml-4">₹{item.price.toLocaleString()+(item.price % 1 === 0 ? '.00' : '')}</span>
                   </div>
                 ))}
               </div>
@@ -212,22 +216,22 @@ export default function CartPage() {
 
               {/* Totals */}
               <div className="flex flex-col gap-2 mb-8">
-                 <div className="flex justify-between text-sm">
+                 <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-ink/50">Subtotal</span>
                   <span className="font-serif font-bold text-ink/70">₹{total.toLocaleString()}.00</span>
                 </div>
                 {appliedDiscount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600">
+                  <div className="flex justify-between text-xs sm:text-sm text-green-600">
                     <span>Discount</span>
                     <span className="font-mono">−₹{appliedDiscount.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="w-full h-[1px] bg-ink/10 my-2" />
                 <div className="flex justify-between items-baseline">
-                  <span className="font-serif text-lg text-ink">Total</span>
+                  <span className="font-serif text-base sm:text-lg text-ink">Total</span>
                   <div className="flex items-baseline gap-1 font-serif text-ink">
-                    <span className="text-base opacity-40 font-sans">₹</span>
-                    <span className="text-3xl font-bold">{finalTotal.toLocaleString()}</span>
+                    <span className="text-sm sm:text-base opacity-40 font-sans">₹</span>
+                    <span className="text-2xl sm:text-3xl font-bold">{finalTotal.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

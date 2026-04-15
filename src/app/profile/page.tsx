@@ -4,7 +4,6 @@ import { useSession } from "next-auth/react";
 import { useState, useRef } from "react";
 import { User, Mail, Shield, Phone, History, Camera, Check, Loader2 } from "lucide-react";
 import { useUIStore } from "@/store/useUIStore";
-import ArtLoader from "@/components/ui/ArtLoader";
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();

@@ -69,7 +69,7 @@ export const GET_PROCESS_STEPS_QUERY = groq`
 `;
 
 export const GET_ART_STYLES_QUERY = groq`
-  *[_type == "artStyle" && isActive == true] | order(order asc) {
+  *[_type == "artStyle" && isActive != false] | order(order asc) {
     _id,
     title,
     "slug": slug.current,

@@ -138,50 +138,50 @@ export function ProcessTimeline({ steps }: { steps: ProcessStep[] }) {
   return (
     <div className="relative w-full mt-16 sm:mt-24 md:mt-32 pb-32 overflow-hidden">
        {/* Sketchy Center timeline line */}
-       <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-[0px] border-l-2 border-dashed border-ink/10 -translate-x-1/2 z-0" />
+       <div className="absolute left-1/2 top-0 bottom-0 w-[0px] border-l border-dashed border-ink/10 -translate-x-1/2 z-0" />
 
-       <div className="flex flex-col gap-16 md:gap-40">
+       <div className="flex flex-col gap-4 sm:gap-16 md:gap-40">
          {steps.map((step, idx) => {
            const isLeft = step.layout === 'left';
            
-           const TextContent = (
+            const TextContent = (
              <div className={cn(
-               "flex flex-col gap-4 text-center items-center w-full max-w-lg mx-auto",
-               isLeft ? "md:text-right md:items-end" : "md:text-left md:items-start"
+               "flex flex-col gap-2 sm:gap-4 text-center items-center w-full max-w-lg mx-auto",
+               isLeft ? "text-right items-end" : "text-left items-start"
              )}>
                <div className={cn(
-                 "flex flex-col gap-1 relative w-full pt-8 md:pt-12",
-                 isLeft ? "md:items-end" : "md:items-start"
+                 "flex flex-col gap-1 relative w-full pt-0 sm:pt-12",
+                 isLeft ? "items-end" : "items-start"
                )}>
                   <div className={cn(
-                    "absolute -top-6 -z-10 select-none",
+                    "absolute -top-2 sm:-top-6 -z-10 select-none",
                     isLeft ? "right-0 md:-right-8 lg:-right-16" : "left-0 md:-left-8 lg:-left-16"
                   )}>
-                    <svg className="absolute inset-0 w-full h-full scale-[1.5] -translate-x-2 -translate-y-2 opacity-[0.03] stroke-ink fill-none" viewBox="0 0 100 100">
+                    <svg className="absolute inset-0 w-full h-full scale-[1.0] sm:scale-[1.5] -translate-x-1 -translate-y-1 sm:-translate-x-2 sm:-translate-y-2 opacity-[0.03] stroke-ink fill-none" viewBox="0 0 100 100">
                       <path d="M 50 10 A 40 40 0 1 0 50 90 A 40 40 0 1 0 50 10" strokeDasharray="50 10 20 5" strokeWidth="2" strokeLinecap="round" />
                     </svg>
-                    <span className="font-serif text-7xl sm:text-8xl md:text-9xl leading-none opacity-5 inline-block -rotate-6">
+                    <span className="font-serif text-3xl sm:text-8xl md:text-9xl leading-none opacity-[0.03] inline-block -rotate-6">
                       {String(step.stepNumber).padStart(2, '0')}
                     </span>
                   </div>
                   
-                  <div className={cn("inline-flex items-center gap-2 mb-2 w-max border border-ink/10 px-3 py-1 bg-ink shadow-2xl rotate-[-1deg]", isLeft ? "origin-bottom-right" : "origin-bottom-left")}>
-                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                     <span className="text-[8px] sm:text-[10px] uppercase font-extrabold tracking-[0.2em] text-white">Draft {step.stepNumber} // {step.subtitle || 'PROGRESS'}</span>
+                  <div className={cn("inline-flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 w-max border border-ink/10 px-2 sm:px-3 py-1 sm:py-1.5 bg-ink/5 backdrop-blur-md shadow-sm rotate-[-1deg]", isLeft ? "origin-bottom-right" : "origin-bottom-left")}>
+                     <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-ink/40" />
+                     <span className="text-[6px] sm:text-[10px] uppercase font-bold tracking-[0.2em] text-ink/60">Draft {step.stepNumber} // {step.subtitle || 'PROGRESS'}</span>
                   </div>
-                  <h3 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-tight break-words text-ink relative inline-block mt-2">
+                  <h3 className="font-serif text-xl sm:text-3xl md:text-4xl lg:text-5xl tracking-tight leading-tight break-words text-ink relative inline-block mt-1 sm:mt-2">
                     {step.title}
                   </h3>
                </div>
                
-               <p className="font-serif italic text-sm md:text-base leading-relaxed text-ink/70 max-w-sm mt-6 p-6 sm:p-8 bg-[#faf9f6]/95 backdrop-blur-xl border border-ink/5 shadow-2xl relative group decoration-ink/20 rounded-sm">
+               <p className="font-serif italic text-[11px] sm:text-sm lg:text-base leading-relaxed text-ink/70 max-w-sm mt-3 sm:mt-6 p-4 sm:p-8 bg-white/40 backdrop-blur-sm border border-ink/5 shadow-sm relative group decoration-ink/20 rounded-sm">
                   {/* Artist frame corners */}
-                  <span className="absolute -top-[2px] -left-[2px] w-3 h-3 border-t border-l border-ink/20 transition-all duration-500 group-hover:scale-150" />
-                  <span className="absolute -bottom-[2px] -right-[2px] w-3 h-3 border-b border-r border-ink/20 transition-all duration-500 group-hover:scale-150" />
+                  <span className="absolute -top-[1px] -left-[1px] w-2 h-2 sm:w-3 sm:h-3 border-t border-l border-ink/10 transition-all duration-500 group-hover:scale-150" />
+                  <span className="absolute -bottom-[1px] -right-[1px] w-2 h-2 sm:w-3 sm:h-3 border-b border-r border-ink/10 transition-all duration-500 group-hover:scale-150" />
                   {isLeft ? step.leftText : step.rightText}
                </p>
                {step.aiCaption && (
-                 <p className="font-serif italic text-[11px] sm:text-xs text-ink/40 max-w-md mt-6 hidden md:block uppercase tracking-widest font-extrabold">
+                 <p className="font-serif italic text-[7px] sm:text-[10px] text-ink/40 max-w-md mt-2 sm:mt-4 hidden sm:block uppercase tracking-widest font-bold">
                    {step.aiCaption}
                  </p>
                )}
@@ -194,42 +194,40 @@ export function ProcessTimeline({ steps }: { steps: ProcessStep[] }) {
                     {renderMedia(step)}
                 </div>
                 
-                {/* AI Caption Mobile Only */}
+                {/* AI Caption Mobile Only - Restored to elegant italic serif */}
                 {step.aiCaption && (
-                  <p className="font-serif italic text-[10px] text-center text-ink/30 max-w-sm mx-auto px-4 md:hidden mt-4 uppercase tracking-[0.2em] font-extrabold">
+                  <p className="font-serif italic text-[10px] sm:text-xs text-center text-ink/40 max-w-md mx-auto px-4 md:hidden mt-4 tracking-normal">
                     {step.aiCaption}
                   </p>
                 )}
              </div>
            );
 
-           return (
+            return (
              <motion.div
                key={step._id}
                initial={{ opacity: 0, y: 30 }}
                whileInView={{ opacity: 1, y: 0 }}
                viewport={{ once: true, margin: "-50px" }}
                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-               className="relative grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-center px-4 md:px-8 z-10 w-full max-w-6xl mx-auto"
+               className="relative grid grid-cols-2 gap-0.5 sm:gap-16 md:gap-24 items-start px-0.5 sm:px-4 md:px-8 z-10 w-full max-w-6xl mx-auto"
              >
                {/* Center Circle Indicator */}
-               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#f5f5f0] border border-ink/5 flex items-center justify-center z-20 shadow-2xl hidden md:flex font-serif text-xs text-ink isolate">
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 sm:w-10 sm:h-10 rounded-full bg-[#f5f5f0] border border-ink/5 flex items-center justify-center z-20 shadow-2xl flex font-serif text-[6px] sm:text-xs text-ink isolate">
                  {step.stepNumber}
                </div>
 
-               {/* Responsive Ordering */}
+               {/* Responsive Ordering - Maintained Alternating Layout */}
                <div className={cn(
-                 "flex w-full",
-                 "order-2", // Mobile text always second
-                 isLeft ? "md:order-1" : "md:order-2" // Desktop position
+                 "flex w-full px-0.5 sm:px-0",
+                 isLeft ? "order-1" : "order-2"
                )}>
                  {TextContent}
                </div>
                
                <div className={cn(
-                 "flex w-full",
-                 "order-1", // Mobile media always first
-                 isLeft ? "md:order-2" : "md:order-1" // Desktop position
+                 "flex w-full px-0.5 sm:px-0",
+                 isLeft ? "order-2" : "order-1"
                )}>
                  {MediaContent}
                </div>

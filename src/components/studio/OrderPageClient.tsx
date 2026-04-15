@@ -84,8 +84,8 @@ export function OrderPageClient({ styles, sizes, papers }: OrderPageClientProps)
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Existing commission form — completely untouched */}
-              <CommissionForm />
+              {/* Pass pre-fetched styles to commission form */}
+              <CommissionForm initialStyles={styles} />
             </motion.div>
           )}
         </AnimatePresence>

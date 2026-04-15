@@ -7,6 +7,8 @@ interface ReceiptData {
   artworkType: string;
   price: number;
   email: string;
+  address?: string;
+  pincode?: string;
 }
 
 export async function sendOrderReceipt(data: ReceiptData) {
@@ -50,7 +52,8 @@ export async function sendOrderReceipt(data: ReceiptData) {
               <td style="padding: 20px; border: 1px solid #eaeaea; background: #fff;">
                 <p style="font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: #999; margin: 0 0 10px 0;">Billed To</p>
                 <p style="font-family: Georgia, serif; font-size: 18px; margin: 0 0 5px 0; color: #111; text-transform: capitalize;">${data.customerName}</p>
-                <p style="font-size: 11px; margin: 0; color: #666;">${data.email}</p>
+                <p style="font-size: 11px; margin: 0 0 5px 0; color: #666;">${data.email}</p>
+                ${data.address ? `<p style="font-size: 10px; margin: 5px 0 0 0; color: #888; border-top: 1px solid #f0f0f0; pt: 5px;">${data.address}<br/>PIN: ${data.pincode}</p>` : ''}
               </td>
               <td style="padding: 20px; border: 1px solid #eaeaea; background: #fff; text-align: right;">
                 <p style="font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: #999; margin: 0 0 10px 0;">Payment Status</p>
@@ -109,6 +112,8 @@ export async function sendOrderReceipt(data: ReceiptData) {
           <p><strong>Order ID:</strong> ${data.orderId}</p>
           <p><strong>Customer Name:</strong> ${data.customerName}</p>
           <p><strong>Email Address:</strong> ${data.email}</p>
+          <p><strong>Shipping Address:</strong> ${data.address || 'N/A'}</p>
+          <p><strong>Pin Code:</strong> ${data.pincode || 'N/A'}</p>
           <p><strong>Artwork Type:</strong> ${data.artworkType}</p>
           <p><strong>Price:</strong> ₹${data.price}.00</p>
           <br/>

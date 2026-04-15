@@ -50,9 +50,11 @@ export const authOptions: NextAuthOptions = {
                         throw new Error("Invalid credentials or method");
                     }
 
-                    const isMatch = await bcrypt.compare(password, user.password);
+                    const normalizedPassword = password.trim();
+                    const isMatch = await bcrypt.compare(normalizedPassword, user.password);
+                    
                     if (!isMatch) {
-                        console.error(`[Auth] Password mismatch for: ${normalizedEmail}`);
+                        console.error(`[Auth] Password mismatch for: ${normalizedEmail} (Input length: ${normalizedPassword.length}, Hash starts with: ${user.password.substring(0, 10)}...)`);
                         throw new Error("Invalid password");
                     }
 

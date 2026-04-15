@@ -236,6 +236,20 @@ export default function OrderCard({ order, role }: OrderCardProps) {
           </div>
       )}
 
+      {isExpanded && (order.address || order.pincode) && (
+          <div className="px-8 pb-8 bg-gray-50/20">
+              <div className="p-6 bg-white border border-ink/5 rounded-2xl shadow-sm">
+                  <p className="text-[10px] uppercase tracking-widest font-extrabold opacity-20 mb-3 border-b border-ink/5 pb-2">Shipping Information</p>
+                  <div className="flex flex-col gap-1.5">
+                      <p className="text-xs text-ink/70 leading-relaxed font-medium capitalize prose prose-sm">{order.address || 'Address information missing'}</p>
+                      <p className="text-[9px] font-mono font-extrabold text-ink/40 tracking-[0.2em] mt-1 bg-ink/5 w-fit px-3 py-1 rounded-sm border border-ink/5">
+                        PINCODE: {order.pincode || '000000'}
+                      </p>
+                  </div>
+              </div>
+          </div>
+      )}
+
       {/* Timeline Toggle Bar (Bottom) */}
       <button 
         onClick={toggleTimeline}

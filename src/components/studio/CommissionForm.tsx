@@ -6,7 +6,7 @@ import { PageTransition } from '@/components/layout/PageTransition';
 import { useOrderStore } from '@/store/useOrderStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
-import ArtLoader from '@/components/ui/ArtLoader';
+import { Loader2, ChevronDown } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -25,7 +25,11 @@ interface ArtStyle {
   requiresReference?: boolean;
 }
 
-export default function CommissionForm() {
+interface CommissionFormProps {
+  initialStyles?: ArtStyle[];
+}
+
+export default function CommissionForm({ initialStyles }: CommissionFormProps) {
   const { data: session, status } = useSession();
   console.log("UPI:", process.env.NEXT_PUBLIC_UPI_ID);
   const { currentStep, nextStep, prevStep, setStep } = useOrderStore();
@@ -37,8 +41,8 @@ export default function CommissionForm() {
   const [orderDetails, setOrderDetails] = useState<{ id: string, createdAt: string } | null>(null);
   const [receiptData, setReceiptData] = useState<OrderFormValues | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [artStyles, setArtStyles] = useState<ArtStyle[]>([]);
-  const [isLoadingStyles, setIsLoadingStyles] = useState(true);
+  const [artStyles, setArtStyles] = useState<ArtStyle[]>(initialStyles || []);
+  const [isLoadingStyles, setIsLoadingStyles] = useState(!initialStyles);
   const [showUploadSuccess, setShowUploadSuccess] = useState(false);
   
   // Coupon States
@@ -57,11 +61,14 @@ export default function CommissionForm() {
   const referenceImage = watch('referenceImage');
   const paymentProof = watch('paymentProof');
   useEffect(() => {
+    // Only fetch if styles weren't provided as props
+    if (initialStyles && initialStyles.length > 0) return;
+
     const fetchStyles = async () => {
       try {
         setIsLoadingStyles(true);
         const styles = await client.fetch(GET_ART_STYLES_QUERY);
-        setArtStyles(styles);
+        setArtStyles(styles || []);
       } catch (err) {
         console.error('Failed to fetch dynamic art styles:', err);
       } finally {
@@ -69,7 +76,7 @@ export default function CommissionForm() {
       }
     };
     fetchStyles();
-  }, []);
+  }, [initialStyles]);
 
   useEffect(() => {
     if (artworkType && artStyles.length > 0) {
@@ -359,9 +366,14 @@ export default function CommissionForm() {
                    {/* CUSTOMER DETAILS */}
                    <div>
                      <p className="text-[8px] sm:text-[9px] uppercase tracking-widest opacity-40 mb-3 font-bold">Billed To</p>
-                     <p className="font-serif text-lg sm:text-xl md:text-2xl tracking-tight capitalize text-ink mb-1">{receiptData.customerName}</p>
-                     <p className="font-sans text-[11px] sm:text-xs opacity-70 tracking-wide text-ink truncate">{receiptData.email}</p>
-                   </div>
+                      <p className="font-serif text-lg sm:text-xl md:text-2xl tracking-tight capitalize text-ink mb-1">{receiptData.customerName}</p>
+                      <p className="font-sans text-[11px] sm:text-xs opacity-70 tracking-wide text-ink truncate mb-1">{receiptData.email}</p>
+                      <div className="mt-2 pt-2 border-t border-ink/5">
+                        <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest mb-1">Shipping To</p>
+                        <p className="font-sans text-[10px] leading-relaxed opacity-60 max-w-[200px]">{receiptData.address}</p>
+                        <p className="font-mono text-[10px] font-bold mt-1 opacity-80">PIN: {receiptData.pincode}</p>
+                      </div>
+                    </div>
 
                    {/* ARTWORK DETAILS */}
                    <div>
@@ -429,7 +441,7 @@ export default function CommissionForm() {
               >
                 {isDownloading ? (
                   <>
-                    <ArtLoader variant="inline" size="sm" className="text-canvas" />
+                    <Loader2 className="animate-spin" size={16} />
                     Generating PDF...
                   </>
                 ) : (
@@ -476,14 +488,32 @@ export default function CommissionForm() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                       <select {...register('artworkType')} className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-colors font-sans text-sm sm:text-base opacity-70 cursor-pointer appearance-none">
-                         <option value="">{isLoadingStyles ? 'Loading Styles...' : 'Select Artwork Style'}</option>
+                       <input {...register('address')} type="text" placeholder="Shipping Address" className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-colors font-sans text-sm sm:text-base" />
+                       {errors.address && <span className="text-rose-500 text-[10px] uppercase tracking-widest font-bold mt-1">{errors.address.message}</span>}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                       <input {...register('pincode')} type="text" placeholder="Pin Code" className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-colors font-sans text-sm sm:text-base" />
+                       {errors.pincode && <span className="text-rose-500 text-[10px] uppercase tracking-widest font-bold mt-1">{errors.pincode.message}</span>}
+                    </div>
+
+                    <div className="flex flex-col gap-2 relative">
+                       <select 
+                         {...register('artworkType')} 
+                         className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-colors font-sans text-sm sm:text-base text-ink cursor-pointer appearance-none relative z-10"
+                       >
+                         <option value="" className="bg-canvas text-ink">
+                           {isLoadingStyles ? 'Syncing Art Styles...' : 'Select Artwork Type'}
+                         </option>
                          {artStyles.map((style) => (
-                           <option key={style._id} value={style.title}>
+                           <option key={style._id} value={style.title} className="bg-canvas text-ink py-2">
                              {style.title} (Starting ₹{style.basePrice})
                            </option>
                          ))}
                        </select>
+                       <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                         <ChevronDown size={16} />
+                       </div>
                        {errors.artworkType && <span className="text-rose-500 text-[10px] uppercase tracking-widest font-bold mt-1">{errors.artworkType.message}</span>}
                     </div>
 
@@ -516,8 +546,8 @@ export default function CommissionForm() {
                          
                          {uploadingImage ? (
                             <div className="flex flex-col items-center gap-4">
-                               <ArtLoader variant="inline" size="sm" />
-                               <span className="text-[10px] uppercase tracking-widest font-bold">Uploading securely...</span>
+                               <Loader2 className="animate-spin text-ink/20" size={24} />
+                               <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">Uploading securely...</span>
                             </div>
                          ) : referenceImage ? (
                             <div className="relative w-full h-full min-h-[300px] group">
@@ -608,7 +638,7 @@ export default function CommissionForm() {
                                             />
                                             {isValidatingCoupon && (
                                                 <div className="absolute right-0 bottom-2.5">
-                                                    <ArtLoader variant="inline" size="sm" />
+                                                    <Loader2 className="animate-spin text-ink/20" size={16} />
                                                 </div>
                                             )}
                                         </div>
@@ -707,7 +737,7 @@ export default function CommissionForm() {
                    >
                       {isSubmitting ? (
                          <div className="flex items-center gap-3">
-                             <ArtLoader variant="inline" size="sm" className="text-canvas" />
+                             <Loader2 className="animate-spin" size={16} />
                              <span>Authorizing...</span>
                          </div>
                       ) : 'Secure Payment'}

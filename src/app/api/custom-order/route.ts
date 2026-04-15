@@ -21,6 +21,8 @@ interface StudioOrderBody {
   customerName: string;
   email: string;
   phone: string;
+  address: string;
+  pincode: string;
   // Configuration IDs (we re-fetch from Sanity for validation)
   styleId: string;
   sizeId: string;
@@ -44,17 +46,21 @@ export async function POST(req: Request) {
     const body: StudioOrderBody = await req.json();
 
     const { 
-      customerName, email, phone, styleId, sizeId, paperId, 
+      customerName, email, phone, address, pincode,
+      styleId, sizeId, paperId, 
       clientFinalPrice, notes, referenceImageUrl,
       couponCode, discountAmount 
     } = body;
 
     // ── Input Validation ──────────────────────────────────────────────────────
-    if (!customerName?.trim() || !email?.trim() || !phone?.trim()) {
-      return NextResponse.json({ error: 'Customer info (name, email, phone) is required' }, { status: 400 });
+    if (!customerName?.trim() || !email?.trim() || !phone?.trim() || !address?.trim() || !pincode?.trim()) {
+      return NextResponse.json({ error: 'Customer info (name, email, phone, address, pincode) is required' }, { status: 400 });
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
       return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+    }
+    if (!/^\d{6}$/.test(pincode)) {
+        return NextResponse.json({ error: 'Invalid 6-digit pincode' }, { status: 400 });
     }
     if (!styleId || !sizeId || !paperId) {
       return NextResponse.json({ error: 'All configurator selections (style, size, paper) are required' }, { status: 400 });
@@ -131,6 +137,8 @@ export async function POST(req: Request) {
       email,
       userEmail: session?.user?.email || email,
       phone,
+      address,
+      pincode,
 
       // Studio configuration snapshot (immutable record of what was ordered)
       artworkType: style.title,
@@ -174,6 +182,8 @@ export async function POST(req: Request) {
         artworkType: `${style.title} — ${size.label} — ${paper.title}`,
         price: serverComputedPrice,
         email,
+        address,
+        pincode,
       });
     } catch (emailErr) {
       console.error('Studio receipt email failed (non-critical):', emailErr);

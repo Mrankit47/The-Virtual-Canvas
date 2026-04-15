@@ -13,18 +13,18 @@ export default async function OrderPage() {
   try {
     [styles, sizes, papers] = await Promise.all([
       client.fetch(`
-        *[_type == "artStyle" && isActive == true] | order(order asc) {
+        *[_type == "artStyle" && isActive != false] | order(order asc) {
           _id, title, description, basePrice, requiresReference,
           "imageUrl": image.asset->url
         }
       `),
       client.fetch(`
-        *[_type == "sizeOption" && isActive == true] | order(order asc) {
+        *[_type == "sizeOption" && isActive != false] | order(order asc) {
           _id, label, description, multiplier
         }
       `),
       client.fetch(`
-        *[_type == "paperType" && isActive == true] | order(order asc) {
+        *[_type == "paperType" && isActive != false] | order(order asc) {
           _id, title, description, extraCost
         }
       `),
