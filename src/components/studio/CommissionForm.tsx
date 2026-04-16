@@ -6,7 +6,7 @@ import { PageTransition } from '@/components/layout/PageTransition';
 import { useOrderStore } from '@/store/useOrderStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
-import ArtLoader from '@/components/ui/ArtLoader';
+import { Loader2, ChevronDown } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -25,7 +25,11 @@ interface ArtStyle {
   requiresReference?: boolean;
 }
 
-export default function CommissionForm() {
+interface CommissionFormProps {
+  initialStyles?: ArtStyle[];
+}
+
+export default function CommissionForm({ initialStyles }: CommissionFormProps) {
   const { data: session, status } = useSession();
   console.log("UPI:", process.env.NEXT_PUBLIC_UPI_ID);
   const { currentStep, nextStep, prevStep, setStep } = useOrderStore();
@@ -37,8 +41,8 @@ export default function CommissionForm() {
   const [orderDetails, setOrderDetails] = useState<{ id: string, createdAt: string } | null>(null);
   const [receiptData, setReceiptData] = useState<OrderFormValues | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [artStyles, setArtStyles] = useState<ArtStyle[]>([]);
-  const [isLoadingStyles, setIsLoadingStyles] = useState(true);
+  const [artStyles, setArtStyles] = useState<ArtStyle[]>(initialStyles || []);
+  const [isLoadingStyles, setIsLoadingStyles] = useState(!initialStyles);
   const [showUploadSuccess, setShowUploadSuccess] = useState(false);
   
   // Coupon States
@@ -57,11 +61,14 @@ export default function CommissionForm() {
   const referenceImage = watch('referenceImage');
   const paymentProof = watch('paymentProof');
   useEffect(() => {
+    // Only fetch if styles weren't provided as props
+    if (initialStyles && initialStyles.length > 0) return;
+
     const fetchStyles = async () => {
       try {
         setIsLoadingStyles(true);
         const styles = await client.fetch(GET_ART_STYLES_QUERY);
-        setArtStyles(styles);
+        setArtStyles(styles || []);
       } catch (err) {
         console.error('Failed to fetch dynamic art styles:', err);
       } finally {
@@ -69,7 +76,7 @@ export default function CommissionForm() {
       }
     };
     fetchStyles();
-  }, []);
+  }, [initialStyles]);
 
   useEffect(() => {
     if (artworkType && artStyles.length > 0) {
@@ -320,76 +327,85 @@ export default function CommissionForm() {
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="w-full max-w-3xl flex flex-col items-center">
             
             {/* The PDF Physical Target */}
-            <div id="receipt-container" className="w-full bg-[#fcfcfc] text-ink p-12 md:p-20 border border-ink/10 shadow-2xl relative overflow-hidden mb-12 group rounded-sm">
+            <div id="receipt-container" className="w-full bg-[#fcfcfc] text-ink p-6 sm:p-12 md:p-20 border border-ink/10 shadow-2xl relative overflow-hidden mb-12 group rounded-sm">
                {/* Elegant Background Noise / Texture */}
                <div className="absolute inset-0 bg-ink opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '12px 12px' }}></div>
                <div className="absolute top-0 left-0 w-full h-2 bg-ink"></div>
 
                {/* TVC MONOGRAM WATERMARK */}
                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
-                 <span className="font-serif text-[240px] tracking-tighter text-ink opacity-[0.02] select-none">TVC</span>
+                 <span className="font-serif text-[120px] sm:text-[240px] tracking-tighter text-ink opacity-[0.02] select-none">TVC</span>
                </div>
 
                {/* HEADER */}
-               <div className="text-center mb-12 relative z-10 border-b border-ink/10 pb-12 flex flex-col items-center">
-                 <div className="w-16 h-16 border border-ink/20 flex items-center justify-center mb-6 bg-white/50 backdrop-blur-sm shadow-sm">
-                   <span className="font-serif text-2xl tracking-[0.1em] text-ink opacity-80">TVC</span>
+               <div className="text-center mb-10 sm:mb-12 relative z-10 border-b border-ink/10 pb-10 sm:pb-12 flex flex-col items-center">
+                 <div className="w-14 h-14 sm:w-16 sm:h-16 border border-ink/20 flex items-center justify-center mb-6 bg-white/50 backdrop-blur-sm shadow-sm">
+                   <span className="font-serif text-xl sm:text-2xl tracking-[0.1em] text-ink opacity-80">TVC</span>
                  </div>
-                 <h1 className="font-serif text-3xl md:text-5xl tracking-[0.2em] mb-4 text-ink uppercase">The Virtual Canvas</h1>
-                 <p className="font-sans text-[10px] md:text-xs uppercase tracking-[0.4em] opacity-50">Official Order Receipt</p>
+                 <h1 className="font-serif text-2xl sm:text-3xl md:text-5xl tracking-[0.2em] mb-4 text-ink uppercase">The Virtual Canvas</h1>
+                 <p className="font-sans text-[8px] sm:text-[10px] md:text-xs uppercase tracking-[0.4em] opacity-50">Official Order Receipt</p>
                </div>
 
                {/* BODY: 2 COLUMN GRID */}
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 relative z-10 text-left">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-12 md:gap-16 relative z-10 text-left">
                  
                  {/* LEFT: DETAILS */}
-                 <div className="flex flex-col gap-8">
+                 <div className="flex flex-col gap-6 sm:gap-8">
                    {/* ORDER SUMMARY */}
                    <div>
-                     <p className="text-[9px] uppercase tracking-widest opacity-40 mb-3">Order Information</p>
-                     <div className="flex gap-4 items-center mb-2">
-                       <span className="font-mono text-sm tracking-tight text-ink bg-[#f5f5f5] px-3 py-1 border border-ink/10">{orderDetails?.id || orderId}</span>
-                       <span className="font-sans text-[9px] uppercase tracking-widest text-green-600 bg-green-100 px-3 py-1 rounded-full font-bold">Paid</span>
+                     <p className="text-[8px] sm:text-[9px] uppercase tracking-widest opacity-40 mb-3 font-bold">Order Information</p>
+                     <div className="flex flex-wrap gap-3 items-center mb-2">
+                       <span className="font-mono text-xs sm:text-sm tracking-tight text-ink bg-gray-100 px-3 py-1 border border-ink/10">{orderDetails?.id || orderId}</span>
+                       <span className="font-sans text-[8px] sm:text-[9px] uppercase tracking-widest text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full font-bold">Paid</span>
                      </div>
-                     <p className="font-mono text-[10px] opacity-60 mt-3">
+                     <p className="font-mono text-[9px] sm:text-[10px] opacity-60 mt-2">
                         {new Date(orderDetails?.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                      </p>
                    </div>
                    
                    {/* CUSTOMER DETAILS */}
                    <div>
-                     <p className="text-[9px] uppercase tracking-widest opacity-40 mb-3">Billed To</p>
-                     <p className="font-serif text-xl md:text-2xl tracking-tight capitalize text-ink mb-1">{receiptData.customerName}</p>
-                     <p className="font-sans text-xs opacity-70 tracking-wide text-ink">{receiptData.email}</p>
-                   </div>
+                     <p className="text-[8px] sm:text-[9px] uppercase tracking-widest opacity-40 mb-3 font-bold">Billed To</p>
+                      <p className="font-serif text-lg sm:text-xl md:text-2xl tracking-tight capitalize text-ink mb-1">{receiptData.customerName}</p>
+                      <p className="font-sans text-[11px] sm:text-xs opacity-70 tracking-wide text-ink truncate mb-1">{receiptData.email}</p>
+                      <div className="mt-2 pt-2 border-t border-ink/5">
+                        <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest mb-1">Shipping To</p>
+                        <p className="font-sans text-[10px] leading-relaxed opacity-60 max-w-[200px]">{receiptData.address}</p>
+                        <p className="font-mono text-[10px] font-bold mt-1 opacity-80">PIN: {receiptData.pincode}</p>
+                      </div>
+                    </div>
 
                    {/* ARTWORK DETAILS */}
                    <div>
-                     <p className="text-[9px] uppercase tracking-widest opacity-40 mb-3">Commission Type</p>
-                     <p className="font-sans text-xs uppercase tracking-widest text-ink font-medium">{receiptData.artworkType}</p>
+                     <p className="text-[8px] sm:text-[9px] uppercase tracking-widest opacity-40 mb-3 font-bold">Commission Type</p>
+                     <p className="font-sans text-[11px] sm:text-xs uppercase tracking-widest text-ink font-bold">{receiptData.artworkType}</p>
                    </div>
                  </div>
 
                  {/* RIGHT: PAYMENT SECTION & QR */}
-                 <div className="flex flex-col justify-between items-start md:items-end border-t md:border-t-0 md:border-l border-ink/10 pt-8 md:pt-0 md:pl-12">
+                 <div className="flex flex-col justify-between items-start md:items-end border-t md:border-t-0 md:border-l border-ink/10 pt-10 md:pt-0 md:pl-12">
                    
-                   <div className="w-full flex flex-col items-start md:items-end mb-12 md:mb-0">
-                     <p className="text-[9px] uppercase tracking-widest opacity-40 mb-3">Global Tracking QR</p>
-                     <div className="p-2 border border-ink/10 bg-white shadow-sm inline-block">
+                   <div className="w-full flex flex-col items-start md:items-end mb-10 md:mb-0">
+                     <p className="text-[8px] sm:text-[9px] uppercase tracking-widest opacity-40 mb-3 font-bold">Global Tracking QR</p>
+                     <div className="p-2.5 border border-ink/10 bg-white shadow-sm inline-block">
                         <QRCodeSVG 
                           value={`${typeof window !== 'undefined' ? window.location.origin : ''}/track-order?id=${orderDetails?.id || orderId}`} 
-                          size={70} 
+                          size={64} 
                           bgColor="#ffffff" 
                           fgColor="#000000" 
                         />
                      </div>
-                     <p className="text-[8px] uppercase tracking-[0.2em] opacity-40 mt-3 text-center md:text-right">Scan to Track Order</p>
+                     <p className="text-[8px] uppercase tracking-[0.2em] opacity-40 mt-3 text-center md:text-right">Scan to Track Status</p>
                    </div>
 
                    <div className="w-full text-left md:text-right mt-auto">
-                     <p className="text-[9px] uppercase tracking-widest opacity-40 mb-3">Total Investment</p>
-                     <p className="font-sans font-semibold text-5xl md:text-6xl text-ink leading-none">₹{receiptData.price}.00</p>
-                     <p className="text-[10px] uppercase tracking-widest opacity-40 mt-3">Paid via Razorpay Secure Network</p>
+                     <p className="text-[8px] sm:text-[9px] uppercase tracking-widest opacity-40 mb-3 font-bold">Total Investment</p>
+                     <div className="flex flex-baseline items-baseline md:justify-end gap-1">
+                        <span className="text-xl sm:text-2xl opacity-40 font-serif">₹</span>
+                        <span className="font-serif font-bold text-4xl sm:text-5xl md:text-6xl text-ink leading-none">{receiptData.price}</span>
+                        <span className="text-xs sm:text-sm opacity-20 font-sans ml-1">.00</span>
+                     </div>
+                     <p className="text-[8px] sm:text-[10px] uppercase tracking-widest opacity-40 mt-4 font-medium italic">Paid via Razorpay Secure Network</p>
                    </div>
                  </div>
 
@@ -411,25 +427,25 @@ export default function CommissionForm() {
                </div>
             </div>
 
-            <div className="w-full max-w-2xl px-6 flex flex-col md:flex-row gap-4 items-center justify-center mt-6">
+            <div className="w-full max-w-2xl px-6 flex flex-col sm:flex-row gap-4 items-center justify-center mt-6">
               <button 
                 onClick={() => window.location.href = `/track-order?id=${orderDetails?.id}`}
-                className="w-full md:w-auto px-8 py-4 bg-transparent border border-ink/20 text-ink text-[10px] md:text-xs uppercase tracking-widest hover:bg-ink/5 transition-colors duration-300"
+                className="w-full sm:w-auto px-10 py-4 sm:py-5 bg-transparent border border-ink/20 text-ink text-[11px] sm:text-xs uppercase tracking-widest hover:bg-ink/5 transition-all duration-300 font-bold"
               >
-                Track Status
+                Track Live Status
               </button>
               <button 
                 onClick={handleDownloadPDF}
                 disabled={isDownloading}
-                className="w-full md:w-auto px-8 py-4 bg-ink text-canvas text-[10px] md:text-xs uppercase tracking-widest hover:opacity-90 transition-opacity duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                className="w-full sm:w-auto px-10 py-4 sm:py-5 bg-ink text-canvas text-[11px] sm:text-xs uppercase tracking-widest hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-3 font-bold shadow-xl shadow-ink/10"
               >
                 {isDownloading ? (
                   <>
-                    <ArtLoader variant="inline" size="sm" className="mr-2 text-canvas" />
-                    Drafting PDF...
+                    <Loader2 className="animate-spin" size={16} />
+                    Generating PDF...
                   </>
                 ) : (
-                  'Download PDF'
+                  'Download Receipt'
                 )}
               </button>
             </div>
@@ -440,11 +456,11 @@ export default function CommissionForm() {
 
   return (
     <div className="w-full flex flex-col items-center">
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-3xl bg-ink/5 p-8 md:p-16 border border-ink/10 relative overflow-hidden shadow-lg">
-           <div className="flex justify-between mb-12 relative w-full px-2">
-             <div className="absolute top-1/2 left-0 w-full h-[1px] bg-ink/10 -z-10" />
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-3xl bg-ink/5 p-6 sm:p-12 md:p-16 border border-ink/10 relative overflow-hidden shadow-lg">
+           <div className="flex justify-between mb-16 relative w-full px-4 sm:px-10">
+             <div className="absolute top-1/2 left-0 w-full h-[1.5px] bg-ink/10 -z-10" />
              {[1, 2, 3].map((step) => (
-               <div key={step} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-serif transition-colors duration-500 bg-canvas border ${currentStep >= step ? 'border-ink text-ink shadow-sm' : 'border-ink/20 text-ink/40'}`}>
+               <div key={step} className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-serif transition-all duration-500 bg-canvas border ${currentStep >= step ? 'border-ink text-ink shadow-md scale-110' : 'border-ink/20 text-ink/40'}`}>
                  {step}
                </div>
              ))}
@@ -452,170 +468,177 @@ export default function CommissionForm() {
 
            <AnimatePresence mode="wait">
              {currentStep === 1 && (
-               <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                 <div className="flex flex-col gap-6">
-                    <h2 className="font-serif text-2xl tracking-tight">1. Your Vision</h2>
+               <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                 <div className="flex flex-col gap-8">
+                    <h2 className="font-serif text-2xl sm:text-3xl tracking-tight">1. Your Vision</h2>
                     
-                    <div className="flex flex-col gap-1">
-                      <input {...register('customerName')} type="text" placeholder="Full Name" className="w-full bg-transparent border-b border-ink/20 py-3 outline-none focus:border-ink transition-colors font-sans text-sm placeholder:capitalize" />
-                      {errors.customerName && <span className="text-red-500 text-[10px] uppercase tracking-widest">{errors.customerName.message}</span>}
+                    <div className="flex flex-col gap-2">
+                      <input {...register('customerName')} type="text" placeholder="Full Name" className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-colors font-sans text-sm sm:text-base placeholder:capitalize" />
+                      {errors.customerName && <span className="text-rose-500 text-[10px] uppercase tracking-widest font-bold mt-1">{errors.customerName.message}</span>}
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <input {...register('email')} type="email" placeholder="Email Address" className="w-full bg-transparent border-b border-ink/20 py-3 outline-none focus:border-ink transition-colors font-sans text-sm" />
-                      {errors.email && <span className="text-red-500 text-[10px] uppercase tracking-widest">{errors.email.message}</span>}
+                    <div className="flex flex-col gap-2">
+                       <input {...register('email')} type="email" placeholder="Email Address" className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-colors font-sans text-sm sm:text-base" />
+                       {errors.email && <span className="text-rose-500 text-[10px] uppercase tracking-widest font-bold mt-1">{errors.email.message}</span>}
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <input {...register('phone')} type="tel" placeholder="Phone Number" className="w-full bg-transparent border-b border-ink/20 py-3 outline-none focus:border-ink transition-colors font-sans text-sm" />
-                      {errors.phone && <span className="text-red-500 text-[10px] uppercase tracking-widest">{errors.phone.message}</span>}
+                    <div className="flex flex-col gap-2">
+                       <input {...register('phone')} type="tel" placeholder="Phone Number" className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-colors font-sans text-sm sm:text-base" />
+                       {errors.phone && <span className="text-rose-500 text-[10px] uppercase tracking-widest font-bold mt-1">{errors.phone.message}</span>}
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <select {...register('artworkType')} className="w-full bg-transparent border-b border-ink/20 py-3 outline-none focus:border-ink transition-colors font-sans text-sm opacity-70 cursor-pointer">
-                        <option value="">{isLoadingStyles ? 'Loading Artwork Types...' : 'Select Artwork Type'}</option>
-                        {artStyles.map((style) => (
-                          <option key={style._id} value={style.title}>
-                            {style.title} (Starting ₹{style.basePrice})
-                          </option>
-                        ))}
-                      </select>
-                      {errors.artworkType && <span className="text-red-500 text-[10px] uppercase tracking-widest">{errors.artworkType.message}</span>}
+                    <div className="flex flex-col gap-2">
+                       <input {...register('address')} type="text" placeholder="Shipping Address" className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-colors font-sans text-sm sm:text-base" />
+                       {errors.address && <span className="text-rose-500 text-[10px] uppercase tracking-widest font-bold mt-1">{errors.address.message}</span>}
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <textarea 
-                        {...register('description')} 
-                        placeholder="Please describe your vision in deep detail... (Optional)" 
-                        rows={1} 
-                        className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-all font-sans text-sm leading-relaxed resize-none overflow-hidden" 
-                        onInput={(e) => {
-                          const target = e.target as HTMLTextAreaElement;
-                          target.style.height = 'auto';
-                          target.style.height = target.scrollHeight + 'px';
-                        }}
-                      />
-                      {errors.description && <span className="text-red-500 text-[10px] uppercase tracking-widest">{errors.description.message}</span>}
+                    <div className="flex flex-col gap-2">
+                       <input {...register('pincode')} type="text" placeholder="Pin Code" className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-colors font-sans text-sm sm:text-base" />
+                       {errors.pincode && <span className="text-rose-500 text-[10px] uppercase tracking-widest font-bold mt-1">{errors.pincode.message}</span>}
+                    </div>
+
+                    <div className="flex flex-col gap-2 relative">
+                       <select 
+                         {...register('artworkType')} 
+                         className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-colors font-sans text-sm sm:text-base text-ink cursor-pointer appearance-none relative z-10"
+                       >
+                         <option value="" className="bg-canvas text-ink">
+                           {isLoadingStyles ? 'Syncing Art Styles...' : 'Select Artwork Type'}
+                         </option>
+                         {artStyles.map((style) => (
+                           <option key={style._id} value={style.title} className="bg-canvas text-ink py-2">
+                             {style.title} (Starting ₹{style.basePrice})
+                           </option>
+                         ))}
+                       </select>
+                       <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                         <ChevronDown size={16} />
+                       </div>
+                       {errors.artworkType && <span className="text-rose-500 text-[10px] uppercase tracking-widest font-bold mt-1">{errors.artworkType.message}</span>}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                       <textarea 
+                         {...register('description')} 
+                         placeholder="Describe your artistic vision..." 
+                         rows={1} 
+                         className="w-full bg-transparent border-b border-ink/20 py-4 outline-none focus:border-ink transition-all font-sans text-sm sm:text-base leading-relaxed resize-none overflow-hidden" 
+                         onInput={(e) => {
+                           const target = e.target as HTMLTextAreaElement;
+                           target.style.height = 'auto';
+                           target.style.height = target.scrollHeight + 'px';
+                         }}
+                       />
+                       {errors.description && <span className="text-rose-500 text-[10px] uppercase tracking-widest font-bold mt-1">{errors.description.message}</span>}
                     </div>
                  </div>
                </motion.div>
              )}
 
              {currentStep === 2 && (
-               <motion.div key="step2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                 <div className="flex flex-col gap-6">
-                    <h2 className="font-serif text-2xl tracking-tight">2. Reference Material & Pricing</h2>
+               <motion.div key="step2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                 <div className="flex flex-col gap-8">
+                    <h2 className="font-serif text-2xl sm:text-3xl tracking-tight">2. Reference Material</h2>
                     
                     <div className="relative w-full group">
-                      <label className="w-full border border-dashed border-ink/20 h-64 flex flex-col items-center justify-center text-sm opacity-80 hover:opacity-100 hover:border-ink transition-all cursor-pointer bg-canvas/50 overflow-hidden relative shadow-inner group">
+                      <label className="w-full border border-dashed border-ink/20 min-h-[300px] flex flex-col items-center justify-center text-sm opacity-80 hover:opacity-100 hover:border-ink transition-all cursor-pointer bg-canvas/30 overflow-hidden relative shadow-inner group">
                          <input type="file" onChange={(e) => uploadToCloudinary(e, 'referenceImage')} accept="image/*" className="hidden" />
                          
                          {uploadingImage ? (
-                            <div className="flex flex-col items-center gap-2">
-                               <ArtLoader variant="inline" size="sm" />
-                               <span className="text-[10px] uppercase tracking-widest font-medium">Uploading securely...</span>
+                            <div className="flex flex-col items-center gap-4">
+                               <Loader2 className="animate-spin text-ink/20" size={24} />
+                               <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">Uploading securely...</span>
                             </div>
                          ) : referenceImage ? (
-                            <div className="relative w-full h-full group">
-                               <img src={referenceImage} alt="Reference" className="w-full h-full object-contain opacity-90 transition-opacity group-hover:opacity-60" />
+                            <div className="relative w-full h-full min-h-[300px] group">
+                               <img src={referenceImage} alt="Reference" className="absolute inset-0 w-full h-full object-contain opacity-90 transition-opacity group-hover:opacity-60" />
                                
-                               <div className="absolute top-4 left-4 flex items-center gap-2 bg-canvas/90 backdrop-blur-sm px-3 py-1.5 border border-green-600/20 shadow-sm rounded-sm">
-                                  <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <div className="absolute top-6 left-6 flex items-center gap-2 bg-canvas/95 backdrop-blur-md px-4 py-2 border border-emerald-600/20 shadow-xl rounded-sm">
+                                  <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                                   </svg>
-                                  <span className="text-[9px] uppercase tracking-widest text-green-700 font-bold">Verified</span>
+                                  <span className="text-[10px] uppercase tracking-widest text-emerald-700 font-extrabold">Verified</span>
                                </div>
 
-                               <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-ink/30">
-                                  <span className="bg-canvas text-ink px-6 py-2 text-[10px] uppercase tracking-widest shadow-xl font-medium border border-ink/10">Change Reference</span>
+                               <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-ink/40 backdrop-blur-[2px]">
+                                  <span className="bg-canvas text-ink px-8 py-3 text-[11px] font-bold uppercase tracking-widest shadow-2xl border border-ink/10">Replace Artwork</span>
                                </div>
                             </div>
                          ) : (
-                           <div className="flex flex-col items-center gap-4 py-8">
-                             <svg className="w-12 h-12 text-ink/20 group-hover:text-ink/40 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                             </svg>
+                           <div className="flex flex-col items-center gap-6 py-12 px-6">
+                             <div className="w-16 h-16 rounded-full bg-ink/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                <svg className="w-8 h-8 text-ink/40 group-hover:text-ink/60 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                             </div>
                              
-                             <div className="text-center px-4">
-                               <p className="font-serif text-lg md:text-xl tracking-tight mb-2">Drag & Drop your reference here</p>
-                               <p className="text-[10px] uppercase tracking-widest opacity-40">Max 5MB (JPG, PNG)</p>
+                             <div className="text-center space-y-2">
+                               <p className="font-serif text-xl sm:text-2xl tracking-tight">Upload your reference material</p>
+                               <p className="text-[10px] uppercase tracking-[0.3em] opacity-40 font-bold">Higher resolution provides better fidelity</p>
                              </div>
 
-                             <span className="bg-ink text-canvas px-8 py-3 text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity mt-2">
-                               Upload Reference
+                             <span className="bg-ink text-canvas px-10 py-4 text-[11px] font-bold uppercase tracking-widest hover:translate-y-[-2px] active:translate-y-0 transition-all shadow-xl shadow-ink/20">
+                               Select File
                              </span>
                            </div>
                          )}
                       </label>
-                      
-                      <AnimatePresence>
-                        {showUploadSuccess && (
-                          <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-600 text-white text-[9px] uppercase tracking-widest px-3 py-1 rounded-full shadow-lg z-20 pointer-events-none"
-                          >
-                            Image Uploaded Successfully ✓
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                     </div>
 
-                    <div className="p-8 bg-ink text-canvas flex flex-col gap-2 mt-4 shadow-xl">
-                       <div className="flex items-baseline gap-1.5 font-serif text-canvas leading-none">
-                         <span className="text-xl md:text-2xl opacity-40 font-sans">₹</span>
-                         <span className="text-5xl md:text-6xl font-bold tracking-tighter">
+                    <div className="p-8 sm:p-10 bg-ink text-canvas flex flex-col gap-3 mt-4 shadow-2xl relative overflow-hidden group">
+                       <div className="absolute top-0 right-0 p-8 opacity-10 font-serif text-[120px] leading-none select-none pointer-events-none group-hover:translate-x-4 transition-transform duration-1000">₹</div>
+                       <p className="text-[10px] uppercase tracking-[0.3em] opacity-40 font-bold">Investment Estimate</p>
+                       <div className="flex items-baseline gap-2 font-serif text-canvas leading-none">
+                         <span className="text-2xl sm:text-3xl opacity-40 font-sans">₹</span>
+                         <span className="text-5xl sm:text-7xl font-bold tracking-tighter">
                            {price.toLocaleString()}
                          </span>
-                         <span className="text-sm opacity-20 font-sans ml-0.5">.00</span>
+                         <span className="text-sm sm:text-base opacity-20 font-sans ml-1">.00</span>
                        </div>
-                       <span className="text-[10px] opacity-50 mt-2 font-sans leading-relaxed">System estimated based on '{artworkType}' base complexity.</span>
+                       <span className="text-[10px] sm:text-xs opacity-50 mt-4 font-sans leading-relaxed max-w-sm uppercase tracking-widest font-medium">Estimated for '{artworkType}' base complexity + commission fee.</span>
                     </div>
                  </div>
                </motion.div>
              )}
 
              {currentStep === 3 && (
-               <motion.div key="step3" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                 <div className="flex flex-col gap-8 text-center py-6">
-                    <h2 className="font-serif text-3xl tracking-tight text-ink">3. Secure Payment</h2>
+               <motion.div key="step3" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
+                 <div className="flex flex-col gap-10 text-center py-4">
+                    <h2 className="font-serif text-3xl sm:text-4xl tracking-tight text-ink">Checkout Securely</h2>
                     
-                    <div className="p-10 md:p-14 bg-white border border-ink/5 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] flex flex-col gap-8 items-center relative overflow-hidden group">
-                        {/* Elegant Background Accent */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500/20 to-transparent" />
+                    <div className="p-8 sm:p-14 bg-white border border-ink/5 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] flex flex-col gap-10 items-center relative overflow-hidden group rounded-xl">
+                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500/20 via-emerald-500 to-emerald-500/20" />
                         
-                        {/* Premium Shield Icon with Pulse */}
                         <div className="relative">
-                            <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping opacity-20 scale-150" />
-                            <div className="w-20 h-20 rounded-full bg-green-500/5 flex items-center justify-center relative shadow-inner">
-                                <svg className="w-10 h-10 text-green-600 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="absolute inset-0 bg-emerald-500/10 rounded-full animate-ping opacity-20 scale-150" />
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-emerald-500/5 flex items-center justify-center relative shadow-inner">
+                                <svg className="w-10 h-10 sm:w-12 sm:h-12 text-emerald-600 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                 </svg>
                             </div>
                         </div>
 
-                        <div className="space-y-8 w-full">
-                            <div className="space-y-2 pointer-events-none">
-                                <p className="text-[10px] uppercase tracking-[0.3em] opacity-40 font-medium">Transaction Secure via Razorpay</p>
-                                <p className="text-sm font-serif italic text-ink/60">Finalizing Commission Details</p>
+                        <div className="space-y-10 w-full">
+                            <div className="space-y-3 pointer-events-none">
+                                <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] opacity-40 font-extrabold text-emerald-800">Verified Secure Merchant</p>
+                                <p className="text-sm sm:text-base font-serif italic text-ink/70">Proceed to finalizing your exclusive commission</p>
                             </div>
 
                             {/* Coupon Section */}
-                            <div className="w-full max-w-md mx-auto pt-4 pb-2">
+                            <div className="w-full max-w-sm mx-auto p-4 sm:p-6 bg-gray-50/50 border border-ink/5 rounded-2xl">
                                 {!appliedCoupon ? (
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-3">
                                         <div className="relative flex-1">
                                             <input 
                                                 type="text" 
-                                                placeholder="Enter Coupon Code" 
+                                                placeholder="OFFER CODE" 
                                                 value={couponInput}
                                                 onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                                                className="w-full bg-transparent border-b border-ink/20 py-2 outline-none focus:border-ink transition-colors font-mono text-xs tracking-widest placeholder:font-sans placeholder:tracking-normal"
+                                                className="w-full bg-transparent border-b border-ink/10 py-2.5 outline-none focus:border-ink transition-all font-mono text-xs sm:text-sm tracking-[0.2em] placeholder:font-sans placeholder:tracking-normal font-bold"
                                             />
                                             {isValidatingCoupon && (
-                                                <div className="absolute right-0 bottom-2">
-                                                    <ArtLoader variant="inline" size="sm" />
+                                                <div className="absolute right-0 bottom-2.5">
+                                                    <Loader2 className="animate-spin text-ink/20" size={16} />
                                                 </div>
                                             )}
                                         </div>
@@ -623,24 +646,24 @@ export default function CommissionForm() {
                                             type="button"
                                             onClick={handleApplyCoupon}
                                             disabled={!couponInput || isValidatingCoupon}
-                                            className="px-4 py-2 bg-ink text-canvas text-[9px] uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-30"
+                                            className="px-6 py-2.5 bg-ink text-canvas text-[10px] sm:text-xs font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-30 rounded-lg shadow-lg"
                                         >
                                             Apply
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center justify-between bg-green-50 px-4 py-3 border border-green-100 rounded-sm">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-2 h-2 rounded-full bg-green-500" />
-                                            <div className="flex flex-col items-start">
-                                                <span className="text-[10px] font-mono tracking-widest text-green-700 font-bold">{appliedCoupon.code}</span>
-                                                <span className="text-[8px] uppercase tracking-widest text-green-600/70">Discount Applied: ₹{appliedCoupon.discountAmount}</span>
+                                    <div className="flex items-center justify-between bg-emerald-50 px-5 py-4 border border-emerald-100 rounded-xl">
+                                        <div className="flex items-center gap-4 text-left">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                                            <div>
+                                                <span className="text-[xs] sm:text-sm font-mono tracking-widest text-emerald-800 font-extrabold">{appliedCoupon.code}</span>
+                                                <p className="text-[10px] uppercase tracking-widest text-emerald-600 font-bold">Saved ₹{appliedCoupon.discountAmount}</p>
                                             </div>
                                         </div>
                                         <button 
                                             type="button" 
                                             onClick={removeCoupon}
-                                            className="text-[9px] uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors"
+                                            className="text-[10px] uppercase tracking-widest text-rose-500 hover:text-rose-700 font-bold transition-colors underline underline-offset-4"
                                         >
                                             Remove
                                         </button>
@@ -648,19 +671,19 @@ export default function CommissionForm() {
                                 )}
                             </div>
 
-                            <div className="py-8 border-y border-ink/5 flex flex-col items-center gap-2">
+                            <div className="py-10 border-y border-ink/5 flex flex-col items-center gap-2 relative">
                                 {appliedCoupon && (
-                                    <span className="text-[10px] opacity-30 line-through font-sans">₹{originalPrice.toLocaleString()}.00</span>
+                                    <span className="text-xs sm:text-sm opacity-30 line-through font-mono tracking-wider font-bold">₹{originalPrice.toLocaleString()}.00</span>
                                 )}
                                 <div className="flex items-baseline justify-center gap-2 font-serif text-ink leading-none">
-                                  <span className="text-2xl md:text-3xl opacity-40 font-sans">₹</span>
-                                  <p className="text-6xl md:text-7xl font-bold tracking-tighter">
+                                  <span className="text-3xl sm:text-4xl opacity-40 font-sans">₹</span>
+                                  <p className="text-7xl sm:text-8xl font-bold tracking-tighter">
                                     {price.toLocaleString()}
                                   </p>
-                                  <span className="text-base opacity-20 font-sans ml-1">.00</span>
+                                  <span className="text-lg sm:text-xl opacity-20 font-sans ml-1">.00</span>
                                 </div>
-                                <p className="text-[10px] opacity-40 lowercase tracking-[0.2em] mt-2 italic">
-                                    {appliedCoupon ? `Discount of ₹${appliedCoupon.discountAmount} applied` : 'Official Art Acquisition Fee'}
+                                <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] opacity-40 mt-6 font-extrabold">
+                                    {appliedCoupon ? `REWARD APPLIED: -₹${appliedCoupon.discountAmount}` : 'Official Acquisition Total'}
                                 </p>
                             </div>
                         </div>
@@ -685,41 +708,43 @@ export default function CommissionForm() {
              )}
            </AnimatePresence>
 
-           <div className="flex justify-between mt-12 pt-8 border-t border-ink/10">
-              <button 
-                type="button"
-                onClick={prevStep}
-                className={`text-[10px] uppercase tracking-widest transition-opacity cursor-pointer ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'opacity-60 hover:opacity-100'}`}
-              >
-                Back
-              </button>
-
-              {currentStep < 3 ? (
-                <button 
-                  type="button"
-                  onClick={attemptNextStep}
-                  className="px-10 py-4 bg-ink text-canvas text-[10px] uppercase tracking-widest hover:bg-ink/80 transition-colors shadow-lg cursor-pointer"
-                >
-                  Continue
-                </button>
-              ) : (
-                <div className="flex flex-col items-end gap-3">
-                  <button 
-                    type="submit"
-                    disabled={isSubmitting || uploadingImage}
-                    className={`px-10 py-4 text-canvas text-[10px] uppercase tracking-widest transition-colors shadow-lg flex gap-2 items-center justify-center min-w-[200px]
-                    ${isSubmitting || uploadingImage ? 'bg-ink/50 cursor-not-allowed' : 'bg-ink hover:bg-ink/90 cursor-pointer'}`}
-                  >
-                     {isSubmitting ? (
-                        <div className="flex items-center gap-2">
-                            <ArtLoader variant="inline" size="sm" className="text-canvas" />
-                            <span>Processing...</span>
-                        </div>
-                     ) : 'Pay & Finalize Order'}
-                  </button>
-                </div>
-              )}
-           </div>
+            <div className="flex justify-between items-center mt-16 pt-10 border-t border-ink/10">
+               <button 
+                 type="button"
+                 onClick={prevStep}
+                 className={`text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] transition-all cursor-pointer flex items-center gap-2 group ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'opacity-40 hover:opacity-100 hover:translate-x-[-4px]'}`}
+               >
+                 <svg className="w-3.5 h-3.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
+                 Previous
+               </button>
+ 
+               {currentStep < 3 ? (
+                 <button 
+                   type="button"
+                   onClick={attemptNextStep}
+                   className="px-12 py-5 sm:px-16 sm:py-6 bg-ink text-canvas text-[11px] sm:text-xs font-bold uppercase tracking-[0.3em] hover:translate-y-[-4px] active:translate-y-0 transition-all shadow-2xl shadow-ink/20 rounded-sm group flex items-center gap-3"
+                 >
+                   Continue
+                   <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
+                 </button>
+               ) : (
+                 <div className="flex flex-col items-end gap-3">
+                   <button 
+                     type="submit"
+                     disabled={isSubmitting || uploadingImage}
+                     className={`px-12 py-5 sm:px-16 sm:py-6 text-canvas text-[11px] sm:text-xs font-bold uppercase tracking-[0.3em] transition-all shadow-2xl flex gap-4 items-center justify-center rounded-sm min-w-[240px]
+                     ${isSubmitting || uploadingImage ? 'bg-ink/50 cursor-not-allowed' : 'bg-ink hover:translate-y-[-4px] shadow-emerald-500/10 cursor-pointer'}`}
+                   >
+                      {isSubmitting ? (
+                         <div className="flex items-center gap-3">
+                             <Loader2 className="animate-spin" size={16} />
+                             <span>Authorizing...</span>
+                         </div>
+                      ) : 'Secure Payment'}
+                   </button>
+                 </div>
+               )}
+            </div>
         </form>
     </div>
   );

@@ -58,7 +58,7 @@ export function GalleryGridClient({ items, categories = [] }: GalleryGridClientP
           <button
             onClick={() => setActiveCategory('all')}
             className={`
-              relative px-5 py-2 text-[10px] uppercase tracking-[0.25em] font-sans
+              relative px-6 py-2.5 text-xs uppercase tracking-[0.25em] font-sans
               rounded-full border transition-all duration-300
               ${activeCategory === 'all'
                 ? 'bg-ink text-white border-ink shadow-sm'
@@ -75,7 +75,7 @@ export function GalleryGridClient({ items, categories = [] }: GalleryGridClientP
               key={cat.slug}
               onClick={() => setActiveCategory(cat.slug)}
               className={`
-                relative px-5 py-2 text-[10px] uppercase tracking-[0.25em] font-sans
+                relative px-6 py-2.5 text-xs uppercase tracking-[0.25em] font-sans
                 rounded-full border transition-all duration-300
                 ${activeCategory === cat.slug
                   ? 'bg-ink text-white border-ink shadow-sm'
@@ -94,14 +94,14 @@ export function GalleryGridClient({ items, categories = [] }: GalleryGridClientP
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full h-[40vh] flex flex-col items-center justify-center border border-ink/10 bg-ink/5 rounded-sm shadow-sm gap-3"
+          className="w-full h-[40vh] flex flex-col items-center justify-center border border-ink/10 bg-ink/5 rounded-sm shadow-sm gap-3 p-6"
         >
-          <p className="font-sans text-xs uppercase tracking-widest text-ink/40">
+          <p className="font-sans text-sm uppercase tracking-widest text-ink/40 text-center">
             No artworks in this category
           </p>
           <button
             onClick={() => setActiveCategory('all')}
-            className="font-sans text-[10px] uppercase tracking-widest text-ink/30 hover:text-ink/60 underline underline-offset-4 transition-colors duration-200"
+            className="font-sans text-xs uppercase tracking-widest text-ink/30 hover:text-ink/60 underline underline-offset-4 transition-colors duration-200"
           >
             View all works
           </button>
@@ -111,7 +111,7 @@ export function GalleryGridClient({ items, categories = [] }: GalleryGridClientP
       {/* ── Gallery Grid ─────────────────────────────────────────────────── */}
       <motion.div
         layout
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-12"
+        className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-10"
       >
         <AnimatePresence mode="popLayout">
           {filteredItems.map((item, idx) => {
@@ -125,7 +125,7 @@ export function GalleryGridClient({ items, categories = [] }: GalleryGridClientP
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: idx * 0.04, duration: 0.45 }}
-                className="group relative flex flex-col gap-5 cursor-pointer"
+                className="group relative flex flex-col gap-6 cursor-pointer"
                 onClick={() => openLightbox(item, filteredItems)}
               >
                 <div className="relative w-full aspect-[4/5] overflow-hidden rounded-md shadow-md bg-ink/5 border border-ink/10">
@@ -142,11 +142,11 @@ export function GalleryGridClient({ items, categories = [] }: GalleryGridClientP
                   <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/10 transition-colors duration-500 pointer-events-none" />
                 </div>
 
-                <div className="flex justify-between items-center px-1">
-                  <div className="flex flex-col gap-1">
-                    <h2 className="font-serif text-lg tracking-tight text-ink leading-tight">{item.title}</h2>
+                <div className="flex justify-between items-center px-2">
+                  <div className="flex flex-col gap-1.5">
+                    <h2 className="font-serif text-xl md:text-2xl tracking-tight text-ink leading-tight">{item.title}</h2>
                     {item.category?.title && (
-                      <span className="font-sans text-[9px] uppercase tracking-[0.2em] text-ink/35">
+                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] text-ink/35">
                         {item.category.title}
                       </span>
                     )}

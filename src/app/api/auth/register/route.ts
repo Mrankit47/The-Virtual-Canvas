@@ -49,7 +49,8 @@ export async function POST(request: Request) {
     // 3. Hash Password (if email signup)
     let hashedPassword = null;
     if (password) {
-        hashedPassword = await bcrypt.hash(password, 12);
+        const normalizedPassword = password.trim();
+        hashedPassword = await bcrypt.hash(normalizedPassword, 12);
     }
 
     // 4. Create User Profile in Sanity

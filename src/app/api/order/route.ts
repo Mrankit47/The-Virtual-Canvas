@@ -38,9 +38,9 @@ export async function POST(req: Request) {
     }
 
     const { 
-      customerName, email, phone, artworkType, 
-      description, referenceImage, price, paymentProof,
-      couponCode, discountAmount
+      customerName, email, phone, address, pincode, 
+      artworkType, description, referenceImage, price, 
+      paymentProof, couponCode, discountAmount
     } = parsed.data;
 
     const orderId = `TVC-${Math.floor(100 + Math.random() * 900)}-${Date.now().toString().slice(-4)}`;
@@ -53,6 +53,8 @@ export async function POST(req: Request) {
       email,
       userEmail: session?.user?.email || email,
       phone,
+      address,
+      pincode,
       artworkType,
       description,
       price,
@@ -74,6 +76,8 @@ export async function POST(req: Request) {
       artworkType,
       price,
       email,
+      address,
+      pincode,
     });
 
     // 9. Return Valid Response

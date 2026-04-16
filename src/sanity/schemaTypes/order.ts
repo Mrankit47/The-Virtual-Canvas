@@ -58,6 +58,20 @@ export default defineType({
       fieldset: 'customerInfo',
     }),
     defineField({
+      name: 'address',
+      title: 'Shipping Address',
+      type: 'text',
+      rows: 3,
+      fieldset: 'customerInfo',
+    }),
+    defineField({
+      name: 'pincode',
+      title: 'Pin Code',
+      type: 'string',
+      validation: (Rule) => Rule.regex(/^\d{6}$/).error('Invalid 6-digit pin code.'),
+      fieldset: 'customerInfo',
+    }),
+    defineField({
       name: 'phone',
       title: 'Phone Number',
       type: 'string',

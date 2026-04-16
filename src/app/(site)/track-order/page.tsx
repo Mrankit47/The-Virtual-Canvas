@@ -126,21 +126,21 @@ function TrackOrderInner() {
   };
 
   return (
-    <main className="min-h-[85vh] flex flex-col items-center pt-40 px-6 max-w-2xl mx-auto">
-      <h1 className="font-serif text-5xl tracking-tighter mb-4 text-ink">Track Order</h1>
-      <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] opacity-60 mb-12 text-center">
+    <main className="min-h-[85vh] flex flex-col items-center pt-24 md:pt-40 px-4 sm:px-6 max-w-2xl mx-auto">
+      <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tighter mb-3 md:mb-4 text-ink">Track Order</h1>
+      <p className="text-[9px] md:text-xs uppercase tracking-[0.15em] md:tracking-[0.2em] opacity-60 mb-8 md:mb-12 text-center">
         Enter your ID to view production status
       </p>
 
-      <form onSubmit={(e) => { e.preventDefault(); handleTrack(trackingId); router.push(`/track-order?id=${trackingId}`); }} className="w-full flex gap-2 mb-12 relative shadow-sm">
+      <form onSubmit={(e) => { e.preventDefault(); handleTrack(trackingId); router.push(`/track-order?id=${trackingId}`); }} className="w-full flex flex-col sm:flex-row gap-3 sm:gap-2 mb-10 md:mb-12 relative">
         <input 
           type="text" 
           placeholder="e.g TVC-481-9921" 
           value={trackingId}
           onChange={(e) => setTrackingId(e.target.value.toUpperCase())}
-          className="flex-1 bg-ink/5 border border-ink/20 py-4 px-6 outline-none focus:border-ink transition-colors font-sans text-sm uppercase tracking-widest placeholder:normal-case shadow-inner"
+          className="flex-1 bg-ink/5 border border-ink/20 py-4 px-6 outline-none focus:border-ink transition-colors font-sans text-sm uppercase tracking-widest placeholder:normal-case shadow-inner w-full"
         />
-        <button type="submit" disabled={loading || !trackingId} className="bg-ink text-canvas px-8 text-[10px] uppercase tracking-widest hover:bg-ink/80 transition-colors disabled:opacity-50 flex items-center justify-center min-w-[140px]">
+        <button type="submit" disabled={loading || !trackingId} className="bg-ink text-canvas py-4 sm:py-0 sm:px-8 text-[10px] uppercase tracking-widest hover:bg-ink/80 transition-colors disabled:opacity-50 flex items-center justify-center min-w-[140px] w-full sm:w-auto">
           {loading ? 'Locating...' : 'Track Order'}
         </button>
       </form>
@@ -160,17 +160,17 @@ function TrackOrderInner() {
         )}
 
         {order && (
-          <motion.div key="result" initial={{opacity:0, y:10}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="w-full bg-ink/5 p-8 md:p-12 border border-ink/10 shadow-lg relative overflow-hidden group">
+          <motion.div key="result" initial={{opacity:0, y:10}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="w-full bg-ink/5 p-5 md:p-12 border border-ink/10 shadow-lg relative overflow-hidden group">
              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-ink/20 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
              
-             <div className="flex justify-between items-start mb-8 border-b border-ink/10 pb-8">
+             <div className="flex justify-between items-start mb-6 md:mb-8 border-b border-ink/10 pb-6 md:pb-8">
                <div>
-                 <p className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Customer</p>
-                 <h2 className="font-serif text-2xl tracking-tight capitalize">{order.customerName}</h2>
+                 <p className="text-[9px] md:text-[10px] uppercase tracking-widest opacity-50 mb-1">Customer</p>
+                 <h2 className="font-serif text-xl md:text-2xl tracking-tight capitalize">{order.customerName}</h2>
                </div>
                <div className="text-right">
-                 <p className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Order ID</p>
-                 <p className="font-sans font-medium text-sm tracking-tight text-ink/80 bg-ink/5 px-3 py-1 border border-ink/10">{order.orderId}</p>
+                 <p className="text-[9px] md:text-[10px] uppercase tracking-widest opacity-50 mb-1">Order ID</p>
+                 <p className="font-sans font-medium text-[11px] md:text-sm tracking-tight text-ink/80 bg-ink/5 px-2 md:px-3 py-1 border border-ink/10">{order.orderId}</p>
                </div>
              </div>
 
@@ -201,23 +201,23 @@ function TrackOrderInner() {
                  </div>
                </div>
 
-               <div className="flex justify-between items-center mt-4 bg-canvas/40 p-6 border border-ink/5">
-                 <div>
-                   <p className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Final Price</p>
-                   <p className="font-serif text-3xl md:text-4xl">₹{order.price}.00</p>
+               <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4 bg-canvas/40 p-4 sm:p-6 border border-ink/5">
+                 <div className="text-center sm:text-left">
+                   <p className="text-[9px] md:text-[10px] uppercase tracking-widest opacity-50 mb-1">Final Price</p>
+                   <p className="font-serif text-2xl md:text-4xl">₹{order.price}.00</p>
                  </div>
-                 <div className="text-right">
+                 <div className="w-full sm:w-auto text-right">
                    {order.paymentStatus === 'paid' ? (
-                     <span className="text-[10px] uppercase tracking-widest font-bold text-green-600 bg-green-100 px-3 py-1 rounded-full border border-green-200">✓ Paid</span>
+                     <span className="inline-block text-[9px] md:text-[10px] uppercase tracking-widest font-bold text-green-600 bg-green-100 px-3 py-1 rounded-full border border-green-200">✓ Paid</span>
                    ) : (
-                     <button onClick={handlePayment} className="bg-ink text-canvas px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-ink group relative">
+                     <button onClick={handlePayment} className="w-full sm:w-auto bg-ink text-canvas px-6 py-4 sm:py-3 text-[10px] uppercase tracking-widest hover:bg-ink group relative">
                        <span className="relative z-10">Pay with Razorpay</span>
                      </button>
                    )}
                  </div>
                </div>
                
-               <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 border border-ink/10 bg-white/50">
                       <p className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Status</p>
                       <p className="text-xs font-bold uppercase">{order.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}</p>
@@ -226,8 +226,18 @@ function TrackOrderInner() {
                       <p className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Date</p>
                       <p className="text-xs font-mono">{new Date(order.createdAt).toLocaleDateString()}</p>
                   </div>
-               </div>
-             </div>
+                </div>
+
+                {(order.address || order.pincode) && (
+                  <div className="p-6 border border-ink/10 bg-white/50 space-y-3">
+                    <p className="text-[10px] uppercase tracking-widest opacity-50 border-b border-ink/5 pb-2">Shipping Details</p>
+                    <div className="flex flex-col gap-1">
+                      <p className="text-xs leading-relaxed opacity-80">{order.address || 'N/A'}</p>
+                      <p className="text-[10px] font-mono font-bold tracking-widest opacity-60">Pincode: {order.pincode || 'N/A'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
           </motion.div>
         )}
       </AnimatePresence>

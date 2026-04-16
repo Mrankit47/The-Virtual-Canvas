@@ -16,8 +16,8 @@ export function StudioFrame({ children, stepNumber, rotation = -2 }: StudioFrame
   
   return (
     <motion.div 
-      className="relative w-full max-w-md mx-auto aspect-[4/5] isolate my-4 md:my-8"
-      initial={{ y: 40, opacity: 0, rotateZ: rotateVal - (isEven ? 5 : -5) }}
+      className="relative w-full max-w-md mx-auto aspect-[4/5] isolate my-1 sm:my-8"
+      initial={{ y: 20, opacity: 0, rotateZ: rotateVal - (isEven ? 3 : -3) }}
       whileInView={{ y: 0, opacity: 1, rotateZ: rotateVal }}
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
@@ -50,16 +50,16 @@ export function StudioFrame({ children, stepNumber, rotation = -2 }: StudioFrame
       )}
 
       {/* The Polaroid / Studio Paper Texture */}
-      <div className="relative w-full h-full bg-[#fcfbf9] p-3 pb-12 md:p-4 md:pb-16 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1),_0_5px_15px_rgba(0,0,0,0.05)] border border-ink/5 before:content-[''] before:absolute before:inset-0 before:bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')] before:opacity-20 before:pointer-events-none before:z-10">
+      <div className="relative w-full h-full bg-[#fcfbf9] p-1 pb-6 sm:p-4 sm:pb-16 shadow-[0_10px_20px_-5px_rgba(0,0,0,0.1)] border border-ink/5 before:content-[''] before:absolute before:inset-0 before:bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')] before:opacity-20 before:pointer-events-none before:z-10">
         
         {/* Masking Tape - Top Center */}
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-28 h-8 bg-[#e8e4d9] opacity-90 shadow-sm z-30 mix-blend-multiply flex items-center justify-center overflow-hidden" 
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-14 sm:w-28 h-4 sm:h-8 bg-[#e8e4d9] opacity-90 shadow-sm z-30 mix-blend-multiply flex items-center justify-center overflow-hidden" 
            style={{ 
              clipPath: 'polygon(2% 10%, 98% 0%, 95% 90%, 5% 100%)',
              transform: isEven ? 'translateX(-50%) rotate(2deg)' : 'translateX(-50%) rotate(-1deg)'
            }}>
            {/* Tape vertical wrinkles */}
-           <div className="w-full h-full bg-[linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:4px_100%]" />
+           <div className="w-full h-full bg-[linear-gradient(90deg,rgba(0,0,0,0.01)_1px,transparent_1px)] bg-[size:2px_100%]" />
         </div>
            
         {/* Masking Tape 2 - Corner (Optional) */}
@@ -80,9 +80,9 @@ export function StudioFrame({ children, stepNumber, rotation = -2 }: StudioFrame
         </div>
 
         {/* Handwritten text at bottom of Polaroid */}
-        <div className="absolute bottom-3 md:bottom-5 left-0 w-full text-center pointer-events-none z-20 opacity-60">
-          <span className="font-serif italic text-ink/70 text-sm md:text-base tracking-widest uppercase flex flex-col items-center gap-1">
-            <span className="text-[8px] md:text-[10px] font-mono opacity-50 block tracking-[0.3em]">Execution Phase</span>
+        <div className="absolute bottom-1 sm:bottom-5 left-0 w-full text-center pointer-events-none z-20 opacity-60">
+          <span className="font-serif italic text-ink/70 text-[8px] sm:text-base tracking-widest uppercase flex flex-col items-center gap-0.5">
+            <span className="text-[5px] sm:text-[10px] font-mono opacity-50 block tracking-[0.2em]">Execution Phase</span>
             Seq {String(stepNumber).padStart(2, '0')}
           </span>
         </div>
