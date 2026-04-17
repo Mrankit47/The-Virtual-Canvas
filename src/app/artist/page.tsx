@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { StatsCardSkeleton, OrderCardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import Link from 'next/link';
+import { urlFor } from '@/lib/sanity';
+
 
 export default function ArtistDashboard() {
   const { data: session } = useSession();
@@ -50,27 +52,29 @@ export default function ArtistDashboard() {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
-          <div className="w-16 h-16 rounded-2xl bg-ink/5 border border-ink/10 overflow-hidden flex-shrink-0">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8 bg-white p-6 sm:p-8 rounded-[32px] border border-ink/5 shadow-sm">
+        <div className="flex items-center gap-5 sm:gap-6 min-w-0">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-ink/5 border border-ink/10 overflow-hidden shrink-0 flex items-center justify-center shadow-inner">
             {session?.user?.image ? (
-              <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
+              <img 
+                src={typeof session.user.image === 'string' ? session.user.image : urlFor(session.user.image).url()} 
+                alt="Profile" 
+                className="w-full h-full object-cover" 
+              />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-ink/20">
-                <PlusCircle size={24} />
-              </div>
+              <div className="text-ink/10"><PlusCircle size={28} /></div>
             )}
           </div>
-          <div>
-            <h1 className="text-3xl font-bold font-playfair text-ink leading-tight">Artist Studio, {session?.user?.name || 'Creator'}</h1>
-            <p className="text-sm text-ink/40 mt-1 uppercase tracking-widest font-medium">Fulfill your assigned artwork commissions</p>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-black font-serif text-ink leading-tight tracking-tight">Artist Studio, {session?.user?.name?.split(' ')[0] || 'Creator'}</h1>
+            <p className="text-[10px] sm:text-xs text-ink/30 mt-1.5 uppercase tracking-[0.2em] font-black leading-none">Studio Operations & Queue Control</p>
           </div>
         </div>
         <Link 
           href="/artist/upload" 
-          className="flex items-center justify-center gap-2 px-6 py-3 border border-ink text-ink rounded-2xl text-sm font-bold hover:bg-ink hover:text-white transition-all shadow-xl shadow-ink/5"
+          className="w-full lg:w-auto flex items-center justify-center gap-3 px-8 py-4 border-2 border-ink text-ink rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-ink hover:text-white transition-all active:scale-95 transition-all shadow-xl shadow-ink/5"
         >
           <PlusCircle size={18} />
           Upload New Work
@@ -78,30 +82,31 @@ export default function ArtistDashboard() {
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {stats.map((stat, index) => (
           <StatsCard key={index} {...stat} />
         ))}
       </div>
 
       {/* Main Jobs Section */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold font-playfair text-ink underline decoration-ink/10 underline-offset-8 decoration-4">Assigned Tasks</h2>
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex items-center justify-between border-b border-ink/5 pb-4">
+          <h2 className="text-xl sm:text-2xl font-black font-serif text-ink tracking-tight">Assigned Tasks</h2>
+          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-ink/20">Studio Queue</p>
         </div>
 
         {orders.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-dashed border-ink/10 p-20 flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-6">
-              <ClipboardList className="text-ink/20" size={32} />
+          <div className="bg-white rounded-[40px] border border-dashed border-ink/10 p-12 sm:p-20 flex flex-col items-center text-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-50 rounded-3xl flex items-center justify-center mb-8 shadow-inner">
+              <ClipboardList className="text-ink/10" size={32} />
             </div>
-            <h3 className="text-lg font-bold text-ink">No assignments yet</h3>
-            <p className="text-sm text-ink/40 max-w-xs mt-2">
+            <h3 className="text-xl font-black text-ink mb-2 tracking-tight">No assignments yet</h3>
+            <p className="text-xs sm:text-sm text-ink/40 max-w-xs mb-2 uppercase font-bold tracking-widest">
               Wait for the administrator to assign a new project to your studio queue.
             </p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-4 sm:gap-6">
             {orders.map((order: any) => (
               <OrderCard key={order._id} order={order} role="artist" />
             ))}

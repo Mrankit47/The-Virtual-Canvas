@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { StatsCardSkeleton, OrderCardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import Link from 'next/link';
+import { urlFor } from '@/lib/sanity';
 
 export default function UserDashboard() {
   const { data: session } = useSession();
@@ -51,67 +52,71 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
-          <div className="w-16 h-16 rounded-2xl bg-ink/5 border border-ink/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8 bg-white p-6 sm:p-8 rounded-[32px] border border-ink/5 shadow-sm">
+        <div className="flex items-center gap-5 sm:gap-6 min-w-0">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-ink/5 border border-ink/10 overflow-hidden shrink-0 flex items-center justify-center shadow-inner">
             {session?.user?.image ? (
-              <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
+              <img 
+                src={typeof session.user.image === 'string' ? session.user.image : urlFor(session.user.image).url()} 
+                alt="Profile" 
+                className="w-full h-full object-cover" 
+              />
             ) : (
-                <div className="text-ink/10"><User size={24} /></div>
+                <div className="text-ink/10"><User size={28} /></div>
             )}
           </div>
-          <div>
-            <h1 className="text-3xl font-bold font-playfair text-ink leading-tight">Welcome back, {session?.user?.name || 'User'}</h1>
-            <p className="text-sm text-ink/40 mt-1 uppercase tracking-widest font-medium">Manage your artwork requests and orders</p>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-black font-serif text-ink leading-tight tracking-tight">Welcome back, {session?.user?.name?.split(' ')[0] || 'Collector'}</h1>
+            <p className="text-[10px] sm:text-xs text-ink/30 mt-1.5 uppercase tracking-[0.2em] font-black leading-none">Studio Portal & Commission Control</p>
           </div>
         </div>
         <Link 
           href="/order" 
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-ink text-white rounded-2xl text-sm font-bold shadow-xl shadow-ink/10 hover:scale-105 active:scale-95 transition-all"
+          className="w-full lg:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-ink text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-ink/10 hover:scale-[1.02] active:scale-95 transition-all"
         >
           <PlusCircle size={18} />
-          Create New Artwork Request
+          Create New Commission
         </Link>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {stats.map((stat, index) => (
           <StatsCard key={index} {...stat} />
         ))}
       </div>
 
       {/* Main Orders Section */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold font-playfair text-ink underline decoration-ink/10 underline-offset-8 decoration-4">Recent Orders</h2>
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex items-center justify-between border-b border-ink/5 pb-4">
+          <h2 className="text-xl sm:text-2xl font-black font-serif text-ink tracking-tight">Recent Orders</h2>
           {orders.length > 0 && (
-            <Link href="/dashboard/orders" className="text-xs font-bold text-ink/40 hover:text-ink transition-colors uppercase tracking-widest">
-              View All Orders
+            <Link href="/dashboard/orders" className="text-[10px] font-black text-ink/40 hover:text-ink transition-colors uppercase tracking-[0.2em] border-b border-transparent hover:border-ink/20 pb-1">
+              View Database
             </Link>
           )}
         </div>
 
         {orders.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-dashed border-ink/10 p-20 flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-6">
-              <ShoppingBag className="text-ink/20" size={32} />
+          <div className="bg-white rounded-[40px] border border-dashed border-ink/10 p-12 sm:p-20 flex flex-col items-center text-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-50 rounded-3xl flex items-center justify-center mb-8 shadow-inner">
+              <ShoppingBag className="text-ink/10" size={32} />
             </div>
-            <h3 className="text-lg font-bold text-ink">No requests yet</h3>
-            <p className="text-sm text-ink/40 max-w-xs mt-2">
+            <h3 className="text-xl font-black text-ink mb-2 tracking-tight">No commissions found</h3>
+            <p className="text-xs sm:text-sm text-ink/40 max-w-xs mb-10 leading-relaxed uppercase font-bold tracking-widest px-4">
               Transform your memories into exclusive artwork. Start your first commission today.
             </p>
             <Link 
               href="/order" 
-              className="mt-8 px-8 py-3 bg-ink/5 hover:bg-ink hover:text-white text-ink rounded-xl text-sm font-bold transition-all"
+              className="px-10 py-4 bg-ink text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:shadow-2xl active:scale-95"
             >
-              Start a Commission
+              Begin Masterwork
             </Link>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-4 sm:gap-6">
             {orders.map((order: any) => (
               <OrderCard key={order._id} order={order} role="user" />
             ))}

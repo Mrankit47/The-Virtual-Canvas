@@ -58,40 +58,40 @@ export default function AdminOrderTable({ initialOrders, artists }: AdminOrderTa
   return (
     <div className="w-full">
       {/* ── Mobile Card View ───────────────────────────────────────────── */}
-      <div className="lg:hidden space-y-6">
+      <div className="lg:hidden space-y-4 sm:space-y-6">
         {orders.map((order: any) => {
           const amount = order.orderType === 'cart' ? (order.totalAmount || order.price) : order.price;
           const isUpdating = updatingId === order._id;
 
           return (
-            <div key={order._id} className="bg-white border border-ink/5 rounded-2xl p-6 shadow-sm relative overflow-hidden group">
-               <div className="absolute top-0 left-0 w-1 h-full bg-ink/10 group-hover:bg-ink transition-colors duration-500" />
+            <div key={order._id} className="bg-white border border-ink/5 rounded-3xl p-5 sm:p-6 shadow-sm relative overflow-hidden group transition-all hover:shadow-xl">
+               <div className="absolute top-0 left-0 w-1.5 h-full bg-ink/5 group-hover:bg-ink transition-colors duration-500" />
                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <p className="text-[10px] font-mono text-ink/40 tracking-widest mb-1">#{order.orderId}</p>
-                    <h3 className="font-serif text-lg text-ink font-bold">{order.customerName}</h3>
-                    <p className="text-[11px] text-ink/40 uppercase tracking-widest leading-none mt-1">{order.userEmail}</p>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-mono text-ink/30 tracking-widest mb-1.5 uppercase">#{order.orderId?.slice(-8).toUpperCase()}</p>
+                    <h3 className="font-serif text-lg text-ink font-black truncate">{order.customerName}</h3>
+                    <p className="text-[11px] text-ink/30 uppercase tracking-widest leading-none mt-1 truncate">{order.userEmail}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-serif font-bold text-ink">₹{(amount || 0).toLocaleString()}</p>
-                    <p className="text-[9px] uppercase tracking-[0.2em] font-extrabold opacity-30">{order.orderType || 'commission'}</p>
+                  <div className="text-right shrink-0">
+                    <p className="text-xl font-serif font-black text-ink">₹{(amount || 0).toLocaleString()}</p>
+                    <p className="text-[9px] uppercase tracking-[0.2em] font-black opacity-20">{order.orderType || 'commission'}</p>
                   </div>
                </div>
 
-               <div className="grid grid-cols-1 gap-6 pt-6 border-t border-ink/5 relative">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-widest font-extrabold opacity-30 mb-3">Artist Status</p>
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-ink/5 relative lg:block">
+                  <div className="space-y-3">
+                    <p className="text-[10px] uppercase tracking-widest font-black opacity-20">Artist Assignment</p>
                     {order.assignedArtist ? (
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-ink text-white flex items-center justify-center shadow-lg">
-                           <User size={16} />
+                      <div className="flex items-center gap-3 bg-gray-50/50 p-2 rounded-2xl border border-ink/5">
+                        <div className="w-10 h-10 rounded-xl bg-ink text-white flex items-center justify-center shadow-lg shadow-ink/10">
+                           <User size={18} />
                         </div>
-                        <div>
-                          <p className="text-xs font-bold text-ink">{order.assignedArtist.name}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-black text-ink truncate">{order.assignedArtist.name}</p>
                           <select 
                             disabled={isUpdating}
                             onChange={(e) => handleAssign(order._id, e.target.value)}
-                            className="text-[10px] font-bold text-ink/40 hover:text-ink transition-colors bg-transparent border-none p-0 focus:ring-0 cursor-pointer"
+                            className="text-[10px] font-black text-ink/40 hover:text-ink transition-colors bg-transparent border-none p-0 focus:ring-0 cursor-pointer"
                           >
                             <option value="">(Re-assign Artist)</option>
                             {artists.filter(a => a._id !== order.assignedArtist?._id).map(a => (
@@ -103,9 +103,9 @@ export default function AdminOrderTable({ initialOrders, artists }: AdminOrderTa
                     ) : (
                       <select
                         onChange={(e) => handleAssign(order._id, e.target.value)}
-                        className="w-full bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-extrabold uppercase tracking-widest rounded-xl px-4 py-3 focus:ring-0 cursor-pointer shadow-sm active:scale-95 transition-all"
+                        className="w-full bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl px-5 py-4 focus:ring-0 cursor-pointer shadow-sm active:scale-95 transition-all"
                       >
-                        <option value="">+ Allocate Master Artist</option>
+                        <option value="">+ Allocate Artist</option>
                         {artists.map(a => (
                           <option key={a._id} value={a._id}>{a.name}</option>
                         ))}
@@ -113,14 +113,14 @@ export default function AdminOrderTable({ initialOrders, artists }: AdminOrderTa
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between sm:flex-col sm:items-start sm:gap-4 lg:flex-row lg:items-center lg:gap-0">
                     <div>
-                      <p className="text-[10px] uppercase tracking-widest font-extrabold opacity-30 mb-2">Progress Stage</p>
+                      <p className="text-[10px] uppercase tracking-widest font-black opacity-20 mb-3">Project Status</p>
                       <select
                         disabled={isUpdating}
                         value={order.orderStatus}
                         onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                        className={`px-4 py-2 rounded-xl text-[10px] uppercase font-extrabold tracking-widest border-none focus:ring-0 cursor-pointer shadow-sm transition-all ${
+                        className={`w-full sm:w-auto px-5 py-2.5 rounded-2xl text-[10px] uppercase font-black tracking-widest border-none focus:ring-0 cursor-pointer shadow-sm transition-all ${
                           order.orderStatus === 'completed' ? 'bg-emerald-500 text-white' :
                           order.orderStatus === 'progress' ? 'bg-sky-500 text-white' :
                           'bg-amber-400 text-white'
@@ -133,12 +133,12 @@ export default function AdminOrderTable({ initialOrders, artists }: AdminOrderTa
                         <option value="completed">Completed</option>
                       </select>
                     </div>
-                    <div className="text-right">
-                       <p className="text-[10px] uppercase tracking-widest font-extrabold opacity-30 mb-2">Payment Integrity</p>
-                       <span className={`px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest font-extrabold border ${
+                    <div className="text-right sm:text-left">
+                       <p className="text-[10px] uppercase tracking-widest font-black opacity-20 mb-3">Payment State</p>
+                       <span className={`px-5 py-2.5 rounded-2xl text-[10px] uppercase tracking-widest font-black border ${
                         order.paymentStatus === 'paid' 
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-inner shadow-emerald-700/5' 
-                          : 'bg-rose-50 text-rose-600 border-rose-100'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-inner' 
+                          : 'bg-rose-50 text-rose-600 border-rose-100 uppercase'
                        }`}>
                         {order.paymentStatus}
                        </span>
@@ -147,8 +147,10 @@ export default function AdminOrderTable({ initialOrders, artists }: AdminOrderTa
                </div>
                
                {isUpdating && (
-                 <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10 transition-all duration-500">
-                    <Loader2 size={24} className="text-ink animate-spin" />
+                 <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10 transition-all duration-500">
+                    <div className="bg-white p-4 rounded-3xl shadow-2xl border border-ink/5">
+                        <Loader2 size={24} className="text-ink animate-spin" />
+                    </div>
                  </div>
                )}
             </div>

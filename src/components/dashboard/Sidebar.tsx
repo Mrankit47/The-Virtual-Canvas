@@ -49,14 +49,14 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-ink/5 w-64 lg:w-72 max-w-[80vw]">
-      <div className="p-8">
-        <Link href="/" className="font-serif text-xl tracking-tighter">
+    <div className="flex flex-col h-full bg-white border-r border-ink/5 w-[280px] sm:w-64 lg:w-72 transition-all duration-300">
+      <div className="p-6 sm:p-8">
+        <Link href="/" className="font-serif text-xl sm:text-2xl tracking-tighter hover:opacity-70 transition-opacity">
           The Virtual Canvas
         </Link>
       </div>
 
-      <nav className="flex-1 px-4 space-y-1">
+      <nav className="flex-1 px-4 space-y-1 overscroll-contain">
         {links.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.href;
@@ -65,23 +65,23 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
               key={link.name}
               href={link.href}
               onClick={onClose}
-              className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
+              className={`flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 active:scale-95 ${
                 isActive 
                   ? 'bg-ink text-white shadow-lg shadow-ink/20' 
                   : 'text-ink/60 hover:bg-ink/5 hover:text-ink'
               }`}
             >
               <Icon size={18} />
-              {link.name}
+              <span className="truncate">{link.name}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-ink/5">
+      <div className="p-4 border-t border-ink/5 bg-gray-50/50">
         <button
           onClick={() => signOut({ callbackUrl: '/' })}
-          className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-red-500 rounded-xl hover:bg-red-50 transition-colors"
+          className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-bold text-red-500 rounded-xl hover:bg-red-50 transition-all active:scale-95"
         >
           <LogOut size={18} />
           Logout

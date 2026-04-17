@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react";
 import { useState, useRef } from "react";
 import { User, Mail, Shield, Phone, History, Camera, Check, Loader2 } from "lucide-react";
 import { useUIStore } from "@/store/useUIStore";
+import { ImageCropper } from "@/components/ui/ImageCropper";
+import { urlFor } from "@/lib/sanity";
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
@@ -12,17 +14,37 @@ export default function ProfilePage() {
   
   const [uploading, setUploading] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
 
   if (!session) return null;
 
   const userRole = (session.user as any)?.role || 'User';
   const userMobile = (session.user as any)?.mobile || '';
-  const userImage = session.user?.image || '';
+  const sessionImage = session.user?.image;
+  
+  // Resolve user image from session or handle Sanity asset
+  const userImage = typeof sessionImage === 'string' 
+    ? sessionImage 
+    : (sessionImage ? urlFor(sessionImage).url() : '');
+
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageToCrop(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset input so same file can be selected again
+    e.target.value = '';
+  };
+
+  const handleSaveCroppedImage = async (croppedBlob: Blob) => {
+    setImageToCrop(null);
+    
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
@@ -34,7 +56,7 @@ export default function ProfilePage() {
     try {
       setUploading(true);
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', croppedBlob);
       formData.append('upload_preset', preset);
 
       const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
@@ -168,6 +190,13 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+      {imageToCrop && (
+        <ImageCropper 
+          image={imageToCrop} 
+          onCropComplete={handleSaveCroppedImage} 
+          onCancel={() => setImageToCrop(null)} 
+        />
+      )}
     </div>
   );
 }

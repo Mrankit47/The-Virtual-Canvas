@@ -38,7 +38,7 @@ export default function DashboardLayout({ children, userRole }: DashboardLayoutP
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm lg:hidden"
               onClick={() => setSidebarOpen(false)}
             />
             <motion.div 
@@ -57,12 +57,13 @@ export default function DashboardLayout({ children, userRole }: DashboardLayoutP
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto bg-gray-50/50 p-6 lg:p-10">
-          <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700">
+        <main className="flex-1 overflow-y-auto bg-gray-50/50">
+          <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-10 space-y-8 sm:space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-700">
             {children}
           </div>
         </main>
       </div>
     </div>
   );
+
 }

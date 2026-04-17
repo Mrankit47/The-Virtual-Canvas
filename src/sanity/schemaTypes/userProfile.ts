@@ -56,7 +56,10 @@ export default defineType({
     defineField({
       name: 'image',
       title: 'Profile Picture',
-      type: 'url',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
     }),
   ],
 });

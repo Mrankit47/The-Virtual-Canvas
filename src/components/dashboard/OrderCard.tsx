@@ -125,12 +125,12 @@ export default function OrderCard({ order, role }: OrderCardProps) {
   const displayImage = order.artworkUrl || order.referenceImage;
 
   return (
-    <div className="bg-white rounded-3xl border border-ink/5 overflow-hidden hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] transition-all duration-500">
-      <div className="p-6 sm:p-8">
-          <div className="flex flex-col md:flex-row gap-8 items-start md:items-center justify-between">
+    <div className="bg-white rounded-[32px] border border-ink/5 overflow-hidden hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] transition-all duration-700 group">
+      <div className="p-5 sm:p-8">
+          <div className="flex flex-col xl:flex-row gap-6 sm:gap-8 items-stretch xl:items-center justify-between">
             {/* Info Section */}
-            <div className="flex gap-6 items-center w-full md:w-auto">
-              <div className={`w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-2xl ${currentStatus.bg} flex items-center justify-center relative overflow-hidden group shadow-inner shadow-black/5`}>
+            <div className="flex gap-4 sm:gap-6 items-center flex-1 min-w-0">
+              <div className={`w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-3xl ${currentStatus.bg} flex items-center justify-center relative overflow-hidden group/img shadow-inner shadow-black/5`}>
                 {displayImage ? (
                     <div 
                       className="relative w-full h-full cursor-zoom-in"
@@ -140,33 +140,33 @@ export default function OrderCard({ order, role }: OrderCardProps) {
                         src={displayImage} 
                         alt={order.title || 'Artwork'} 
                         fill
-                        className="object-cover rounded-2xl transition-transform duration-1000 group-hover:scale-110" 
+                        className="object-cover rounded-3xl transition-transform duration-1000 group-hover/img:scale-110" 
                       />
                       {!order.artworkUrl && order.referenceImage && (
-                        <div className="absolute inset-0 bg-ink/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                          <span className="text-[8px] text-white font-extrabold uppercase tracking-widest text-center px-1">Ref.</span>
+                        <div className="absolute inset-0 bg-ink/60 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity backdrop-blur-[2px]">
+                          <span className="text-[9px] text-white font-black uppercase tracking-widest text-center px-2">Reference</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                      <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/10 transition-colors" />
                     </div>
                 ) : (
-                    <IconImage size={28} className={`${currentStatus.text} opacity-20`} />
+                    <IconImage size={32} className={`${currentStatus.text} opacity-20`} />
                 )}
               </div>
               
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <span className="text-[9px] font-mono font-extrabold text-ink/30 px-2.5 py-1 bg-ink/5 rounded-full border border-ink/5 uppercase tracking-tighter">
+              <div className="flex-1 min-w-0 space-y-1.5 sm:space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-mono font-bold text-ink/40 px-3 py-1 bg-ink/5 rounded-full border border-ink/5 uppercase tracking-tighter">
                     #{order.orderId?.slice(-8).toUpperCase() || 'NEW'}
                   </span>
-                  <span className={`text-[9px] uppercase font-extrabold tracking-widest px-2.5 py-1 rounded-full ${currentStatus.bg} ${currentStatus.text} border border-current opacity-70`}>
+                  <span className={`text-[10px] uppercase font-black tracking-widest px-3 py-1 rounded-full ${currentStatus.bg} ${currentStatus.text} border border-current/20`}>
                     {String(order.orderStatus || 'pending').replace('_', ' ')}
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-serif font-bold text-ink truncate leading-tight">
+                <h3 className="text-xl sm:text-2xl font-serif font-black text-ink truncate leading-tight tracking-tight">
                   {order.title || (typeof order.artworkType === 'string' ? order.artworkType : order.artworkType?.title) || 'Studio Commission'}
                 </h3>
-                <p className="text-[10px] uppercase tracking-widest text-ink/30 font-extrabold mt-1.5 flex items-center gap-2">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30 font-black flex items-center gap-2">
                   <Clock size={10} className="opacity-50" />
                   {new Date(order.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>
@@ -174,52 +174,54 @@ export default function OrderCard({ order, role }: OrderCardProps) {
             </div>
 
             {/* Progress Visual */}
-            <div className="w-full md:w-64 space-y-4">
+            <div className="w-full xl:w-72 space-y-3 sm:space-y-4 py-4 xl:py-0 border-y xl:border-none border-ink/5">
                 <div className="flex justify-between items-end px-1">
-                    <span className="text-[10px] uppercase font-extrabold text-ink/20 tracking-[0.2em]">Build Progress</span>
-                    <span className="text-xs font-serif font-bold text-ink italic">{progressPercent}%</span>
+                    <span className="text-[10px] uppercase font-black text-ink/20 tracking-[0.3em]">Execution State</span>
+                    <span className="text-xs font-serif font-black text-ink italic">{progressPercent}%</span>
                 </div>
-                <div className="h-2 w-full bg-ink/5 rounded-full overflow-hidden p-[1px] border border-ink/5 shadow-inner">
+                <div className="h-2.5 w-full bg-ink/5 rounded-full overflow-hidden p-[1px] border border-ink/5 shadow-inner">
                     <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${progressPercent}%` }}
                         transition={{ duration: 1.5, ease: "circOut" }}
-                        className={`h-full rounded-full transition-all duration-1000 ${order.orderStatus === 'completed' ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'bg-ink shadow-[0_0_15px_rgba(0,0,0,0.1)]'}`}
+                        className={`h-full rounded-full transition-all duration-1000 ${order.orderStatus === 'completed' ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-ink shadow-[0_0_20px_rgba(0,0,0,0.15)]'}`}
                     />
                 </div>
             </div>
 
             {/* Price & Primary Action */}
-            <div className="flex items-center gap-8 justify-between w-full md:w-auto pt-6 md:pt-0 border-t md:border-t-0 border-ink/5">
-                <div className="text-left md:text-right shrink-0">
-                    <p className="text-[9px] uppercase tracking-widest font-extrabold opacity-20 mb-1">Total Valuation</p>
+            <div className="flex flex-row xl:flex-col gap-4 sm:gap-6 items-center xl:items-end justify-between xl:justify-center">
+                <div className="text-left xl:text-right shrink-0">
+                    <p className="text-[10px] uppercase tracking-widest font-black opacity-20 mb-1">Contract Value</p>
                     <div className="flex items-baseline gap-1">
                         <span className="text-xs opacity-30 font-serif">₹</span>
-                        <p className="text-2xl font-serif font-bold text-ink tracking-tighter">{(order.price || order.totalAmount || 0).toLocaleString()}</p>
+                        <p className="text-2xl sm:text-3xl font-serif font-black text-ink tracking-tighter">{(order.price || order.totalAmount || 0).toLocaleString()}</p>
                     </div>
                 </div>
 
-                {role === 'user' && order.orderStatus === 'pending' && (
-                    <button
-                        onClick={handlePayment}
-                        disabled={isPaying}
-                        className="group relative flex items-center gap-3 px-8 py-4 bg-ink text-white rounded-2xl text-[10px] font-extrabold uppercase tracking-[0.2em] transition-all hover:shadow-2xl active:scale-95 disabled:opacity-30 overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        {isPaying ? <Loader2 className="animate-spin" size={16} /> : <CreditCard size={16} />}
-                        <span>Execute Payment</span>
-                    </button>
-                )}
+                <div className="flex-1 sm:flex-initial">
+                    {role === 'user' && order.orderStatus === 'pending' && (
+                        <button
+                            onClick={handlePayment}
+                            disabled={isPaying}
+                            className="w-full sm:w-auto group relative flex items-center justify-center gap-3 px-8 py-4 bg-ink text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:shadow-2xl active:scale-95 disabled:opacity-30 overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {isPaying ? <Loader2 className="animate-spin" size={16} /> : <CreditCard size={16} />}
+                            <span>Authorize Payment</span>
+                        </button>
+                    )}
 
-                {role === 'artist' && (
-                    <button
-                        onClick={() => setIsUpdating(!isUpdating)}
-                        className="group relative flex items-center gap-3 px-8 py-4 bg-ink text-white rounded-2xl text-[10px] font-extrabold uppercase tracking-[0.2em] transition-all hover:shadow-2xl active:scale-95 overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        {isUpdating ? 'Close Studio Form' : 'Update Masterwork'}
-                    </button>
-                )}
+                    {role === 'artist' && (
+                        <button
+                            onClick={() => setIsUpdating(!isUpdating)}
+                            className="w-full sm:w-auto group relative flex items-center justify-center gap-3 px-8 py-4 bg-ink text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:shadow-2xl active:scale-95 overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {isUpdating ? 'Close Form' : 'Update Studio'}
+                        </button>
+                    )}
+                </div>
             </div>
           </div>
       </div>
