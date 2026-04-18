@@ -26,7 +26,7 @@ const ArtLoader = ({
   const scaleClass = sizeMap[size];
 
   const content = (
-    <div className={`relative flex flex-col items-center justify-center gap-6 ${className}`}>
+    <div className={`relative flex flex-col items-center justify-center gap-0 md:gap-6 ${className}`}>
         {/* NEW CSS LOADER FROM USER */}
         <div className={`loader ${scaleClass}`} />
 
