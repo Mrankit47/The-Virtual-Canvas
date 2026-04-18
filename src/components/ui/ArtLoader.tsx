@@ -18,9 +18,9 @@ const ArtLoader = ({
 }: ArtLoaderProps) => {
   
   const sizeMap = {
-    sm: 'scale-[0.5]',
-    md: 'scale-[1]',
-    lg: 'scale-[1.5]',
+    sm: 'scale-[0.35] md:scale-[0.5]',
+    md: 'scale-[0.6] md:scale-[1]',
+    lg: 'scale-[0.8] md:scale-[1.5]',
   };
 
   const scaleClass = sizeMap[size];
@@ -45,7 +45,7 @@ const ArtLoader = ({
                 transition={{ delay: 0.5, duration: 0.8 }}
                 className="text-center"
             >
-                <h1 className="text-xs font-serif tracking-[0.4em] text-[#2c1810] font-playfair uppercase italic font-medium">
+                <h1 className="text-[8px] md:text-xs font-serif tracking-[0.4em] text-[#2c1810] font-playfair uppercase italic font-medium">
                     Virtual Canvas
                 </h1>
             </motion.div>

@@ -4,8 +4,8 @@ export function Footer() {
   return (
     <footer className="w-full bg-canvas border-t border-ink/5 pt-20 pb-12 px-6 md:px-12">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-          <div className="col-span-1 md:col-span-2">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 mb-16">
+          <div className="col-span-2">
             <h2 className="font-serif text-2xl tracking-tight mb-4 text-ink">The Virtual Canvas</h2>
             <p className="text-xs uppercase tracking-[0.3em] font-extrabold text-ink/30 mb-6">Bridging Vision & Fine Art</p>
             <p className="text-sm text-ink/50 max-w-sm leading-relaxed mb-8">
