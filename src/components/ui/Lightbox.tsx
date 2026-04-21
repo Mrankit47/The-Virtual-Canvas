@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, Download } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect } from 'react';
+import { isValidImageSrc } from '@/lib/safeImage';
+import { ImageErrorBoundary } from './ImageErrorBoundary';
 
 interface LightboxProps {
   src: string | null;
@@ -33,7 +35,7 @@ export default function Lightbox({ src, onClose, alt }: LightboxProps) {
 
   return (
     <AnimatePresence>
-      {src && (
+      {src && isValidImageSrc(src) && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -82,14 +84,16 @@ export default function Lightbox({ src, onClose, alt }: LightboxProps) {
             className="relative w-full h-full max-w-5xl max-h-[85vh] shadow-[0_0_100px_rgba(255,255,255,0.05)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
-              src={src}
-              alt={alt || 'Full screen view'}
-              fill
-              className="object-contain"
-              priority
-              quality={100}
-            />
+            <ImageErrorBoundary>
+              <Image
+                src={src}
+                alt={alt || 'Full screen view'}
+                fill
+                className="object-contain"
+                priority
+                quality={100}
+              />
+            </ImageErrorBoundary>
           </motion.div>
 
           {/* Footer Instruction */}

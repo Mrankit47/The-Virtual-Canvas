@@ -201,6 +201,19 @@ export default defineType({
           { name: 'price', title: 'Price (₹)', type: 'number' },
           { name: 'imageUrl', title: 'Image URL', type: 'url' },
         ],
+        preview: {
+          select: {
+            title: 'title',
+            price: 'price',
+          },
+          prepare({ title, price }: { title?: string; price?: number }) {
+            return {
+              title: title || 'Untitled Item',
+              subtitle: price ? `₹${price}` : '',
+              media: false, // Force disable auto-media rendering
+            };
+          },
+        },
       }],
       fieldset: 'orderDetails',
     }),
@@ -261,6 +274,7 @@ export default defineType({
       return {
         title: `${title} - ID: ${subtitle}`,
         subtitle: `Status: ${statusMap[status as string] || 'Unknown Phase'}`,
+        media: false, // Prevents Sanity from picking up `referenceImage` url as a React element tag
       };
     },
   },

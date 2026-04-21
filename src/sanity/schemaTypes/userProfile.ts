@@ -55,11 +55,27 @@ export default defineType({
     }),
     defineField({
       name: 'image',
-      title: 'Profile Picture',
-      type: 'image',
-      options: {
-        hotspot: true,
-      },
+      title: 'Profile Picture URL',
+      type: 'url',
+      description: 'URL to the user profile picture (e.g. from Google or Cloudinary)',
     }),
   ],
+  preview: {
+    select: {
+      title: 'name',
+      subtitle: 'role',
+      media: 'image', // Notice we grab the image to inspect it
+    },
+    prepare({ title, subtitle, media }) {
+      // If `media` is a raw string (corrupt data from NextAuth/Cloudinary), 
+      // override it with false so we do not crash React.createElement.
+      const isCorruptString = typeof media === 'string';
+      
+      return {
+        title: title || 'Unnamed User',
+        subtitle: `Role: ${subtitle || 'User'}`,
+        media: isCorruptString ? false : media,
+      };
+    },
+  },
 });

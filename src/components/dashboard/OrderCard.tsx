@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { isValidImageSrc } from "@/lib/safeImage";
+import { ImageErrorBoundary } from "../ui/ImageErrorBoundary";
 import { motion } from "framer-motion";
 import OrderTimeline from "./OrderTimeline";
 import ArtistOrderUpdateForm from "./ArtistOrderUpdateForm";
@@ -122,7 +124,8 @@ export default function OrderCard({ order, role }: OrderCardProps) {
     order.orderStatus === 'progress' ? 60 :
     order.orderStatus === 'assigned' ? 30 : 10;
 
-  const displayImage = order.artworkUrl || order.referenceImage;
+  const rawImage = order.artworkUrl || order.referenceImage;
+  const displayImage = isValidImageSrc(rawImage) ? rawImage : null;
 
   return (
     <div className="bg-white rounded-[32px] border border-ink/5 overflow-hidden hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] transition-all duration-700 group">
@@ -132,23 +135,25 @@ export default function OrderCard({ order, role }: OrderCardProps) {
             <div className="flex gap-4 sm:gap-6 items-center flex-1 min-w-0">
               <div className={`w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-3xl ${currentStatus.bg} flex items-center justify-center relative overflow-hidden group/img shadow-inner shadow-black/5`}>
                 {displayImage ? (
-                    <div 
-                      className="relative w-full h-full cursor-zoom-in"
-                      onClick={() => setLightboxSrc(displayImage)}
-                    >
-                      <Image 
-                        src={displayImage} 
-                        alt={order.title || 'Artwork'} 
-                        fill
-                        className="object-cover rounded-3xl transition-transform duration-1000 group-hover/img:scale-110" 
-                      />
-                      {!order.artworkUrl && order.referenceImage && (
-                        <div className="absolute inset-0 bg-ink/60 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity backdrop-blur-[2px]">
-                          <span className="text-[9px] text-white font-black uppercase tracking-widest text-center px-2">Reference</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/10 transition-colors" />
-                    </div>
+                    <ImageErrorBoundary>
+                      <div 
+                        className="relative w-full h-full cursor-zoom-in"
+                        onClick={() => setLightboxSrc(displayImage)}
+                      >
+                        <Image 
+                          src={displayImage} 
+                          alt={order.title || 'Artwork'} 
+                          fill
+                          className="object-cover rounded-3xl transition-transform duration-1000 group-hover/img:scale-110" 
+                        />
+                        {!order.artworkUrl && order.referenceImage && (
+                          <div className="absolute inset-0 bg-ink/60 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity backdrop-blur-[2px]">
+                            <span className="text-[9px] text-white font-black uppercase tracking-widest text-center px-2">Reference</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/10 transition-colors" />
+                      </div>
+                    </ImageErrorBoundary>
                 ) : (
                     <IconImage size={32} className={`${currentStatus.text} opacity-20`} />
                 )}

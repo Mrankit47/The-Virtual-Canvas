@@ -60,7 +60,7 @@ export default {
     prepare({ title, media, url }: any) {
       return {
         title,
-        media,
+        media: media || false,
         subtitle: url ? 'Cloudinary Image' : 'Uploaded Image',
       };
     },

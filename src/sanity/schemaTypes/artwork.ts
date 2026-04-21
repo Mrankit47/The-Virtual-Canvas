@@ -162,7 +162,7 @@ export default defineType({
       return {
         title,
         subtitle: `${category ? category : 'No category'} | ₹${price || 0}`,
-        media,
+        media: media || false,
       };
     },
   },

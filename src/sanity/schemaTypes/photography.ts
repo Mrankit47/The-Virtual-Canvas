@@ -114,7 +114,7 @@ export default defineType({
       return {
         title,
         subtitle: `${location ? `🌍 ${location} ` : ''}| ${url ? 'Cloudinary Image' : 'Uploaded Image'}`,
-        media,
+        media: media || false,
       };
     },
   },

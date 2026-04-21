@@ -6,6 +6,8 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { optimizedUrl } from '@/lib/utils';
 import { useState, useEffect, useCallback } from 'react';
+import { isValidImageSrc } from '@/lib/safeImage';
+import { ImageErrorBoundary } from '@/components/ui/ImageErrorBoundary';
 
 export default function Lightbox() {
   const { lightboxIsOpen, activeArtwork, artworksContext, closeLightbox, nextArtwork, prevArtwork } = useGalleryStore();
@@ -87,17 +89,19 @@ export default function Lightbox() {
                     <div className="w-12 h-12 border-t-2 border-canvas/20 rounded-full animate-spin" />
                   </div>
                 )}
-                <Image
-                  src={optimizedUrl(activeArtwork.imageUrl)}
-                  alt={activeArtwork.title || "Artwork"}
-                  fill
-                  className={`object-contain drop-shadow-[0_0_30px_rgba(0,0,0,0.4)] transition-all duration-1000 ease-out ${isLoaded ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-[0.98] blur-xl'}`}
-                  sizes="100vw"
-                  placeholder="blur"
-                  blurDataURL={activeArtwork.imageLqip || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88eJNPAAIvwNIGP1SswAAAABJRU5ErkJggg=="}
-                  onLoad={() => setIsLoaded(true)}
-                  priority
-                />
+                <ImageErrorBoundary>
+                  <Image
+                    src={optimizedUrl(activeArtwork.imageUrl)}
+                    alt={activeArtwork.title || "Artwork"}
+                    fill
+                    className={`object-contain drop-shadow-[0_0_30px_rgba(0,0,0,0.4)] transition-all duration-1000 ease-out ${isLoaded ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-[0.98] blur-xl'}`}
+                    sizes="100vw"
+                    placeholder="blur"
+                    blurDataURL={activeArtwork.imageLqip || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88eJNPAAIvwNIGP1SswAAAABJRU5ErkJggg=="}
+                    onLoad={() => setIsLoaded(true)}
+                    priority
+                  />
+                </ImageErrorBoundary>
               </div>
             </motion.div>
           </AnimatePresence>
