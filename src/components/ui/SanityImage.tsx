@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { cn, optimizedUrl } from '@/lib/utils';
 import { memo } from 'react';
+import { isValidImageSrc } from '@/lib/safeImage';
 
 interface SanityImageProps {
   src: string;
@@ -17,6 +18,15 @@ interface SanityImageProps {
 export const SanityImage = memo(function SanityImage({ 
   src, alt, lqip, width, height, fill, className, priority 
 }: SanityImageProps) {
+  // Guard: skip rendering if src is not a valid URL
+  if (!isValidImageSrc(src)) {
+    return (
+      <div className={cn("relative overflow-hidden bg-ink/5 flex items-center justify-center", className)}>
+        <span className="text-ink/10 text-xs">No image</span>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("relative overflow-hidden bg-ink/5 flex items-center justify-center", className)}>
       <Image

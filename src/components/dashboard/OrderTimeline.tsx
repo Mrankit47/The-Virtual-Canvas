@@ -4,6 +4,8 @@ import { CheckCircle2, Circle, Clock, CreditCard, User, Box, Send } from "lucide
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { isValidImageSrc } from "@/lib/safeImage";
+import { ImageErrorBoundary } from "../ui/ImageErrorBoundary";
 
 interface OrderUpdate {
   _id: string;
@@ -75,19 +77,21 @@ export default function OrderTimeline({ updates, currentStatus, referenceImage, 
             </div>
             <p className="text-xs font-medium text-ink leading-relaxed">{update.note}</p>
             
-            {update.artworkUrl && (
-                <div 
-                    onClick={() => onImageClick?.(update.artworkUrl!)}
-                    className="mt-4 relative aspect-video w-full rounded-xl overflow-hidden border border-ink/5 shadow-sm group/image cursor-zoom-in"
-                >
-                    <Image 
-                        src={update.artworkUrl} 
-                        alt="Work in progress" 
-                        fill 
-                        className="object-cover transition-transform duration-500 group-hover/image:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors" />
-                </div>
+            {isValidImageSrc(update.artworkUrl) && (
+                <ImageErrorBoundary>
+                  <div 
+                      onClick={() => onImageClick?.(update.artworkUrl!)}
+                      className="mt-4 relative aspect-video w-full rounded-xl overflow-hidden border border-ink/5 shadow-sm group/image cursor-zoom-in"
+                  >
+                      <Image 
+                          src={update.artworkUrl!} 
+                          alt="Work in progress" 
+                          fill 
+                          className="object-cover transition-transform duration-500 group-hover/image:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors" />
+                  </div>
+                </ImageErrorBoundary>
             )}
 
             {update.artist && (
@@ -105,7 +109,7 @@ export default function OrderTimeline({ updates, currentStatus, referenceImage, 
       ))}
 
       {/* Starting Point: Reference Image */}
-      {referenceImage && (
+      {isValidImageSrc(referenceImage) && (
         <div className="relative pl-10">
           <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-white border-2 border-ink/10 z-10 flex items-center justify-center">
              <div className="w-1.5 h-1.5 rounded-full bg-ink/40" />
@@ -115,18 +119,20 @@ export default function OrderTimeline({ updates, currentStatus, referenceImage, 
                 <span className="text-[10px] font-bold uppercase tracking-widest text-ink/40">Initial Reference Material</span>
                 <span className="text-[9px] bg-ink/5 px-2 py-0.5 rounded-full font-bold text-ink/40">CUSTOMER PROVIDED</span>
              </div>
-             <div 
-                onClick={() => onImageClick?.(referenceImage)}
-                className="relative aspect-video w-full rounded-xl overflow-hidden border border-ink/5 shadow-sm group/ref cursor-zoom-in"
-             >
-                <Image 
-                    src={referenceImage} 
-                    alt="Customer reference" 
-                    fill 
-                    className="object-cover transition-transform duration-500 group-hover/ref:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover/ref:bg-black/10 transition-colors" />
-             </div>
+             <ImageErrorBoundary>
+               <div 
+                  onClick={() => onImageClick?.(referenceImage)}
+                  className="relative aspect-video w-full rounded-xl overflow-hidden border border-ink/5 shadow-sm group/ref cursor-zoom-in"
+               >
+                  <Image 
+                      src={referenceImage} 
+                      alt="Customer reference" 
+                      fill 
+                      className="object-cover transition-transform duration-500 group-hover/ref:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover/ref:bg-black/10 transition-colors" />
+               </div>
+             </ImageErrorBoundary>
              <p className="text-[10px] text-ink/30 italic mt-3 text-center uppercase tracking-widest">Base vision for the masterpiece</p>
           </div>
         </div>

@@ -136,7 +136,7 @@ export default {
       return {
         title: selection.title || "Untitled Step",
         subtitle: selection.subtitle,
-        media: selection.media
+        media: selection.media || false
       };
     }
   }
