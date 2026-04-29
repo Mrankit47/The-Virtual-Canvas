@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import ArtLoader from '@/components/ui/ArtLoader';
 
 export default function Home() {
+  const { data: session } = useSession();
   const [isMounting, setIsMounting] = useState(true);
   
   useEffect(() => {
@@ -66,14 +68,16 @@ export default function Home() {
               </Link>
             </motion.div>
 
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-              <Link 
-                href="/track-order"
-                className="group relative flex items-center justify-center w-full sm:w-auto px-10 py-3.5 lg:px-10 lg:py-4 font-sans text-[10px] md:text-[11px] uppercase tracking-[0.2em] font-medium border border-ink bg-ink text-canvas hover:bg-transparent hover:text-ink transition-colors duration-500 overflow-hidden text-center"
-              >
-                <span className="relative z-10 transition-colors duration-500">Track Your Order</span>
-              </Link>
-            </motion.div>
+            {session?.user?.role !== 'artist' && session?.user?.role !== 'admin' && (
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
+                <Link 
+                  href="/track-order"
+                  className="group relative flex items-center justify-center w-full sm:w-auto px-10 py-3.5 lg:px-10 lg:py-4 font-sans text-[10px] md:text-[11px] uppercase tracking-[0.2em] font-medium border border-ink bg-ink text-canvas hover:bg-transparent hover:text-ink transition-colors duration-500 overflow-hidden text-center"
+                >
+                  <span className="relative z-10 transition-colors duration-500">Track Your Order</span>
+                </Link>
+              </motion.div>
+            )}
           </motion.div>
         </motion.div>
       </main>

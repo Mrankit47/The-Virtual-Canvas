@@ -21,6 +21,7 @@ interface CartItemRequest {
   title: string;
   price: number;
   imageUrl: string;
+  artistId?: string;
 }
 
 export async function POST(req: Request) {

@@ -58,7 +58,40 @@ export async function POST(request: Request) {
       })
       .commit();
 
-    // 4. Trigger In-app and Email Notification
+    // 4. Create Marketplace Sale Records (if applicable)
+    if (order.orderType === 'cart' && order.cartItems && Array.isArray(order.cartItems)) {
+        const artistItems = order.cartItems.filter((item: any) => item.artistId);
+        
+        if (artistItems.length > 0) {
+            await Promise.all(artistItems.map(async (item: any) => {
+                // Create Sale Record
+                await backendClient.create({
+                    _type: 'sale',
+                    artwork: { _type: 'reference', _ref: item.artworkId },
+                    artist: { _type: 'reference', _ref: item.artistId },
+                    buyer: { _type: 'reference', _ref: session.user.id },
+                    buyerEmail: session.user.email,
+                    amount: item.price,
+                    paymentId: razorpay_payment_id,
+                    orderId: razorpay_order_id,
+                    status: 'completed',
+                    createdAt: new Date().toISOString(),
+                });
+
+                // Notify Artist
+                await backendClient.create({
+                    _type: 'notification',
+                    userEmail: item.artistEmail || '', // Ideally we should have artist email, but let's at least create in-app for the ref artist
+                    artist: { _type: 'reference', _ref: item.artistId },
+                    message: `Congratulations! Your artwork "${item.title}" has been sold.`,
+                    type: 'marketplace_sale',
+                    read: false,
+                });
+            }));
+        }
+    }
+
+    // 5. Trigger In-app and Email Notification for Buyer
     await Promise.all([
         backendClient.create({
             _type: 'notification',

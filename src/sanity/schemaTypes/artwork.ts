@@ -6,6 +6,7 @@ export default defineType({
   type: 'document',
   fieldsets: [
     { name: 'details', title: 'Artwork Details', options: { collapsible: true, collapsed: false } },
+    { name: 'artistInfo', title: 'Artist Information', options: { collapsible: true, collapsed: false } },
     { name: 'media', title: 'Media & Asset', options: { collapsible: true, collapsed: false } },
     { name: 'commerce', title: 'Commerce & Pricing', options: { collapsible: true, collapsed: false } },
   ],
@@ -32,7 +33,7 @@ export default defineType({
       name: 'category',
       title: 'Category',
       type: 'reference',
-      to: [{ type: 'category' }],
+      to: [{ type: 'category' }, { type: 'photographyCategory' }],
       validation: (Rule) => Rule.required(),
       fieldset: 'details',
     }),
@@ -113,8 +114,10 @@ export default defineType({
           validation: (Rule) => Rule.required(),
         }
       ],
-      hidden: ({ parent }) => parent?.imageSource === 'cloudinary',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.custom((value, context: any) => {
+        if (context.parent?.imageSource === 'sanity' && !value) return 'Image is required';
+        return true;
+      }),
       fieldset: 'media',
     }),
     defineField({
@@ -133,7 +136,13 @@ export default defineType({
       name: 'price',
       title: 'Price (₹)',
       type: 'number',
-      validation: (Rule) => Rule.required().positive().error('Price must be greater than 0.'),
+      validation: (Rule) => Rule.custom((value, context: any) => {
+        if (context.parent?.postType === 'marketplace') {
+            const numValue = Number(value);
+            if (!value || isNaN(numValue) || numValue <= 0) return 'Price must be greater than 0 for marketplace items';
+        }
+        return true;
+      }),
       fieldset: 'commerce',
     }),
     defineField({
@@ -149,6 +158,40 @@ export default defineType({
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
       fieldset: 'details',
+    }),
+    defineField({
+      name: 'artist',
+      title: 'Artist / Creator',
+      type: 'reference',
+      to: [{ type: 'userProfile' }],
+      fieldset: 'artistInfo',
+    }),
+    defineField({
+      name: 'isArtistUpload',
+      title: 'Is Artist Upload?',
+      type: 'boolean',
+      initialValue: false,
+      fieldset: 'artistInfo',
+    }),
+    defineField({
+      name: 'postType',
+      title: 'Post Type',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Gallery (Portfolio)', value: 'gallery' },
+          { title: 'Marketplace (For Sale)', value: 'marketplace' },
+        ],
+      },
+      initialValue: 'gallery',
+      fieldset: 'artistInfo',
+    }),
+    defineField({
+      name: 'isPhotography',
+      title: 'Is Photography?',
+      type: 'boolean',
+      initialValue: false,
+      fieldset: 'artistInfo',
     }),
   ],
   preview: {

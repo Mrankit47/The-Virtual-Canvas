@@ -49,7 +49,9 @@ export async function POST(req: Request) {
     let serverTotal = order.price;
     let discountAmount = 0;
 
-    if (couponCode) {
+    // IMPORTANT: Cart orders are already discounted in api/cart-order.
+    // Only apply coupon logic here for single-artwork orders that haven't been discounted yet.
+    if (couponCode && order.orderType !== 'cart') {
       const couponData = await backendClient.fetch(
         `*[_type == "coupon" && code == $code][0]`,
         { code: couponCode.trim().toUpperCase() }

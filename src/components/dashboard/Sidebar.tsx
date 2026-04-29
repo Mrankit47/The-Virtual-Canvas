@@ -32,8 +32,8 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
   ];
 
   const artistLinks = [
-    { name: 'Upload Work', href: '/artist/upload', icon: Upload },
-    { name: 'Earnings', href: '/artist/earnings', icon: Wallet },
+    { name: 'My Artworks', href: '/artist/my-artworks', icon: LayoutDashboard },
+    { name: 'Sales & Earnings', href: '/artist/sales', icon: Wallet },
   ];
 
   const adminLinks = [
