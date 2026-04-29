@@ -146,7 +146,7 @@ function CheckoutInner() {
       const payRes = await fetch('/api/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: totalAmount, orderId }),
+        body: JSON.stringify({ amount: totalAmount, orderId, couponCode: appliedCoupon?.code }),
       });
       const payData = await payRes.json();
       if (!payRes.ok) throw new Error(payData.error || 'Payment init failed');
@@ -157,7 +157,7 @@ function CheckoutInner() {
         amount: payData.amount,
         currency: 'INR',
         name: 'The Virtual Canvas',
-        description: `Cart Order ${orderId} — ${itemCount} artwork${itemCount > 1 ? 's' : ''}`,
+        description: `Order ${orderId} - ${itemCount} item${itemCount > 1 ? 's' : ''}`,
         order_id: payData.id,
         handler: async (response: any) => {
           // Step 4: Verify payment (existing API)
@@ -168,8 +168,7 @@ function CheckoutInner() {
           });
 
           if (verifyRes.ok) {
-            clearCart(); // Clear cart on success
-            // Increment coupon usage if applied
+            clearCart(); 
             if (appliedCoupon?.code) {
               try {
                 await fetch('/api/coupon/use', {
@@ -179,19 +178,20 @@ function CheckoutInner() {
                 });
               } catch {}
             }
-            addToast('Payment successful! Order confirmed.', 'success');
-            router.push(`/cart-success?id=${orderId}&amount=${totalAmount}&count=${itemCount}`);
+            addToast('Payment successful!', 'success');
+            const successUrl = `/cart-success?id=${encodeURIComponent(orderId)}&amount=${totalAmount}&count=${itemCount}`;
+            router.push(successUrl);
           } else {
-            addToast('Payment verification failed. Check tracking page.', 'error');
-            router.push(`/track-order?id=${orderId}`);
+            addToast('Payment verification failed.', 'error');
+            router.push(`/track-order?id=${encodeURIComponent(orderId)}`);
           }
         },
         prefill: { name: form.name, email: form.email, contact: form.phone },
         theme: { color: '#000000' },
         modal: {
           ondismiss: () => {
-            addToast('Payment cancelled. Your order is saved — pay later via Track Order.', 'info');
-            router.push(`/track-order?id=${orderId}`);
+            addToast('Payment cancelled.', 'info');
+            router.push(`/track-order?id=${encodeURIComponent(orderId)}`);
           },
         },
       };

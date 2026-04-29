@@ -160,6 +160,7 @@ export function Navbar() {
 
   const allNavLinks = [
     { name: 'Artworks', href: '/artworks' },
+    { name: 'Artist', href: '/artist-artworks' },
     { name: 'Gallery', href: '/gallery' },
     { name: 'Photography', href: '/photography' },
     { name: 'Process', href: '/process' },

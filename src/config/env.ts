@@ -1,22 +1,22 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().default('testid'),
-  NEXT_PUBLIC_SANITY_DATASET: z.string().default('production'),
-  NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().optional(),
-  NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: z.string().optional(),
-  NEXT_PUBLIC_UPI_ID: z.string().optional(),
-  NEXT_PUBLIC_RAZORPAY_KEY: z.string().optional(),
-  RAZORPAY_KEY_SECRET: z.string().optional(), 
-  SANITY_API_WRITE_TOKEN: z.string().optional(),
+  NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().default('testid').transform(v => v.trim()),
+  NEXT_PUBLIC_SANITY_DATASET: z.string().default('production').transform(v => v.trim()),
+  NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().optional().transform(v => v?.trim()),
+  NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: z.string().optional().transform(v => v?.trim()),
+  NEXT_PUBLIC_UPI_ID: z.string().optional().transform(v => v?.trim()),
+  NEXT_PUBLIC_RAZORPAY_KEY: z.string().optional().transform(v => v?.trim()),
+  RAZORPAY_KEY_SECRET: z.string().optional().transform(v => v?.trim()), 
+  SANITY_API_WRITE_TOKEN: z.string().optional().transform(v => v?.trim()),
   
   // Email Configuration
-  EMAIL_USER: z.string().optional(),
-  EMAIL_PASS: z.string().optional(),
-  EMAIL_HOST: z.string().default('smtp.gmail.com'),
+  EMAIL_USER: z.string().optional().transform(v => v?.trim()),
+  EMAIL_PASS: z.string().optional().transform(v => v?.trim()),
+  EMAIL_HOST: z.string().default('smtp.gmail.com').transform(v => v.trim()),
   EMAIL_PORT: z.coerce.number().default(465),
-  NEXTAUTH_SECRET: z.string().optional(),
-  NEXTAUTH_URL: z.string().optional(),
+  NEXTAUTH_SECRET: z.string().optional().transform(v => v?.trim()),
+  NEXTAUTH_URL: z.string().optional().transform(v => v?.trim()),
 });
 
 const _env = envSchema.safeParse({
