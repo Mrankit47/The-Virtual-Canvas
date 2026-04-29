@@ -15,7 +15,7 @@ export async function getOrderTracking(orderId: string) {
   try {
     const order = await backendClient.fetch(
       `*[_type == "order" && orderId == $id][0]{
-         customerName, orderId, orderStatus, paymentStatus, price, description, phone, email, createdAt
+         _id, customerName, orderId, orderStatus, paymentStatus, price, description, phone, email, createdAt
       }`,
       { id: orderId }
     );

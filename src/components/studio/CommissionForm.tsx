@@ -16,6 +16,7 @@ import { useUIStore } from '@/store/useUIStore';
 import { env } from '@/config/env';
 import { client } from '@/lib/sanity';
 import { GET_ART_STYLES_QUERY } from '@/sanity/queries';
+import { uploadToCloudinary as cloudinaryUploadUtility } from '@/lib/cloudinaryUpload';
 
 interface ArtStyle {
   _id: string;
@@ -107,39 +108,24 @@ export default function CommissionForm({ initialStyles }: CommissionFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-    const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-    
-    if (!cloudName || !preset) {
-      addToast('Cloudinary variables missing in config.', 'error');
-      // Mock successful UX for demonstration without keys
-      setValue(field, `https://res.cloudinary.com/demo/image/upload/sample.jpg`);
-      addToast('Using mock image (Cloudinary not configured)', 'info');
-      return;
-    }
-
     try {
       setUploadingImage(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', preset);
       
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!res.ok) throw new Error('Upload failed');
-      const data = await res.json();
-      setValue(field, data.secure_url);
+      // Determine folder based on field type
+      const folder = field === 'referenceImage' 
+        ? 'TVC assets/Order references' 
+        : 'TVC assets/Commissions/Payments';
+
+      const imageUrl = await cloudinaryUploadUtility(file, folder);
+      setValue(field, imageUrl);
       
       // Temporary success state for UI
       setShowUploadSuccess(true);
       setTimeout(() => setShowUploadSuccess(false), 3000);
       
       addToast('Image uploaded securely', 'success');
-    } catch (err) {
-      addToast('Failed to upload image.', 'error');
+    } catch (err: any) {
+      addToast(err.message || 'Failed to upload image.', 'error');
     } finally {
       setUploadingImage(false);
     }

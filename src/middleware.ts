@@ -7,8 +7,19 @@ export default withAuth(
     const path = req.nextUrl.pathname;
     const role = token?.role as string;
 
-    // If no token and trying to access protected routes (this shouldn't happen with authorized callback but safety first)
-    if (!token && (path.startsWith("/admin") || path.startsWith("/artist") || path.startsWith("/dashboard"))) {
+    // 0. Admin Login Logic
+    if (path === "/admin/login") {
+        if (token && role === "admin") return NextResponse.redirect(new URL("/admin", req.url));
+        if (token && role !== "admin") return NextResponse.redirect(new URL(role === "artist" ? "/artist" : "/dashboard", req.url));
+        return NextResponse.next();
+    }
+
+    if (!token && path.startsWith("/admin")) {
+        return NextResponse.redirect(new URL("/admin/login", req.url));
+    }
+
+    // If no token and trying to access protected routes
+    if (!token && (path.startsWith("/artist") || path.startsWith("/dashboard"))) {
         return NextResponse.redirect(new URL("/login", req.url));
     }
 
@@ -31,15 +42,19 @@ export default withAuth(
   },
   {
     callbacks: {
-      // Logic: Only block if it's a dashboard route and no token
       authorized: ({ token, req }) => {
         const path = req.nextUrl.pathname;
-        const isDashboardRoute = path.startsWith("/admin") || path.startsWith("/artist") || path.startsWith("/dashboard");
+        const isDashboardRoute = path.startsWith("/artist") || path.startsWith("/dashboard");
         
+        // Let the main middleware handle /admin routes to allow redirects to /admin/login
+        if (path.startsWith("/admin")) {
+            return true;
+        }
+
         if (isDashboardRoute) {
             return !!token;
         }
-        return true; // Allow all other routes (Landing page, Gallery, etc.)
+        return true;
       },
     },
     pages: {
