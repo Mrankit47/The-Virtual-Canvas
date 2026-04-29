@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, Suspense, useState, useRef } from "react";
 import type { FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogIn, User, ShieldCheck, Palette, ArrowRight, Smartphone, Mail, KeyRound, ChevronDown, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
+import { LogIn, User, ShieldCheck, Palette, ArrowRight, Smartphone, Mail, KeyRound, ChevronDown, CheckCircle2, Eye, EyeOff, Loader2, X } from "lucide-react";
 import ArtLoader from "@/components/ui/ArtLoader";
 
 type Role = "admin" | "artist" | "user";
@@ -33,6 +33,15 @@ function LoginContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Forgot Password State
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [forgotOtpSent, setForgotOtpSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   const callbackUrl = searchParams.get("callbackUrl") || "";
 
@@ -178,6 +187,63 @@ function LoginContent() {
     }
   };
 
+  const handleForgotPasswordSendOtp = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setForgotLoading(true);
+    setError("");
+
+    try {
+        const res = await fetch("/api/auth/forgot-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "send-otp", email: forgotEmail }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to send OTP");
+        setForgotOtpSent(true);
+    } catch (err: any) {
+        setError(err.message);
+    } finally {
+        setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!forgotOtp || !newPassword) return;
+    setForgotLoading(true);
+    setError("");
+
+    try {
+        const res = await fetch("/api/auth/forgot-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                action: "reset-password", 
+                email: forgotEmail, 
+                otp: forgotOtp, 
+                password: newPassword 
+            }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to reset password");
+        setForgotSuccess(true);
+        setTimeout(() => {
+            setIsForgotPassword(false);
+            setForgotSuccess(false);
+            setForgotOtpSent(false);
+            setForgotEmail("");
+            setForgotOtp("");
+            setNewPassword("");
+        }, 2000);
+    } catch (err: any) {
+        setError(err.message);
+    } finally {
+        setForgotLoading(false);
+    }
+  };
+
   // Close dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -223,13 +289,13 @@ function LoginContent() {
                 {isSignUp ? "Join As" : "Login As"}
             </p>
             <div className="flex p-1 bg-ink/5 rounded-2xl">
-                {(isSignUp ? ["user", "artist"] : ["user", "artist", "admin"] as Role[]).map((r) => (
+                {(["user", "artist"] as Role[]).map((r) => (
                     <button
                         key={r}
                         onClick={() => { setRole(r as Role); setMethod("password"); }}
                         className={`flex-1 h-11 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${role === r ? "bg-canvas shadow-lg text-ink" : "text-ink/30 hover:text-ink/60"}`}
                     >
-                        {r === 'artist' ? <Palette className="w-3.5 h-3.5" /> : (r === 'admin' ? <ShieldCheck className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />)}
+                        {r === 'artist' ? <Palette className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
                         {r}
                     </button>
                 ))}
@@ -306,6 +372,16 @@ function LoginContent() {
                             </button>
                         </div>
                     </div>
+                    <div className="flex justify-end px-2">
+                        <button 
+                            type="button" 
+                            onClick={() => setIsForgotPassword(true)}
+                            className="text-[10px] uppercase tracking-widest text-ink/30 hover:text-ink font-bold transition-colors"
+                        >
+                            Forgot Password?
+                        </button>
+                    </div>
+
                     {error && <p className="text-red-500 text-[10px] ml-4 font-bold uppercase tracking-wider">{error}</p>}
                     <button 
                         disabled={loading}
@@ -408,6 +484,91 @@ function LoginContent() {
             </button>
         </div>
       </motion.div>
+
+      {/* Forgot Password Modal */}
+      <AnimatePresence>
+        {isForgotPassword && (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-canvas/80 backdrop-blur-md"
+            >
+                <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    className="w-full max-w-md bg-canvas border border-ink/10 rounded-[40px] p-10 shadow-2xl relative"
+                >
+                    <button onClick={() => setIsForgotPassword(false)} className="absolute top-8 right-8 p-2 hover:bg-ink/5 rounded-full"><X className="w-5 h-5" /></button>
+                    
+                    <h2 className="text-2xl font-playfair font-bold mb-2">Reset Password</h2>
+                    <p className="text-[10px] uppercase tracking-widest text-ink/40 mb-8">Secure Recovery Process</p>
+
+                    {forgotSuccess ? (
+                        <div className="py-10 text-center space-y-4">
+                            <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
+                            <p className="text-sm font-bold uppercase tracking-widest text-ink">Password Reset Successfully!</p>
+                            <p className="text-xs text-ink/40">You'll be redirected to login shortly.</p>
+                        </div>
+                    ) : (
+                        <form onSubmit={forgotOtpSent ? handleResetPassword : handleForgotPasswordSendOtp} className="space-y-6">
+                            {!forgotOtpSent ? (
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-4 font-bold">Your Email</label>
+                                        <input 
+                                            type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} required
+                                            className="w-full h-14 bg-ink/5 border border-ink/5 rounded-2xl px-6 text-sm outline-none focus:border-ink/20 transition-all"
+                                            placeholder="name@example.com"
+                                        />
+                                    </div>
+                                    <button 
+                                        disabled={forgotLoading}
+                                        className="w-full h-14 bg-ink text-canvas rounded-2xl text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-3 transition-all disabled:opacity-50"
+                                    >
+                                        {forgotLoading ? <Loader2 className="animate-spin" size={16} /> : "Send Reset Code"}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-4 font-bold">Verification Code</label>
+                                        <input 
+                                            type="text" value={forgotOtp} onChange={(e) => setForgotOtp(e.target.value)} required maxLength={6}
+                                            className="w-full h-14 bg-ink/5 border border-ink/5 rounded-2xl px-6 text-sm tracking-[1em] text-center font-bold outline-none focus:border-ink/20 transition-all"
+                                            placeholder="000000"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-4 font-bold">New Password</label>
+                                        <input 
+                                            type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required
+                                            className="w-full h-14 bg-ink/5 border border-ink/5 rounded-2xl px-6 text-sm outline-none focus:border-ink/20 transition-all"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                    <button 
+                                        disabled={forgotLoading}
+                                        className="w-full h-14 bg-ink text-canvas rounded-2xl text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-3 transition-all disabled:opacity-50"
+                                    >
+                                        {forgotLoading ? <Loader2 className="animate-spin" size={16} /> : "Reset & Finalize"}
+                                    </button>
+                                    <button 
+                                        type="button" onClick={() => setForgotOtpSent(false)}
+                                        className="w-full text-[10px] uppercase tracking-widest text-ink/30 font-bold hover:text-ink transition-colors"
+                                    >
+                                        Wrong email? Start Over
+                                    </button>
+                                </div>
+                            )}
+                            {error && <p className="text-red-500 text-[10px] text-center font-bold uppercase tracking-wider">{error}</p>}
+                        </form>
+                    )}
+                </motion.div>
+            </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

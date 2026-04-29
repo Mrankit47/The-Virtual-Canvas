@@ -1,4 +1,4 @@
-export const uploadToCloudinary = async (file: File | Blob) => {
+export const uploadToCloudinary = async (file: File | Blob, folder?: string) => {
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
@@ -9,6 +9,9 @@ export const uploadToCloudinary = async (file: File | Blob) => {
   const data = new FormData();
   data.append("file", file);
   data.append("upload_preset", uploadPreset);
+  if (folder) {
+    data.append("folder", folder);
+  }
 
   const res = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, // auto detects image vs video

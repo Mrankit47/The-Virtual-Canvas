@@ -21,6 +21,7 @@ import {
   FileText,
   Loader2
 } from 'lucide-react';
+import { uploadToCloudinary } from '@/lib/cloudinaryUpload';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -175,29 +176,14 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-    const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-
-    if (!cloudName || !preset) {
-      addToast('Image upload not configured', 'error');
-      return;
-    }
-
     try {
       setIsUploadingRef(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', preset);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Upload failed');
-      const data = await res.json();
-      setReferenceImageUrl(data.secure_url);
+      const folder = 'TVC assets/Order references';
+      const imageUrl = await uploadToCloudinary(file, folder);
+      setReferenceImageUrl(imageUrl);
       addToast('Reference vision captured ✓', 'success');
-    } catch {
-      addToast('Upload failed. Try again.', 'error');
+    } catch (err: any) {
+      addToast(err.message || 'Upload failed. Try again.', 'error');
     } finally {
       setIsUploadingRef(false);
     }

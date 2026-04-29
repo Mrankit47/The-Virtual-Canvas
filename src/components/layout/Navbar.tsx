@@ -156,14 +156,21 @@ export function Navbar() {
     ? 'bg-black/10 md:bg-black/20 backdrop-blur-xl border-b border-white/5' 
     : 'bg-transparent';
 
-  const navLinks = [
+  const userRole = (session?.user as any)?.role;
+
+  const allNavLinks = [
     { name: 'Artworks', href: '/artworks' },
     { name: 'Gallery', href: '/gallery' },
     { name: 'Photography', href: '/photography' },
     { name: 'Process', href: '/process' },
-    { name: 'Commission Art', href: '/order' },
-    { name: 'Track Order', href: '/track-order' },
+    { name: 'Commission Art', href: '/order', userOnly: true },
+    { name: 'Track Order', href: '/track-order', userOnly: true },
   ];
+
+  // Hide customer-only links (Commission Art, Track Order) for admin and artist
+  const navLinks = allNavLinks.filter(link => 
+    !link.userOnly || !userRole || userRole === 'user'
+  );
 
   return (
     <>

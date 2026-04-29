@@ -21,9 +21,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = await request.json();
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id, orderId } = await request.json();
+  const idToUse = order_id || orderId;
 
-  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !order_id) {
+  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !idToUse) {
     return NextResponse.json({ error: "Missing verification details" }, { status: 400 });
   }
 
@@ -32,20 +33,22 @@ export async function POST(request: Request) {
     const isValid = verifyPaymentSignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
     if (!isValid) return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 });
 
-    // 2. Fetch and Verify Order Ownership
-    const order = await backendClient.fetch(
-        `*[_type == "order" && _id == $order_id][0]`,
-        { order_id }
+    // 2. Fetch Order (Try by _id first, then by orderId)
+    let order = await backendClient.fetch(
+        `*[_type == "order" && (_id == $idToUse || orderId == $idToUse)][0]`,
+        { idToUse }
     );
 
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    
+    // Ownership check
     if (order.userEmail !== session.user.email) {
         return NextResponse.json({ error: "This is not your order" }, { status: 403 });
     }
 
     // 3. Update Order Payment Status
     const updatedOrder = await backendClient
-      .patch(order_id)
+      .patch(order._id) // Use the real Sanity _id
       .set({
         paymentStatus: 'paid',
         orderStatus: 'paid',
