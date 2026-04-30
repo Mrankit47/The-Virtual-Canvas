@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Plus, Trash2, Loader2, Image as ImageIcon, Filter, CheckCircle2, X, Pencil } from 'lucide-react';
+import { Plus, Trash2, Loader2, Image as ImageIcon, Filter, CheckCircle2, X, Pencil, Eye } from 'lucide-react';
 import { useUIStore } from '@/store/useUIStore';
 import { uploadToCloudinary } from '@/lib/cloudinaryUpload';
 
@@ -14,6 +14,17 @@ export default function MyArtworksPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Prevent scrolling when lightbox is open
+  useEffect(() => {
+    if (selectedImage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [selectedImage]);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -214,42 +225,65 @@ export default function MyArtworksPage() {
             <p className="text-xs uppercase font-bold tracking-widest text-ink/40 max-w-xs">Start building your portfolio by uploading your first masterpiece.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {artworks.map((art) => (
-                <div key={art._id} className="group relative bg-white rounded-[32px] border border-ink/5 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
-                    <div className="aspect-[4/5] overflow-hidden relative">
-                        <img src={art.imageUrl} alt={art.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-ink/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6 gap-3">
-                            <button 
-                                onClick={() => openEditModal(art)}
-                                className="w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-xl flex items-center justify-center hover:bg-ink transition-colors"
-                            >
-                                <Pencil size={18} />
-                            </button>
-                            <button 
-                                onClick={() => handleDelete(art._id)}
-                                className="w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-xl flex items-center justify-center hover:bg-red-500 transition-colors"
-                            >
-                                <Trash2 size={18} />
-                            </button>
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-10">
+            {artworks.map((art, idx) => (
+                <div key={art._id} className="group relative flex flex-col gap-6 cursor-pointer">
+                    <div className="relative w-full aspect-[4/5] overflow-hidden rounded-md shadow-md bg-ink/5 border border-ink/10">
+                        {/* Blurred background fill */}
+                        <img 
+                            src={art.imageUrl} 
+                            alt="" 
+                            aria-hidden="true"
+                            className="absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-80" 
+                        />
+                        {/* Main image — full, no cropping */}
+                        <img src={art.imageUrl} alt={art.title} className="relative w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out" />
+                        <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/20 transition-colors duration-500 flex items-end p-4 gap-3">
+                            <div className="flex gap-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                                <button 
+                                    onClick={() => setSelectedImage(art.imageUrl)}
+                                    className="w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-lg flex items-center justify-center hover:bg-ink transition-colors shadow-xl"
+                                >
+                                    <Eye size={16} />
+                                </button>
+                                <button 
+                                    onClick={() => openEditModal(art)}
+                                    className="w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-lg flex items-center justify-center hover:bg-ink transition-colors shadow-xl"
+                                >
+                                    <Pencil size={16} />
+                                </button>
+                                <button 
+                                    onClick={() => handleDelete(art._id)}
+                                    className="w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-lg flex items-center justify-center hover:bg-red-500 transition-colors shadow-xl"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
                         </div>
-                        <div className="absolute top-4 right-4 flex gap-2">
-                            <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest backdrop-blur-md ${art.postType === 'marketplace' ? 'bg-green-500 text-white' : 'bg-white/90 text-ink'}`}>
-                                {art.postType}
+                        <div className="absolute top-3 left-3 flex gap-2">
+                            <span className={`px-3 py-1 rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg ${art.postType === 'marketplace' ? 'bg-green-500/90 text-white' : 'bg-white/90 text-ink'}`}>
+                                {art.postType === 'marketplace' ? 'For Sale' : 'Gallery'}
                             </span>
                             {art.isPhotography && (
-                                <span className="px-3 py-1 bg-blue-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest backdrop-blur-md">
+                                <span className="px-3 py-1 bg-blue-500/90 text-white rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg">
                                     Photo
                                 </span>
                             )}
                         </div>
                     </div>
-                    <div className="p-6 space-y-2">
-                        <h4 className="font-serif font-black text-ink truncate">{art.title}</h4>
-                        <div className="flex justify-between items-center">
-                            <p className="text-[10px] text-ink/40 font-bold uppercase tracking-widest">
+
+                    <div className="flex justify-between items-start px-2">
+                        <div className="flex flex-col gap-1.5 min-w-0">
+                            <h3 className="font-serif text-xl md:text-2xl tracking-tight text-ink leading-tight truncate">{art.title}</h3>
+                            <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] text-ink/35">
+                                {typeof art.category === 'string' ? art.category : (art.category?.title || 'Uncategorized')}
+                            </span>
+                        </div>
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-ink/40">
                                 {art.postType === 'marketplace' ? `₹${art.price}` : 'Gallery Only'}
                             </p>
+                            <div className="w-4 h-[1px] bg-ink/30 group-hover:bg-ink group-hover:w-8 transition-all duration-500" />
                         </div>
                     </div>
                 </div>
@@ -452,6 +486,31 @@ export default function MyArtworksPage() {
                     </div>
                 </div>
             </div>
+        </div>
+      )}
+
+      {/* Lightbox Modal */}
+      {selectedImage && (
+        <div 
+          onClick={() => setSelectedImage(null)}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/95 backdrop-blur-3xl p-4 sm:p-12 cursor-zoom-out"
+        >
+          <div 
+            className="relative max-w-full max-h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={selectedImage} 
+              alt="Full size preview" 
+              className="max-w-[95vw] max-h-[85vh] object-contain rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-white/10"
+            />
+            <button 
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-12 sm:-top-8 right-0 sm:-right-8 w-10 h-10 bg-white/10 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-all backdrop-blur-xl border border-white/10"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
       )}
     </div>
