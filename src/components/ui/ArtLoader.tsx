@@ -46,6 +46,7 @@ const ArtLoader = ({
                 className="text-center"
             >
                 <h1 className="text-[8px] md:text-xs font-serif tracking-[0.4em] text-[#2c1810] font-playfair uppercase italic font-medium">
+                    <span className="block mb-2 tracking-[0.6em] pr-[0.6em]">The</span>
                     Virtual Canvas
                 </h1>
             </motion.div>

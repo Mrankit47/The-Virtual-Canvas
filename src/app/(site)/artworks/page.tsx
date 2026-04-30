@@ -21,7 +21,7 @@ interface Artwork {
 }
 
 export default async function ArtworksPage() {
-  const artworks: Artwork[] = await client.fetch(`*[_type == "artwork"] | order(_createdAt desc) {
+  const artworks: Artwork[] = await client.fetch(`*[_type == "artwork" && isArtistUpload != true] | order(_createdAt desc) {
     _id,
     title,
     price,

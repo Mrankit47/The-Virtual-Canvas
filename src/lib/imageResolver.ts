@@ -1,27 +1,34 @@
 export const getImageUrl = (item: any) => {
   if (!item) return "/placeholder.png";
 
-  // Cloudinary explicitly via new mapping or legacy mapping
-  if ((item.imageSource === "cloudinary" || item.imageSource === "url") && item.imageUrl) {
-    if (item.imageUrl.includes('/upload/')) {
+  let url = "/placeholder.png";
+
+  // 1. Prefer Sanity native image projection if it exists
+  if (item.image) {
+    if (typeof item.image === 'string') url = item.image; 
+    else if (item.image.asset?.url) url = item.image.asset.url;
+  } 
+  // 2. Fallback to Cloudinary explicitly via new mapping or legacy mapping
+  else if ((item.imageSource === "cloudinary" || item.imageSource === "url" || !item.image) && item.imageUrl) {
+    url = item.imageUrl;
+    if (url.includes('/upload/')) {
       // Avoid duplicating transformations if already present
-      if (!item.imageUrl.includes('f_auto') && !item.imageUrl.includes('q_auto')) {
-          return item.imageUrl.replace('/upload/', '/upload/f_auto,q_auto,w_800/');
+      if (!url.includes('f_auto') && !url.includes('q_auto')) {
+          url = url.replace('/upload/', '/upload/f_auto,q_auto,w_800/');
       }
     }
-    return item.imageUrl;
+  } 
+  // 3. Edge case directly provided string
+  else if (typeof item === 'string') {
+    url = item;
   }
 
-  // Fallback to Sanity native image projection
-  if (item.image) {
-    if (typeof item.image === 'string') return item.image; // If we directly mapped image.asset->url into 'image'
-    if (item.image.asset?.url) return item.image.asset.url;
+  // Fix mangled URLs (e.g., double https:// or prepended text)
+  if (url && url.includes('https://') && url.lastIndexOf('https://') > 0) {
+    url = url.substring(url.lastIndexOf('https://'));
   }
 
-  // Edge case directly provided string
-  if (typeof item === 'string') return item;
-
-  return "/placeholder.png";
+  return url;
 };
 
 export const getVideoUrl = (url: string | undefined | null) => {

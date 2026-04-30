@@ -104,31 +104,39 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-10">
         <AnimatePresence mode="popLayout">
-          {filteredArtworks.map((art) => (
+          {filteredArtworks.map((art, idx) => (
             <motion.div
               layout
               key={art._id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-              className="group bg-white rounded-[32px] border border-ink/5 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-700"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ delay: idx * 0.04, duration: 0.45 }}
+              className="group relative flex flex-col gap-6 cursor-pointer"
             >
-              <div className="aspect-[4/5] relative overflow-hidden">
+              <div className="relative w-full aspect-[4/5] overflow-hidden rounded-md shadow-md bg-ink/5 border border-ink/10">
+                {/* Blurred background fill */}
+                <img 
+                    src={art.imageUrl} 
+                    alt="" 
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-80" 
+                />
+                {/* Main image — full, no cropping */}
                 <img 
                     src={art.imageUrl} 
                     alt={art.title} 
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+                    className="relative w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105" 
                 />
-                <div className="absolute inset-0 bg-ink/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                    <div className="flex gap-3 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/20 transition-colors duration-500 flex items-center justify-center">
+                    <div className="flex gap-3 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                         <button 
                             onClick={() => setSelectedImage(art.imageUrl)}
-                            className="w-12 h-12 bg-white text-ink rounded-xl flex items-center justify-center hover:bg-ink hover:text-white transition-all shadow-xl"
+                            className="w-11 h-11 bg-white text-ink rounded-lg flex items-center justify-center hover:bg-ink hover:text-white transition-all shadow-xl"
                         >
-                            <Eye size={20} />
+                            <Eye size={18} />
                         </button>
                         {art.postType === 'marketplace' && session?.user?.role !== 'artist' && session?.user?.role !== 'admin' && (
                             <button 
@@ -143,20 +151,20 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                                     });
                                     addToast(`${art.title} added to cart`, 'success');
                                 }}
-                                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-xl ${
+                                className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all shadow-xl ${
                                     isInCart(art._id) ? 'bg-green-500 text-white' : 'bg-white text-ink hover:bg-ink hover:text-white'
                                 }`}
                             >
-                                <ShoppingCart size={20} />
+                                <ShoppingCart size={18} />
                             </button>
                         )}
                     </div>
                 </div>
-                <div className="absolute top-4 left-4 flex gap-2">
+                <div className="absolute top-3 left-3 flex gap-2">
                     <span className={`px-3 py-1 rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg ${
                         art.postType === 'marketplace' ? 'bg-green-500/90 text-white' : 'bg-white/90 text-ink'
                     }`}>
-                        {art.postType}
+                        {art.postType === 'marketplace' ? 'For Sale' : 'Gallery'}
                     </span>
                     {art.isPhotography && (
                          <span className="px-3 py-1 bg-blue-500/90 text-white rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg">
@@ -166,19 +174,19 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                 </div>
               </div>
 
-              <div className="p-6 space-y-2">
-                <div className="space-y-0.5">
-                    <h3 className="text-base font-serif font-black text-ink leading-tight truncate">{art.title}</h3>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-ink/30 italic">By {art.artistName}</p>
-                </div>
-                
-                <div className="pt-2 border-t border-ink/5 flex justify-between items-center">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-ink/40">
+              <div className="flex justify-between items-start px-2">
+                <div className="flex flex-col gap-1.5 min-w-0">
+                    <h3 className="font-serif text-xl md:text-2xl tracking-tight text-ink leading-tight truncate">{art.title}</h3>
+                    <p className="font-sans text-[9px] uppercase tracking-[0.2em] text-ink/30 italic">By {art.artistName}</p>
+                    <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] text-ink/35">
                         {art.category || 'Uncategorized'}
-                    </p>
+                    </span>
+                </div>
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
                     {art.postType === 'marketplace' && (
                         <p className="text-sm font-bold text-ink/80 tracking-tight">₹{art.price}</p>
                     )}
+                    <div className="w-4 h-[1px] bg-ink/30 group-hover:bg-ink group-hover:w-8 transition-all duration-500" />
                 </div>
               </div>
             </motion.div>
