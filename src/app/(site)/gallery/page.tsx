@@ -6,7 +6,7 @@ export const revalidate = 60; // ISR cache regeneration
 
 export default async function GalleryPage() {
   const [images, categories] = await Promise.all([
-    client.fetch(`*[_type == "gallery"] | order(_createdAt desc) {
+    client.fetch(`*[_type == "gallery" || (_type == "artwork" && postType == "gallery" && isArtistUpload != true)] | order(_createdAt desc) {
       _id,
       title,
       imageSource,
