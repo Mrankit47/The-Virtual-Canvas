@@ -197,12 +197,12 @@ export default function AdminArtworksPage() {
                       <button onClick={() => handleDelete(art._id)} className="w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-lg flex items-center justify-center hover:bg-red-500 transition-colors shadow-xl"><Trash2 size={16} /></button>
                     </div>
                   </div>
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <span className={`px-3 py-1 rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg ${art.postType === 'marketplace' ? 'bg-green-500/90 text-white' : 'bg-white/90 text-ink'}`}>
+                  <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 max-w-[calc(100%-20px)]">
+                    <span className={`px-2 py-0.5 rounded-md text-[6px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border border-white/10 ${art.postType === 'marketplace' ? 'bg-green-500/90 text-white' : 'bg-white/90 text-ink'}`}>
                       {art.postType === 'marketplace' ? 'For Sale' : 'Gallery'}
                     </span>
-                    {art.isPhotography && <span className="px-3 py-1 bg-blue-500/90 text-white rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg">Photo</span>}
-                    {art.isFeatured && <span className="px-3 py-1 bg-amber-500/90 text-white rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg">★ Featured</span>}
+                    {art.isPhotography && <span className="px-2 py-0.5 bg-blue-500/90 text-white rounded-md text-[6px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border border-white/10">Photo</span>}
+                    {art.isFeatured && <span className="px-2 py-0.5 bg-amber-500/90 text-white rounded-md text-[6px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border border-white/10">★ Featured</span>}
                   </div>
                 </div>
                 <div className="flex flex-col gap-3 px-2">

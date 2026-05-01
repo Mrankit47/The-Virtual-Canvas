@@ -16,6 +16,8 @@ interface Artwork {
   medium?: string;
   dimensions?: string;
   subcategory?: string;
+  postType?: string;
+  imageUrl?: string;
   image: {
     asset: {
       url: string;
@@ -32,12 +34,14 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
     medium,
     dimensions,
     subcategory,
+    imageUrl,
+    postType,
     "image": {
       "asset": {
         "url": image.asset->url
       }
     }
-  }`, { slug: params.slug });
+  }`, { slug: decodeURIComponent(params.slug) });
 
   if (!artwork) notFound();
 
@@ -89,13 +93,15 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
                   <span className="font-sans text-[10px] uppercase tracking-[0.4em] text-ink opacity-40 font-bold">{artwork.subcategory || 'Original Collection'}</span>
                   <h1 className="font-serif text-5xl md:text-6xl tracking-tighter text-ink leading-tight">{artwork.title}</h1>
                </div>
-               <div className="mt-6 flex items-baseline gap-1.5 font-serif text-ink">
-                  <span className="text-xl md:text-2xl opacity-40 font-sans select-none">₹</span>
-                  <span className="text-4xl md:text-5xl tracking-tighter tabular-nums font-bold leading-none">
-                    {artwork.price.toLocaleString()}
-                  </span>
-                  <span className="text-sm md:text-base opacity-20 font-sans tracking-widest ml-0.5">.00</span>
-               </div>
+               {artwork.postType === 'marketplace' && (
+                 <div className="mt-6 flex items-baseline gap-1.5 font-serif text-ink">
+                    <span className="text-xl md:text-2xl opacity-40 font-sans select-none">₹</span>
+                    <span className="text-4xl md:text-5xl tracking-tighter tabular-nums font-bold leading-none">
+                      {artwork.price.toLocaleString()}
+                    </span>
+                    <span className="text-sm md:text-base opacity-20 font-sans tracking-widest ml-0.5">.00</span>
+                 </div>
+               )}
             </header>
 
             {/* Description Body */}
@@ -109,16 +115,19 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
             {/* CTA SECTION */}
             <div className="mt-auto space-y-8 pt-8 border-t border-ink/10">
                <div className="flex flex-col gap-4">
-                  <p className="text-[10px] uppercase tracking-widest opacity-50 flex items-center gap-3">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    Available for acquisition
-                  </p>
+                  {artwork.postType === 'marketplace' && (
+                    <p className="text-[10px] uppercase tracking-widest opacity-50 flex items-center gap-3">
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                      Available for acquisition
+                    </p>
+                  )}
                   
                   {/* BUTTON CLIENT COMPONENT */}
                   <OrderButton 
                     artworkId={artwork._id} 
                     title={artwork.title} 
                     price={artwork.price} 
+                    postType={artwork.postType}
                   />
 
                </div>

@@ -9,6 +9,7 @@ export default async function ArtistArtworksPage() {
     client.fetch(`*[_type == "artwork" && isArtistUpload == true] | order(createdAt desc) {
       _id,
       title,
+      "slug": slug.current,
       description,
       postType,
       isPhotography,
