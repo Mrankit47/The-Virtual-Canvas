@@ -31,7 +31,7 @@ export const GET_CATEGORIES_QUERY = groq`
 `;
 
 export const GET_PHOTOGRAPHY_QUERY = groq`
-  *[_type == "photography"] | order(_createdAt desc) {
+  *[_type == "photography" || (_type == "artwork" && isPhotography == true && isArtistUpload != true)] | order(_createdAt desc) {
     _id,
     title,
     "category": category->title,

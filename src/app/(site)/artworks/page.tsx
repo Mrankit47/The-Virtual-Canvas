@@ -18,6 +18,8 @@ interface Artwork {
     }
   };
   subcategory?: string;
+  imageSource?: string;
+  imageUrl?: string;
 }
 
 export default async function ArtworksPage() {
@@ -27,6 +29,8 @@ export default async function ArtworksPage() {
     price,
     slug,
     subcategory,
+    imageSource,
+    imageUrl,
     "image": {
       "asset": {
         "url": image.asset->url
@@ -67,8 +71,8 @@ export default async function ArtworksPage() {
                   />
                   <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/5 transition-colors duration-700 pointer-events-none"></div>
                   
-                  {/* Premium Price Overlay (Visible on Hover and always on Mobile) */}
-                  <div className="absolute bottom-0 left-0 w-full p-8 md:translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-in-out bg-gradient-to-t from-ink/80 via-ink/40 to-transparent">
+                  {/* Premium Price Overlay (Always Visible) */}
+                  <div className="absolute bottom-0 left-0 w-full p-8 transition-transform duration-700 ease-in-out bg-gradient-to-t from-ink/80 via-ink/40 to-transparent">
                      <div className="flex items-center gap-3">
                         <div className="w-8 h-[1px] bg-canvas/40" />
                         <span className="text-canvas text-2xl font-serif tracking-[0.05em] italic">₹{item.price.toLocaleString()}</span>

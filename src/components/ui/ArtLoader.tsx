@@ -43,10 +43,10 @@ const ArtLoader = ({
                 initial={variant === 'fullscreen' ? { opacity: 0, y: 5 } : { opacity: 1 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
-                className="text-center"
+                className="text-center mt-[2px] md:mt-0"
             >
-                <h1 className="text-[8px] md:text-xs font-serif tracking-[0.4em] text-[#2c1810] font-playfair uppercase italic font-medium">
-                    <span className="block mb-2 tracking-[0.6em] pr-[0.6em]">The</span>
+                <h1 className="text-[8px] md:text-xs font-serif tracking-[0.4em] text-[#2c1810] font-playfair uppercase italic font-medium leading-none md:leading-normal">
+                    <span className="block mb-0 md:mb-2 tracking-[0.6em] pr-[0.6em]">The</span>
                     Virtual Canvas
                 </h1>
             </motion.div>

@@ -4,12 +4,12 @@ export const getImageUrl = (item: any) => {
   let url = "/placeholder.png";
 
   // 1. Prefer Sanity native image projection if it exists
-  if (item.image) {
+  if (item.image && (typeof item.image === 'string' || item.image.asset?.url)) {
     if (typeof item.image === 'string') url = item.image; 
-    else if (item.image.asset?.url) url = item.image.asset.url;
+    else url = item.image.asset.url;
   } 
   // 2. Fallback to Cloudinary explicitly via new mapping or legacy mapping
-  else if ((item.imageSource === "cloudinary" || item.imageSource === "url" || !item.image) && item.imageUrl) {
+  else if ((item.imageSource === "cloudinary" || item.imageSource === "url" || !item.image || (item.image && !item.image.asset?.url)) && item.imageUrl) {
     url = item.imageUrl;
     if (url.includes('/upload/')) {
       // Avoid duplicating transformations if already present
