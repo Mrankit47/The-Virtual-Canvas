@@ -12,20 +12,22 @@ interface OrderButtonProps {
   artworkId: string;
   title: string;
   price: number;
-  imageUrl?: string; // optional — used for cart thumbnail
+  imageUrl?: string; 
+  postType?: string;
 }
 
-export function OrderButton({ artworkId, title, price, imageUrl = '' }: OrderButtonProps) {
+export function OrderButton({ artworkId, title, price, imageUrl = '', postType }: OrderButtonProps) {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const { addToast } = useUIStore();
   const { addToCart, isInCart } = useCart();
   const router = useRouter();
 
+  if (postType !== 'marketplace') return null;
+
   const inCart = isInCart(artworkId);
 
   const handleOrder = async () => {
-    // Phase 1: Authentication Guard
     if (!session) {
       addToast('Please sign in to buy this artwork.', 'info');
       const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
@@ -35,8 +37,6 @@ export function OrderButton({ artworkId, title, price, imageUrl = '' }: OrderBut
 
     try {
       setLoading(true);
-      // Phase 2: Add to Cart and Redirect to Checkout
-      // This ensures the user can enter Name/Email/Phone and Promo Code before paying.
       addToCart({ artworkId, title, price, imageUrl });
       addToast('Redirecting to secure checkout...', 'success');
       router.push('/checkout');
@@ -52,6 +52,16 @@ export function OrderButton({ artworkId, title, price, imageUrl = '' }: OrderBut
     addToCart({ artworkId, title, price, imageUrl });
     addToast(`"${title}" added to cart`, 'success');
   };
+
+  const isManagement = session?.user?.role === 'admin' || session?.user?.role === 'artist';
+
+  if (isManagement) {
+    return (
+      <div className="w-full py-6 border border-dashed border-ink/10 flex items-center justify-center bg-ink/[0.02]">
+        <p className="text-[9px] uppercase tracking-[0.3em] font-black text-ink/30">Management Preview Mode</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3 w-full">

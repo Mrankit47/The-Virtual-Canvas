@@ -6,6 +6,8 @@ import { ShoppingCart, Eye, Search, Filter, Camera, Palette, Grid, X } from 'luc
 import { useSession } from 'next-auth/react';
 import { useCart } from '@/context/CartContext';
 import { useUIStore } from '@/store/useUIStore';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface ArtistArtworkGridProps {
   initialArtworks: any[];
@@ -16,6 +18,7 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
   const { data: session } = useSession();
   const { addToCart, isInCart } = useCart();
   const { addToast } = useUIStore();
+  const router = useRouter();
   
   const [activeTab, setActiveTab] = useState<'all' | 'gallery' | 'marketplace' | 'photography'>('all');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -23,6 +26,8 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
   const [searchQuery, setSearchQuery] = useState('');
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const isManagement = session?.user?.role === 'admin' || session?.user?.role === 'artist';
 
   // Derived list of unique artists
   const artists = useMemo(() => {
@@ -139,6 +144,13 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ delay: idx * 0.04, duration: 0.45 }}
               className="group relative flex flex-col gap-6 cursor-pointer"
+              onClick={() => {
+                if (art.slug) {
+                  router.push(`/artworks/${art.slug}`);
+                } else {
+                  setSelectedImage(art.imageUrl);
+                }
+              }}
             >
               <div className="relative w-full aspect-[4/5] overflow-hidden rounded-md shadow-md bg-ink/5 border border-ink/10">
                 {/* Blurred background fill */}
@@ -154,64 +166,88 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                     alt={art.title} 
                     className="relative w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105" 
                 />
-                <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/20 transition-colors duration-500 flex items-center justify-center">
-                    <div className="flex gap-3 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                        <button 
-                            onClick={() => setSelectedImage(art.imageUrl)}
-                            className="w-11 h-11 bg-white text-ink rounded-lg flex items-center justify-center hover:bg-ink hover:text-white transition-all shadow-xl"
-                        >
-                            <Eye size={18} />
-                        </button>
-                        {art.postType === 'marketplace' && session?.user?.role !== 'artist' && session?.user?.role !== 'admin' && (
-                            <button 
-                                onClick={() => {
-                                    if (isInCart(art._id)) return;
-                                    addToCart({
-                                        artworkId: art._id,
-                                        title: art.title,
-                                        price: art.price,
-                                        imageUrl: art.imageUrl,
-                                        artistId: art.artistId
-                                    });
-                                    addToast(`${art.title} added to cart`, 'success');
-                                }}
-                                className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all shadow-xl ${
-                                    isInCart(art._id) ? 'bg-green-500 text-white' : 'bg-white text-ink hover:bg-ink hover:text-white'
-                                }`}
-                            >
-                                <ShoppingCart size={18} />
-                            </button>
-                        )}
-                    </div>
-                </div>
-                <div className="absolute top-3 left-3 flex gap-2">
-                    <span className={`px-3 py-1 rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg ${
+                
+                {/* Labels */}
+                <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 max-w-[calc(100%-20px)]">
+                    <span className={`px-2 py-0.5 rounded-md text-[6px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border border-white/10 ${
                         art.postType === 'marketplace' ? 'bg-green-500/90 text-white' : 'bg-white/90 text-ink'
                     }`}>
                         {art.postType === 'marketplace' ? 'For Sale' : 'Gallery'}
                     </span>
                     {art.isPhotography && (
-                         <span className="px-3 py-1 bg-blue-500/90 text-white rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg">
+                         <span className="px-2 py-0.5 bg-blue-500/90 text-white rounded-md text-[6px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border border-white/10">
                             Photography
                         </span>
                     )}
                 </div>
               </div>
+              <div className="flex flex-col gap-4 px-2">
+                <div className="flex justify-between items-start">
+                    <div className="flex flex-col gap-1 min-w-0">
+                        <h3 className="font-serif text-xl md:text-2xl tracking-tight text-ink leading-tight truncate">{art.title}</h3>
+                        <p className="font-sans text-[9px] uppercase tracking-[0.2em] text-ink/30 italic">By {art.artistName}</p>
+                        <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] text-ink/35">
+                            {art.category || 'Uncategorized'}
+                        </span>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                        {art.postType === 'marketplace' && (
+                            <p className="text-sm font-bold text-ink/80 tracking-tight">₹{art.price}</p>
+                        )}
+                        <div className="w-4 h-[1px] bg-ink/30 group-hover:bg-ink group-hover:w-8 transition-all duration-500" />
+                    </div>
+                </div>
 
-              <div className="flex justify-between items-start px-2">
-                <div className="flex flex-col gap-1.5 min-w-0">
-                    <h3 className="font-serif text-xl md:text-2xl tracking-tight text-ink leading-tight truncate">{art.title}</h3>
-                    <p className="font-sans text-[9px] uppercase tracking-[0.2em] text-ink/30 italic">By {art.artistName}</p>
-                    <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] text-ink/35">
-                        {art.category || 'Uncategorized'}
-                    </span>
-                </div>
-                <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    {art.postType === 'marketplace' && (
-                        <p className="text-sm font-bold text-ink/80 tracking-tight">₹{art.price}</p>
-                    )}
-                    <div className="w-4 h-[1px] bg-ink/30 group-hover:bg-ink group-hover:w-8 transition-all duration-500" />
-                </div>
+                {/* ACTION BUTTONS FOR USERS */}
+                {art.postType === 'marketplace' && !isManagement && (
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!session) {
+                                    addToast('Please sign in to buy this artwork.', 'info');
+                                    router.push(`/login?callbackUrl=${encodeURIComponent(window.location.href)}`);
+                                    return;
+                                }
+                                addToCart({
+                                    artworkId: art._id,
+                                    title: art.title,
+                                    price: art.price,
+                                    imageUrl: art.imageUrl,
+                                    artistId: art.artistId
+                                });
+                                router.push('/checkout');
+                            }}
+                            className="flex-1 py-3 bg-ink text-white text-[8px] font-black uppercase tracking-[0.2em] rounded-xl hover:shadow-xl active:scale-95 transition-all flex items-center justify-center"
+                        >
+                            Buy Now
+                        </button>
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (isInCart(art._id)) {
+                                    router.push('/cart');
+                                    return;
+                                }
+                                addToCart({
+                                    artworkId: art._id,
+                                    title: art.title,
+                                    price: art.price,
+                                    imageUrl: art.imageUrl,
+                                    artistId: art.artistId
+                                });
+                                addToast(`${art.title} added to cart`, 'success');
+                            }}
+                            className={`w-12 h-11 rounded-xl flex items-center justify-center transition-all border ${
+                                isInCart(art._id) 
+                                    ? 'bg-green-500 border-green-500 text-white' 
+                                    : 'bg-white border-ink/10 text-ink hover:bg-ink hover:text-white'
+                            }`}
+                        >
+                            <ShoppingCart size={16} />
+                        </button>
+                    </div>
+                )}
               </div>
             </motion.div>
           ))}

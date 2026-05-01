@@ -85,7 +85,7 @@ export default async function AdminArtistsPage() {
                     </div>
                   </td>
                   <td className="px-8 py-5">
-                    <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] uppercase font-black tracking-widest border border-emerald-100">Verified</span>
+                    <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 text-[9px] uppercase font-black tracking-widest border border-emerald-100 shadow-sm">Verified</span>
                   </td>
                   <td className="px-8 py-5 font-mono text-xs text-ink/20 uppercase tracking-[0.3em]">No Active Tasks</td>
                   <td className="px-8 py-5 font-mono text-[10px] text-ink/10">{artist._id}</td>

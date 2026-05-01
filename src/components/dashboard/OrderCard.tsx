@@ -164,7 +164,7 @@ export default function OrderCard({ order, role }: OrderCardProps) {
                   <span className="text-[10px] font-mono font-bold text-ink/40 px-3 py-1 bg-ink/5 rounded-full border border-ink/5 uppercase tracking-tighter">
                     #{order.orderId?.slice(-8).toUpperCase() || 'NEW'}
                   </span>
-                  <span className={`text-[10px] uppercase font-black tracking-widest px-3 py-1 rounded-full ${currentStatus.bg} ${currentStatus.text} border border-current/20`}>
+                  <span className={`text-[9px] uppercase font-black tracking-widest px-2.5 py-1 rounded-lg ${currentStatus.bg} ${currentStatus.text} border border-current/10 shadow-sm`}>
                     {String(order.orderStatus || 'pending').replace('_', ' ')}
                   </span>
                 </div>

@@ -82,7 +82,7 @@ export default function AdminOrderTable({ initialOrders, artists }: AdminOrderTa
                   <div className="space-y-3">
                     <p className="text-[10px] uppercase tracking-widest font-black opacity-20">Artist Assignment</p>
                     {order.assignedArtist ? (
-                      <div className="flex items-center gap-3 bg-gray-50/50 p-2 rounded-2xl border border-ink/5">
+                      <div className="flex items-center gap-3 bg-gray-50/50 p-2 rounded-lg border border-ink/5">
                         <div className="w-10 h-10 rounded-xl bg-ink text-white flex items-center justify-center shadow-lg shadow-ink/10">
                            <User size={18} />
                         </div>
@@ -120,7 +120,7 @@ export default function AdminOrderTable({ initialOrders, artists }: AdminOrderTa
                         disabled={isUpdating}
                         value={order.orderStatus}
                         onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                        className={`w-full sm:w-auto px-5 py-2.5 rounded-2xl text-[10px] uppercase font-black tracking-widest border-none focus:ring-0 cursor-pointer shadow-sm transition-all ${
+                        className={`w-full sm:w-auto px-4 py-2 rounded-xl text-[9px] uppercase font-black tracking-widest border-none focus:ring-0 cursor-pointer shadow-sm transition-all ${
                           order.orderStatus === 'completed' ? 'bg-emerald-500 text-white' :
                           order.orderStatus === 'progress' ? 'bg-sky-500 text-white' :
                           'bg-amber-400 text-white'
@@ -135,7 +135,7 @@ export default function AdminOrderTable({ initialOrders, artists }: AdminOrderTa
                     </div>
                     <div className="text-right sm:text-left">
                        <p className="text-[10px] uppercase tracking-widest font-black opacity-20 mb-3">Payment State</p>
-                       <span className={`px-5 py-2.5 rounded-2xl text-[10px] uppercase tracking-widest font-black border ${
+                       <span className={`px-4 py-2 rounded-xl text-[9px] uppercase tracking-widest font-black border ${
                         order.paymentStatus === 'paid' 
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-inner' 
                           : 'bg-rose-50 text-rose-600 border-rose-100 uppercase'
