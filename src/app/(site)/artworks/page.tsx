@@ -58,21 +58,27 @@ export default async function ArtworksPage() {
             {artworks.map((item) => (
               <Link key={item._id} href={`/artworks/${item.slug.current}`} className="group relative flex flex-col gap-8 cursor-pointer">
                 
-                <div className="relative w-full aspect-[4/5] overflow-hidden rounded-sm shadow-2xl bg-ink/5 border border-ink/5 group-hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] transition-all duration-1000 ease-out">
-                  <Image 
-                    src={optimizedUrl(getImageUrl(item))} 
-                    alt={item.title} 
-                    fill 
-                    className="object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-1000 ease-out group-hover:scale-110" 
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    placeholder="blur"
-                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88eJNPAAIvwNIGP1SswAAAABJRU5ErkJggg=="
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/5 transition-colors duration-700 pointer-events-none"></div>
+                {/* Framed Image Container */}
+                <div className="relative w-full aspect-[4/5] bg-white p-[12px] md:p-[18px] border-[5px] border-ink shadow-2xl group overflow-hidden transition-all duration-700 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.2)]">
+                  {/* Mount Shadow */}
+                  <div className="absolute inset-[12px] md:inset-[18px] shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)] pointer-events-none z-10" />
+                  
+                  <div className="relative w-full h-full overflow-hidden bg-ink/[0.02]">
+                    <Image 
+                      src={optimizedUrl(getImageUrl(item))} 
+                      alt={item.title} 
+                      fill 
+                      className="object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-1000 ease-out group-hover:scale-110" 
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      placeholder="blur"
+                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88eJNPAAIvwNIGP1SswAAAABJRU5ErkJggg=="
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/5 transition-colors duration-700 pointer-events-none" />
                   
                   {/* Premium Price Overlay (Always Visible) */}
-                  <div className="absolute bottom-0 left-0 w-full p-8 transition-transform duration-700 ease-in-out bg-gradient-to-t from-ink/80 via-ink/40 to-transparent">
+                  <div className="absolute bottom-0 left-0 w-full p-8 transition-transform duration-700 ease-in-out bg-gradient-to-t from-ink/90 via-ink/40 to-transparent z-20">
                      <div className="flex items-center gap-3">
                         <div className="w-8 h-[1px] bg-canvas/40" />
                         <span className="text-canvas text-2xl font-serif tracking-[0.05em] italic">₹{item.price.toLocaleString()}</span>

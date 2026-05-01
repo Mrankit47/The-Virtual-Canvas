@@ -128,18 +128,24 @@ export function GalleryGridClient({ items, categories = [] }: GalleryGridClientP
                 className="group relative flex flex-col gap-6 cursor-pointer"
                 onClick={() => openLightbox(item, filteredItems)}
               >
-                <div className="relative w-full aspect-[4/5] overflow-hidden rounded-md shadow-md bg-ink/5 border border-ink/10">
-                  <Image
-                    src={optimizedUrl(item.imageUrl)}
-                    alt={item.title}
-                    fill
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    placeholder="blur"
-                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88eJNPAAIvwNIGP1SswAAAABJRU5ErkJggg=="
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/10 transition-colors duration-500 pointer-events-none" />
+                {/* Framed Image Container */}
+                <div className="relative w-full aspect-[4/5] bg-white p-[10px] md:p-[14px] border-[4px] border-ink shadow-lg group overflow-hidden transition-all duration-500 hover:shadow-2xl">
+                  {/* Mount Shadow */}
+                  <div className="absolute inset-[10px] md:inset-[14px] shadow-[inset_0_2px_8px_rgba(0,0,0,0.1)] pointer-events-none z-10" />
+                  
+                  <div className="relative w-full h-full overflow-hidden bg-ink/[0.02]">
+                    <Image
+                      src={optimizedUrl(item.imageUrl)}
+                      alt={item.title}
+                      fill
+                      className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      placeholder="blur"
+                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88eJNPAAIvwNIGP1SswAAAABJRU5ErkJggg=="
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/5 transition-colors duration-500 pointer-events-none" />
                 </div>
 
                 <div className="flex justify-between items-center px-2">

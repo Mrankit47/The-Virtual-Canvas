@@ -19,9 +19,16 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
   
   const [activeTab, setActiveTab] = useState<'all' | 'gallery' | 'marketplace' | 'photography'>('all');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedArtist, setSelectedArtist] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Derived list of unique artists
+  const artists = useMemo(() => {
+    const uniqueArtists = new Set(initialArtworks.map(art => art.artistName).filter(Boolean));
+    return Array.from(uniqueArtists).sort();
+  }, [initialArtworks]);
 
   // Prevent scrolling when lightbox is open
   useEffect(() => {
@@ -42,12 +49,13 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
         activeTab === 'photography' ? art.isPhotography === true : true;
       
       const matchesCategory = selectedCategory === 'All' ? true : art.category === selectedCategory;
+      const matchesArtist = selectedArtist === 'All' ? true : art.artistName === selectedArtist;
       const matchesSearch = art.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             art.artistName?.toLowerCase().includes(searchQuery.toLowerCase());
       
-      return matchesTab && matchesCategory && matchesSearch;
+      return matchesTab && matchesCategory && matchesArtist && matchesSearch;
     });
-  }, [initialArtworks, activeTab, selectedCategory, searchQuery]);
+  }, [initialArtworks, activeTab, selectedCategory, selectedArtist, searchQuery]);
 
   const tabs = [
     { id: 'all', label: 'All Works', icon: Grid },
@@ -89,16 +97,32 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                 />
             </div>
             
-            <div className="relative group">
-                <Filter className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/20 group-focus-within:text-ink/60" />
-                <select 
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full sm:w-48 h-12 bg-white border border-ink/10 rounded-2xl pl-12 pr-6 text-xs font-bold focus:outline-none focus:border-ink appearance-none shadow-sm"
-                >
-                    <option value="All">All Categories</option>
-                    {categories.map(c => <option key={c._id} value={c.title}>{c.title}</option>)}
-                </select>
+            <div className="flex gap-4">
+                {/* Artist Filter */}
+                <div className="relative group">
+                    <Palette className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/20 group-focus-within:text-ink/60" />
+                    <select 
+                        value={selectedArtist}
+                        onChange={(e) => setSelectedArtist(e.target.value)}
+                        className="w-full sm:w-48 h-12 bg-white border border-ink/10 rounded-2xl pl-12 pr-10 text-xs font-bold focus:outline-none focus:border-ink appearance-none shadow-sm cursor-pointer"
+                    >
+                        <option value="All">All Artists</option>
+                        {artists.map(name => <option key={name} value={name}>{name}</option>)}
+                    </select>
+                </div>
+
+                {/* Category Filter */}
+                <div className="relative group">
+                    <Filter className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/20 group-focus-within:text-ink/60" />
+                    <select 
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="w-full sm:w-48 h-12 bg-white border border-ink/10 rounded-2xl pl-12 pr-10 text-xs font-bold focus:outline-none focus:border-ink appearance-none shadow-sm cursor-pointer"
+                    >
+                        <option value="All">All Categories</option>
+                        {categories.map(c => <option key={c._id} value={c.title}>{c.title}</option>)}
+                    </select>
+                </div>
             </div>
         </div>
       </div>

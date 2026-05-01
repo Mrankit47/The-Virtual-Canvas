@@ -4,6 +4,8 @@ import { User, Mail, ShieldCheck, BadgeCheck } from 'lucide-react';
 
 
 
+export const revalidate = 0; // Force dynamic fetching to see new registrations immediately
+
 export default async function AdminArtistsPage() {
   const artists = await client.fetch(`*[_type == "userProfile" && role == "artist"]{_id, name, email}`);
 
