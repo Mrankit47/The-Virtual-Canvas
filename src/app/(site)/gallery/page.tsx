@@ -1,5 +1,6 @@
 import { client } from '@/lib/sanity';
 import { PageTransition } from '@/components/layout/PageTransition';
+import { ArtCarousel3D } from '@/components/ui/ArtCarousel3D';
 import { GalleryGridClient } from '@/components/gallery/GalleryGridClient';
 
 export const revalidate = 60; // ISR cache regeneration
@@ -11,6 +12,7 @@ export default async function GalleryPage() {
       title,
       imageSource,
       imageUrl,
+      price,
       "image": image.asset->url,
       "imageLqip": image.asset->metadata.lqip,
       "category": category->{ title, "slug": slug.current }
@@ -23,12 +25,17 @@ export default async function GalleryPage() {
 
   return (
     <PageTransition>
-      <main className="min-h-screen w-full relative pt-40 px-6 md:px-12 max-w-[1600px] mx-auto pb-24">
+      <main className="min-h-screen w-full relative pt-24 sm:pt-40 px-4 md:px-12 max-w-[1600px] mx-auto pb-24">
         
-        <header className="mb-16 md:mb-24 flex flex-col items-center text-center">
-          <h1 className="font-serif text-5xl md:text-7xl tracking-tighter text-ink mb-6">The Gallery</h1>
-          <p className="font-sans text-[10px] md:text-xs uppercase tracking-[0.3em] opacity-50">Exploration of visual fidelity.</p>
+        <header className="mb-12 md:mb-12 flex flex-col items-center text-center mt-16 sm:mt-0">
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl tracking-tighter text-ink mb-4 sm:mb-6 leading-tight">The Gallery</h1>
+          <p className="font-sans text-[9px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-50 px-4">Exploration of visual fidelity.</p>
         </header>
+
+        {/* 3D SHOWCASE CAROUSEL */}
+        <section className="mb-24">
+           <ArtCarousel3D items={images} />
+        </section>
 
         {images.length === 0 ? (
           <div className="w-full h-[40vh] flex flex-col items-center justify-center border border-ink/10 bg-ink/5 rounded-sm shadow-sm">
