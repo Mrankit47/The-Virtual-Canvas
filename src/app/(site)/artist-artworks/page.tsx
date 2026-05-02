@@ -15,6 +15,8 @@ export default async function ArtistArtworksPage() {
       isPhotography,
       price,
       imageUrl,
+      referenceImage,
+      "image": image.asset->url,
       "artistName": artist->name,
       "artistId": artist->_id,
       "category": category->title

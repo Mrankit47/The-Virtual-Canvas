@@ -5,14 +5,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
 import { optimizedUrl } from '@/lib/utils';
+import { getImageUrl } from '@/lib/imageResolver';
+
 
 interface Artwork {
   _id: string;
   title: string;
-  imageUrl: string;
+  imageUrl?: string;
+  image?: any;
+  imageSource?: string;
   price?: number;
   category?: { title: string };
 }
+
 
 interface ArtCarousel3DProps {
   items: Artwork[];
@@ -129,7 +134,7 @@ export const ArtCarousel3D: React.FC<ArtCarousel3DProps> = ({ items }) => {
                 >
                   <div className="relative w-full h-full overflow-hidden blur-[1px]">
                     <Image 
-                      src={optimizedUrl(item.imageUrl)} 
+                      src={optimizedUrl(getImageUrl(item))} 
                       alt="" 
                       fill 
                       className="object-cover"
@@ -147,7 +152,7 @@ export const ArtCarousel3D: React.FC<ArtCarousel3DProps> = ({ items }) => {
                 }`}
               >
                 <Image
-                  src={optimizedUrl(item.imageUrl)}
+                  src={optimizedUrl(getImageUrl(item))}
                   alt={item.title}
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-110"

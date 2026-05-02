@@ -8,6 +8,9 @@ import { useCart } from '@/context/CartContext';
 import { useUIStore } from '@/store/useUIStore';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getImageUrl } from '@/lib/imageResolver';
+import { optimizedUrl } from '@/lib/utils';
+
 
 interface ArtistArtworkGridProps {
   initialArtworks: any[];
@@ -148,21 +151,22 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                 if (art.slug) {
                   router.push(`/artworks/${art.slug}`);
                 } else {
-                  setSelectedImage(art.imageUrl);
+                  setSelectedImage(getImageUrl(art));
                 }
+
               }}
             >
               <div className="relative w-full aspect-[4/5] overflow-hidden rounded-md shadow-md bg-ink/5 border border-ink/10">
                 {/* Blurred background fill */}
                 <img 
-                    src={art.imageUrl} 
+                    src={optimizedUrl(getImageUrl(art))} 
                     alt="" 
                     aria-hidden="true"
                     className="absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-80" 
                 />
                 {/* Main image — full, no cropping */}
                 <img 
-                    src={art.imageUrl} 
+                    src={optimizedUrl(getImageUrl(art))} 
                     alt={art.title} 
                     className="relative w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105" 
                 />
@@ -213,8 +217,9 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                                     artworkId: art._id,
                                     title: art.title,
                                     price: art.price,
-                                    imageUrl: art.imageUrl,
+                                    imageUrl: getImageUrl(art),
                                     artistId: art.artistId
+
                                 });
                                 router.push('/checkout');
                             }}
@@ -233,8 +238,9 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                                     artworkId: art._id,
                                     title: art.title,
                                     price: art.price,
-                                    imageUrl: art.imageUrl,
+                                    imageUrl: getImageUrl(art),
                                     artistId: art.artistId
+
                                 });
                                 addToast(`${art.title} added to cart`, 'success');
                             }}
