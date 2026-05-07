@@ -15,6 +15,7 @@ export default function MyArtworksPage() {
   const [showModal, setShowModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<'all' | 'artwork' | 'photography'>('all');
 
   // Prevent scrolling when lightbox is open
   useEffect(() => {
@@ -203,16 +204,40 @@ export default function MyArtworksPage() {
             <h1 className="text-3xl font-black font-serif text-ink tracking-tight">My Artworks</h1>
             <p className="text-[10px] uppercase tracking-[0.3em] font-black text-ink/30 mt-2">Manage your Portfolio & Marketplace</p>
         </div>
-        <button 
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-3 px-8 py-4 bg-ink text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-ink/20"
-        >
-            <Plus size={18} />
-            Post New Artwork
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+            <div className="relative w-full sm:w-auto group">
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/30 group-focus-within:text-ink/60" />
+                <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value as any)}
+                    className="w-full sm:w-auto pl-10 pr-10 py-4 bg-ink/5 border border-ink/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.1em] focus:outline-none focus:border-ink/20 appearance-none cursor-pointer"
+                >
+                    <option value="all">All Uploads</option>
+                    <option value="artwork">Artworks</option>
+                    <option value="photography">Photography</option>
+                </select>
+            </div>
+            <button 
+                onClick={() => setShowModal(true)}
+                className="w-full sm:w-auto flex justify-center items-center gap-3 px-8 py-4 bg-ink text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-ink/20"
+            >
+                <Plus size={18} />
+                Post New Artwork
+            </button>
+        </div>
       </div>
 
-      {loading ? (
+      {(() => {
+        const filteredArtworks = artworks.filter(art => {
+            if (filterType === 'all') return true;
+            if (filterType === 'photography') return art.isPhotography === true;
+            if (filterType === 'artwork') return !art.isPhotography;
+            return true;
+        });
+
+        return (
+          <>
+            {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1,2,3].map(i => <div key={i} className="aspect-[4/5] bg-ink/5 rounded-[32px] animate-pulse" />)}
         </div>
@@ -224,9 +249,14 @@ export default function MyArtworksPage() {
             <h3 className="text-xl font-black text-ink mb-2">No artworks yet</h3>
             <p className="text-xs uppercase font-bold tracking-widest text-ink/40 max-w-xs">Start building your portfolio by uploading your first masterpiece.</p>
         </div>
+      ) : filteredArtworks.length === 0 ? (
+        <div className="bg-white rounded-[40px] border border-dashed border-ink/10 p-20 flex flex-col items-center text-center">
+            <h3 className="text-xl font-black text-ink mb-2">No matching items found</h3>
+            <p className="text-xs uppercase font-bold tracking-widest text-ink/40 max-w-xs">Try changing the filter type.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-10">
-            {artworks.map((art, idx) => (
+            {filteredArtworks.map((art, idx) => (
                 <div key={art._id} className="group relative flex flex-col gap-6 cursor-pointer">
                     <div className="relative w-full aspect-[4/5] overflow-hidden rounded-md shadow-md bg-ink/5 border border-ink/10">
                         {/* Blurred background fill */}
@@ -290,6 +320,9 @@ export default function MyArtworksPage() {
             ))}
         </div>
       )}
+          </>
+        );
+      })()}
 
       {/* Upload Modal */}
       {showModal && (
