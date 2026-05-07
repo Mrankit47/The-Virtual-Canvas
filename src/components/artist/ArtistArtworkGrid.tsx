@@ -51,7 +51,7 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
   const filteredArtworks = useMemo(() => {
     return initialArtworks.filter(art => {
       const matchesTab = 
-        activeTab === 'all' ? true :
+        activeTab === 'all' ? !art.isPhotography :
         activeTab === 'gallery' ? art.postType === 'gallery' :
         activeTab === 'marketplace' ? art.postType === 'marketplace' :
         activeTab === 'photography' ? art.isPhotography === true : true;
