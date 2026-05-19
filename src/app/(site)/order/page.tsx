@@ -20,7 +20,7 @@ export default async function OrderPage() {
       `),
       client.fetch(`
         *[_type == "sizeOption" && isActive != false] | order(order asc) {
-          _id, label, description, multiplier
+          _id, label, description, multiplier, framePrice
         }
       `),
       client.fetch(`

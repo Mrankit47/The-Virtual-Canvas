@@ -78,6 +78,9 @@ export async function POST(req: Request) {
       email,
       address,
       pincode,
+      subtotal: price + (discountAmount || 0),
+      discountAmount: discountAmount || 0,
+      couponCode: couponCode || undefined,
     });
 
     // 9. Return Valid Response

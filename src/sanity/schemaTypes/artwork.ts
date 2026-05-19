@@ -153,6 +153,13 @@ export default defineType({
       fieldset: 'commerce',
     }),
     defineField({
+      name: 'isOutOfStock',
+      title: 'Is Out Of Stock?',
+      type: 'boolean',
+      initialValue: false,
+      fieldset: 'commerce',
+    }),
+    defineField({
       name: 'createdAt',
       title: 'Created At',
       type: 'datetime',

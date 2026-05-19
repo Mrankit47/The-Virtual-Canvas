@@ -16,6 +16,7 @@ export default async function ArtistArtworksPage() {
       price,
       imageUrl,
       referenceImage,
+      isOutOfStock,
       "image": image.asset->url,
       "artistName": artist->name,
       "artistId": artist->_id,

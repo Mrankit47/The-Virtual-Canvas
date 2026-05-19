@@ -237,6 +237,18 @@ export default defineType({
       fieldset: 'payment',
     }),
     defineField({
+      name: 'shippingCharges',
+      title: 'Shipping Charges (₹)',
+      type: 'number',
+      fieldset: 'payment',
+    }),
+    defineField({
+      name: 'shippingZone',
+      title: 'Shipping Zone Name',
+      type: 'string',
+      fieldset: 'payment',
+    }),
+    defineField({
       name: 'orderType',
       title: 'Order Type',
       type: 'string',

@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { createClient } from '@sanity/client';
 import { env } from "@/config/env";
 
+export const dynamic = "force-dynamic";
+
 const backendClient = createClient({
   projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
   dataset: env.NEXT_PUBLIC_SANITY_DATASET,

@@ -4,6 +4,7 @@ import { env } from '@/config/env';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { sendOrderReceipt } from '@/lib/email/sendReceipt';
+import { calculateShipping } from '@/lib/shipping';
 
 // Token is validated inside the handler — not at module level
 const backendClient = createClient({
@@ -34,6 +35,7 @@ interface StudioOrderBody {
   referenceImageUrl?: string;
   couponCode?: string;
   discountAmount?: number;
+  addPhotoFrame?: boolean;
 }
 
 export async function POST(req: Request) {
@@ -49,7 +51,7 @@ export async function POST(req: Request) {
       customerName, email, phone, address, pincode,
       styleId, sizeId, paperId, 
       clientFinalPrice, notes, referenceImageUrl,
-      couponCode, discountAmount 
+      couponCode, discountAmount, addPhotoFrame 
     } = body;
 
     // ── Input Validation ──────────────────────────────────────────────────────
@@ -69,7 +71,7 @@ export async function POST(req: Request) {
     // ── Fetch Config Options from Sanity (SOURCE OF TRUTH) ───────────────────
     const [style, size, paper] = await Promise.all([
       backendClient.fetch(`*[_type == "artStyle" && _id == $id && isActive == true][0]{ _id, title, basePrice, requiresReference }`, { id: styleId }),
-      backendClient.fetch(`*[_type == "sizeOption" && _id == $id && isActive == true][0]{ _id, label, multiplier }`, { id: sizeId }),
+      backendClient.fetch(`*[_type == "sizeOption" && _id == $id && isActive == true][0]{ _id, label, multiplier, framePrice }`, { id: sizeId }),
       backendClient.fetch(`*[_type == "paperType" && _id == $id && isActive == true][0]{ _id, title, extraCost }`, { id: paperId }),
     ]);
 
@@ -82,40 +84,78 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `"${style.title}" requires a reference image. Please upload one.` }, { status: 400 });
     }
 
-    // ── ANTI-FRAUD: Re-compute price on server ────────────────────────────────
-    const baseServerPrice = Math.round(style.basePrice * size.multiplier + paper.extraCost);
-    let serverComputedPrice = baseServerPrice;
+    // Helper to dynamically resolve photo frame price based on size
+    const getFramePrice = (sz: any) => {
+      if (!sz) return 0;
+      if (sz.framePrice !== undefined && sz.framePrice !== null) return sz.framePrice;
+      const label = sz.label.toUpperCase();
+      if (label.includes('A5')) return 150;
+      if (label.includes('A4')) return 200;
+      if (label.includes('A3')) return 250;
+      return 0;
+    };
 
-    // ── Server-Side Coupon Re-Validation ─────────────────────────────────────
+    // ── Fetch and Validate Coupon First (If Applied) ─────────────────────────
+    let coupon: any = null;
     if (couponCode) {
-      const coupon = await backendClient.fetch(
+      coupon = await backendClient.fetch(
         `*[_type == "coupon" && code == $code && isActive == true][0]`,
         { code: couponCode.trim().toUpperCase() }
       );
-
-      if (coupon && 
-          (!coupon.expiry || new Date(coupon.expiry) >= new Date()) &&
-          (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit) &&
-          (!coupon.minimumOrderAmount || baseServerPrice >= coupon.minimumOrderAmount)) {
-        
-        let calculatedDiscount = 0;
-        if (coupon.type === 'percentage') {
-          calculatedDiscount = Math.round((baseServerPrice * coupon.discount) / 100);
-        } else {
-          calculatedDiscount = Math.min(coupon.discount, baseServerPrice);
-        }
-        
-        serverComputedPrice = Math.max(0, baseServerPrice - calculatedDiscount);
-        
-        // Verify discount amount matches client claim (within 1 Re rounding)
-        if (discountAmount && Math.abs(calculatedDiscount - discountAmount) > 1) {
-           console.error(`DISCOUNT FRAUD: client=${discountAmount}, server=${calculatedDiscount}`);
-           return NextResponse.json({ error: 'Discount mismatch. Please retry.' }, { status: 400 });
-        }
-      } else if (couponCode) {
+      if (!coupon) {
         return NextResponse.json({ error: 'Applied coupon is no longer valid.' }, { status: 400 });
       }
+      
+      if (coupon.expiry && new Date(coupon.expiry) < new Date()) {
+        return NextResponse.json({ error: 'Applied coupon has expired.' }, { status: 400 });
+      }
+      
+      if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+        return NextResponse.json({ error: 'Applied coupon usage limit reached.' }, { status: 400 });
+      }
     }
+
+    const freeFrameSecured = Boolean(coupon?.freeFrame);
+    const freeDeliverySecured = Boolean(coupon?.freeDelivery);
+
+    const baseFramePrice = addPhotoFrame ? getFramePrice(size) : 0;
+    const finalFramePrice = freeFrameSecured ? 0 : baseFramePrice;
+
+    // Subtotal (includes paper extra cost + frame cost if not free by coupon)
+    const baseServerPrice = Math.round(style.basePrice * size.multiplier + paper.extraCost + finalFramePrice);
+
+    if (coupon && coupon.minimumOrderAmount && baseServerPrice < coupon.minimumOrderAmount) {
+      return NextResponse.json({ error: `Minimum order amount of ₹${coupon.minimumOrderAmount} required.` }, { status: 400 });
+    }
+
+    // ── Server-Side Shipping Charges Calculation ──────────────────────────────
+    let shippingCharges = 0;
+    let shippingZoneName = '';
+    try {
+      const shippingResult = await calculateShipping(pincode, baseServerPrice);
+      shippingCharges = freeDeliverySecured ? 0 : shippingResult.rate;
+      shippingZoneName = shippingResult.zoneName;
+    } catch (err: any) {
+      return NextResponse.json({ error: 'Failed to calculate shipping charges. Invalid pincode.' }, { status: 400 });
+    }
+
+    // ── Server-Side Coupon Re-Validation ─────────────────────────────────────
+    let calculatedDiscount = 0;
+    if (coupon) {
+      if (coupon.type === 'percentage') {
+        calculatedDiscount = Math.round((baseServerPrice * coupon.discount) / 100);
+      } else {
+        calculatedDiscount = Math.min(coupon.discount, baseServerPrice);
+      }
+      
+      // Verify discount amount matches client claim (within 1 Re rounding)
+      if (discountAmount && Math.abs(calculatedDiscount - discountAmount) > 1) {
+         console.error(`DISCOUNT FRAUD: client=${discountAmount}, server=${calculatedDiscount}`);
+         return NextResponse.json({ error: 'Discount mismatch. Please retry.' }, { status: 400 });
+      }
+    }
+
+    const serverComputedPrice = Math.max(0, baseServerPrice - calculatedDiscount) + shippingCharges;
 
     if (Math.abs(serverComputedPrice - clientFinalPrice) > 1) {
       console.error(`PRICE FRAUD: client=${clientFinalPrice}, server=${serverComputedPrice}`);
@@ -142,7 +182,7 @@ export async function POST(req: Request) {
 
       // Studio configuration snapshot (immutable record of what was ordered)
       artworkType: style.title,
-      description: `Studio Order: ${style.title} — ${size.label} — ${paper.title}${notes ? `\n\nNotes: ${notes}` : ''}`,
+      description: `Studio Order: ${style.title} — ${size.label} — ${paper.title}${addPhotoFrame ? ' — With Premium Wooden Photo Frame' : ''}${notes ? `\n\nNotes: ${notes}` : ''}`,
       referenceImage: referenceImageUrl || undefined,
 
       // Pricing breakdown
@@ -150,11 +190,13 @@ export async function POST(req: Request) {
       totalAmount: serverComputedPrice,
       couponCode: couponCode || undefined,
       discountAmount: discountAmount || 0,
+      shippingCharges: shippingCharges,
+      shippingZone: shippingZoneName,
 
       // Cart-compatible fields
       cartItems: [{
         artworkId: styleId,
-        title: `${style.title} (${size.label} / ${paper.title})`,
+        title: `${style.title} (${size.label} / ${paper.title})${addPhotoFrame ? ' + Frame' : ''}`,
         price: serverComputedPrice,
         imageUrl: '',
       }],
@@ -169,6 +211,11 @@ export async function POST(req: Request) {
         styleId, styleName: style.title, basePrice: style.basePrice,
         sizeId, sizeLabel: size.label, sizeMultiplier: size.multiplier,
         paperId, paperTitle: paper.title, paperExtraCost: paper.extraCost,
+        addPhotoFrame: !!addPhotoFrame,
+        baseFramePrice,
+        framePrice: finalFramePrice,
+        shippingCharges,
+        shippingZone: shippingZoneName,
         computedPrice: serverComputedPrice,
         expiresAt,
       }),
@@ -184,6 +231,14 @@ export async function POST(req: Request) {
         email,
         address,
         pincode,
+        subtotal: Math.round(style.basePrice * size.multiplier + paper.extraCost),
+        discountAmount: calculatedDiscount,
+        couponCode: couponCode || undefined,
+        shippingCharges: shippingCharges,
+        shippingZone: shippingZoneName,
+        addPhotoFrame: !!addPhotoFrame,
+        baseFramePrice,
+        framePrice: finalFramePrice,
       });
     } catch (emailErr) {
       console.error('Studio receipt email failed (non-critical):', emailErr);

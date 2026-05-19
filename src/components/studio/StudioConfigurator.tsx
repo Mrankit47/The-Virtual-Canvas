@@ -19,7 +19,8 @@ import {
   CreditCard,
   UploadCloud,
   FileText,
-  Loader2
+  Loader2,
+  User
 } from 'lucide-react';
 import { uploadToCloudinary } from '@/lib/cloudinaryUpload';
 
@@ -39,6 +40,7 @@ export interface SizeOption {
   label: string;
   description?: string;
   multiplier: number;
+  framePrice?: number;
 }
 
 export interface PaperType {
@@ -80,6 +82,12 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
   const [notes, setNotes] = useState('');
   const [referenceImageUrl, setReferenceImageUrl] = useState('');
   const [finalPrice, setFinalPrice] = useState(0);
+  const [addPhotoFrame, setAddPhotoFrame] = useState(false);
+
+  // Shipping States
+  const [shippingCharges, setShippingCharges] = useState(0);
+  const [shippingZoneName, setShippingZoneName] = useState('');
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
   // Customer info
   const [name, setName] = useState('');
@@ -96,7 +104,14 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
 
   // Coupon States
   const [couponInput, setCouponInput] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmount: number;
+    freeDelivery: boolean;
+    freeFrame: boolean;
+    type?: string;
+    discount?: number;
+  } | null>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [unDiscountedPrice, setUnDiscountedPrice] = useState(0);
 
@@ -123,6 +138,34 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
     } catch {}
   }, []);
 
+  // Helper to dynamically resolve photo frame price based on SizeOption
+  const getFramePrice = useCallback((size: SizeOption | null) => {
+    if (!size) return 0;
+    if (size.framePrice !== undefined && size.framePrice !== null) return size.framePrice;
+    
+    // Fallback defaults requested by user: A5 = 150, A4 = 200, A3 = 250
+    const label = size.label.toUpperCase();
+    if (label.includes('A5')) return 150;
+    if (label.includes('A4')) return 200;
+    if (label.includes('A3')) return 250;
+    return 0;
+  }, []);
+
+  // Dynamically compute coupon discount live based on current items selections
+  const getLiveDiscountAmount = useCallback(() => {
+    if (!appliedCoupon || !selectedStyle || !selectedSize || !selectedPaper) return 0;
+    const baseFrameCost = addPhotoFrame ? getFramePrice(selectedSize) : 0;
+    const finalFrameCost = appliedCoupon.freeFrame ? 0 : baseFrameCost;
+    const subtotal = Math.round(selectedStyle.basePrice * selectedSize.multiplier + selectedPaper.extraCost + finalFrameCost);
+    
+    if (appliedCoupon.type === 'percentage' && appliedCoupon.discount !== undefined) {
+      return Math.round((subtotal * appliedCoupon.discount) / 100);
+    } else if (appliedCoupon.type === 'flat' && appliedCoupon.discount !== undefined) {
+      return Math.min(appliedCoupon.discount, subtotal);
+    }
+    return appliedCoupon.discountAmount;
+  }, [appliedCoupon, selectedStyle, selectedSize, selectedPaper, addPhotoFrame, getFramePrice]);
+
   // ── Live price calculation ──
   useEffect(() => {
     if (!selectedStyle || !selectedSize || !selectedPaper) {
@@ -130,15 +173,52 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
       setUnDiscountedPrice(0);
       return;
     }
-    const price = Math.round(selectedStyle.basePrice * selectedSize.multiplier + selectedPaper.extraCost);
-    setUnDiscountedPrice(price);
+    const baseFrameCost = addPhotoFrame ? getFramePrice(selectedSize) : 0;
+    const undiscounted = Math.round(selectedStyle.basePrice * selectedSize.multiplier + selectedPaper.extraCost + baseFrameCost);
+    setUnDiscountedPrice(undiscounted);
+    
+    const finalFrameCost = (appliedCoupon?.freeFrame) ? 0 : baseFrameCost;
+    const subtotal = Math.round(selectedStyle.basePrice * selectedSize.multiplier + selectedPaper.extraCost + finalFrameCost);
+    
+    const finalShipping = (appliedCoupon?.freeDelivery) ? 0 : shippingCharges;
+    const finalDiscount = getLiveDiscountAmount();
     
     if (appliedCoupon) {
-      setFinalPrice(Math.max(0, price - appliedCoupon.discountAmount));
+      setFinalPrice(Math.max(0, subtotal - finalDiscount + finalShipping));
     } else {
-      setFinalPrice(price);
+      setFinalPrice(subtotal + finalShipping);
     }
-  }, [selectedStyle, selectedSize, selectedPaper, appliedCoupon]);
+  }, [selectedStyle, selectedSize, selectedPaper, appliedCoupon, addPhotoFrame, getFramePrice, shippingCharges, getLiveDiscountAmount]);
+
+  // Dynamic Shipping Calculation when Pincode changes
+  useEffect(() => {
+    const cleanPin = pincode.replace(/\D/g, '');
+    if (cleanPin.length === 6 && unDiscountedPrice > 0) {
+      const fetchShipping = async () => {
+        try {
+          setIsCalculatingShipping(true);
+          const res = await fetch('/api/shipping/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pincode: cleanPin, subtotal: unDiscountedPrice }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setShippingCharges(data.rate);
+            setShippingZoneName(data.zoneName);
+          }
+        } catch (err) {
+          console.error('Failed to calculate shipping:', err);
+        } finally {
+          setIsCalculatingShipping(false);
+        }
+      };
+      fetchShipping();
+    } else {
+      setShippingCharges(0);
+      setShippingZoneName('');
+    }
+  }, [pincode, unDiscountedPrice]);
 
   // ── Load Razorpay script ──
   useEffect(() => {
@@ -197,7 +277,11 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
       const res = await fetch('/api/coupon/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: couponInput, total: unDiscountedPrice }),
+        body: JSON.stringify({
+          code: couponInput,
+          total: unDiscountedPrice,
+          framePrice: addPhotoFrame ? getFramePrice(selectedSize) : 0
+        }),
       });
       
       const data = await res.json();
@@ -205,7 +289,11 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
       if (data.valid) {
         setAppliedCoupon({
           code: couponInput.trim().toUpperCase(),
-          discountAmount: data.discountAmount
+          discountAmount: data.discountAmount,
+          freeDelivery: Boolean(data.freeDelivery),
+          freeFrame: Boolean(data.freeFrame),
+          type: data.couponType,
+          discount: data.couponDiscount,
         });
         addToast(data.message, 'success');
       } else {
@@ -246,8 +334,13 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
       return;
     }
 
-    if (currentStep !== 4) {
-      setCurrentStep(4);
+    if (currentStep === 3 && selectedStyle?.requiresReference && !referenceImageUrl.trim()) {
+      addToast(`"${selectedStyle.title}" requires a reference face portrait image`, 'error');
+      return;
+    }
+
+    if (currentStep < 4) {
+      setCurrentStep(prev => prev + 1);
       return;
     }
 
@@ -283,7 +376,8 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
           notes: notes.trim() || undefined,
           referenceImageUrl: referenceImageUrl.trim() || undefined,
           couponCode: appliedCoupon?.code,
-          discountAmount: appliedCoupon?.discountAmount
+          discountAmount: getLiveDiscountAmount(),
+          addPhotoFrame
         }),
       });
 
@@ -382,12 +476,33 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
             )}
 
             {selectedPaper && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-start gap-4 border-b border-ink/10 pb-6">
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className={`flex justify-between items-start gap-4 ${!addPhotoFrame ? 'border-b border-ink/10 pb-6' : ''}`}
+              >
                  <div className="flex-1">
                     <p className="text-[9px] uppercase tracking-widest opacity-40 font-bold mb-1">Medium Choice</p>
                     <p className="text-xs font-bold">{selectedPaper.title}</p>
                  </div>
                  <p className="text-[10px] font-mono font-bold text-ink/50 bg-gray-100 px-2 py-0.5 rounded-sm">+{selectedPaper.extraCost}</p>
+              </motion.div>
+            )}
+
+            {addPhotoFrame && selectedSize && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-start gap-4 border-b border-ink/10 pb-6">
+                 <div className="flex-1">
+                    <p className="text-[9px] uppercase tracking-widest opacity-40 font-bold mb-1">Premium Frame</p>
+                    <p className="text-xs font-bold">Wooden Photo Frame</p>
+                 </div>
+                 <p className="text-[10px] font-mono font-bold text-ink/50 bg-gray-100 px-2 py-0.5 rounded-sm">
+                   {appliedCoupon?.freeFrame ? (
+                     <>
+                       <span className="line-through opacity-55">₹{getFramePrice(selectedSize)}</span>
+                       <span className="text-emerald-700 font-extrabold ml-1.5">FREE (Promo)</span>
+                     </>
+                   ) : `+₹${getFramePrice(selectedSize)}`}
+                 </p>
               </motion.div>
             )}
          </div>
@@ -409,7 +524,24 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                         Discount
                     </span>
-                    <span>-₹{appliedCoupon.discountAmount.toLocaleString()}</span>
+                    <span>-₹{getLiveDiscountAmount().toLocaleString()}</span>
+                </div>
+                )}
+
+                {pincode.replace(/\D/g, '').length === 6 && (
+                <div className="flex justify-between items-center text-xs text-ink/75 font-semibold bg-gray-50 px-3 py-1 rounded-sm">
+                    <span className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                        Delivery ({shippingZoneName || 'Calculating...'})
+                    </span>
+                    <span>
+                      {appliedCoupon?.freeDelivery ? (
+                        <>
+                          <span className="line-through text-ink/40 font-normal">₹{shippingCharges}</span>
+                          <span className="text-emerald-700 font-extrabold ml-1.5">FREE (Promo)</span>
+                        </>
+                      ) : (shippingCharges === 0 ? 'FREE' : `+₹${shippingCharges.toLocaleString()}`)}
+                    </span>
                 </div>
                 )}
             </div>
@@ -553,7 +685,7 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                          <div className="w-1.5 h-1.5 rounded-full bg-ink/20" />
                          <span className="text-[10px] uppercase font-extrabold tracking-[0.3em] opacity-40">Mastery Surface Material</span>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 font-sans">
                         {papers.map((p) => (
                            <button 
                             key={p._id} onClick={() => handleSelectPaper(p)}
@@ -571,6 +703,42 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                         ))}
                       </div>
                    </section>
+
+                   {selectedSize && (
+                     <section className="mt-12 border-t border-ink/5 pt-8">
+                       <div className="flex items-center gap-3 mb-6">
+                          <div className="w-1.5 h-1.5 rounded-full bg-ink/20" />
+                          <span className="text-[10px] uppercase font-extrabold tracking-[0.3em] opacity-40">Premium Mounting & Framing</span>
+                       </div>
+                       
+                       <motion.div 
+                         whileHover={{ scale: 1.01 }}
+                         className={`p-6 sm:p-8 border rounded-sm transition-all duration-300 text-left flex items-start gap-4 sm:gap-6 shadow-sm hover:shadow-md cursor-pointer relative overflow-hidden group
+                           ${addPhotoFrame ? 'bg-ink text-white border-ink shadow-2xl' : 'bg-canvas border-ink/10 hover:border-ink/20'}`}
+                         onClick={() => setAddPhotoFrame(!addPhotoFrame)}
+                       >
+                         <div className="flex items-center justify-center shrink-0 mt-1">
+                            <input 
+                              type="checkbox" 
+                              checked={addPhotoFrame} 
+                              onChange={() => {}} 
+                              className={`w-5 h-5 rounded transition-all cursor-pointer ${addPhotoFrame ? 'text-canvas border-canvas focus:ring-canvas bg-white text-black' : 'text-ink border-ink/20 focus:ring-ink'}`}
+                            />
+                         </div>
+                         <div className="flex-1 font-sans">
+                            <div className="flex flex-wrap items-baseline gap-x-4 justify-between mb-2">
+                               <h3 className="font-serif text-lg sm:text-xl font-bold leading-tight">Add Premium Photo Frame</h3>
+                               <p className={`font-mono text-xs sm:text-sm font-extrabold ${addPhotoFrame ? 'text-emerald-300' : 'text-ink/65 bg-ink/5 px-2.5 py-0.5 rounded-sm'}`}>
+                                  +₹{getFramePrice(selectedSize)}
+                               </p>
+                            </div>
+                            <p className={`text-[10px] sm:text-xs leading-relaxed max-w-xl transition-colors ${addPhotoFrame ? 'text-white/60' : 'text-ink/40'}`}>
+                               Includes a high-quality protective acrylic glass front, high-density wood backing, and pre-installed mounting brackets. Specially customized to fit your chosen {selectedSize.label} format perfectly.
+                            </p>
+                         </div>
+                       </motion.div>
+                     </section>
+                   )}
                 </div>
               </motion.div>
             )}
@@ -589,6 +757,22 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                          <UploadCloud size={16} className="opacity-30" />
                          <span className="text-[10px] uppercase font-extrabold tracking-[0.3em] opacity-40">Primary Reference Material</span>
                       </div>
+
+                      {/* Face Portrait Guideline Card */}
+                      <div className="p-5 bg-amber-50/30 border border-amber-200/40 rounded-xl flex items-start gap-4 shadow-sm backdrop-blur-sm">
+                         <div className="w-9 h-9 rounded-full bg-amber-100/50 flex items-center justify-center shrink-0 border border-amber-200/20">
+                            <User size={16} className="text-amber-800" />
+                         </div>
+                         <div className="font-sans">
+                            <h4 className="text-xs font-bold text-amber-950 uppercase tracking-widest mb-1.5">
+                               Portrait Upload Specifications
+                            </h4>
+                            <p className="text-[11px] text-amber-900/85 leading-relaxed font-medium">
+                               To ensure absolute precision and premium realism, our master artists require a **close-up face portrait photo**. Please **avoid full-body uploads**, as detailed high-resolution facial features are essential for crafting your custom commission.
+                            </p>
+                         </div>
+                      </div>
+
                       <label className={`relative min-h-[300px] sm:h-80 border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer bg-white/[0.02] shadow-inner
                          ${selectedStyle?.requiresReference && !referenceImageUrl ? 'border-amber-400 bg-amber-50/20 animate-pulse' : 'border-ink/10 hover:border-ink/30'}`}>
                          <input type="file" onChange={handleUploadReference} accept="image/*" className="hidden" />
@@ -654,12 +838,12 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div className="relative group sm:col-span-2">
                          <span className="absolute -top-2 left-5 px-2 bg-canvas text-[9px] font-extrabold uppercase tracking-widest z-10 text-ink/40">Full Legal Name</span>
-                         <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-5 sm:p-6 bg-white border border-ink/10 rounded-xl text-sm sm:text-base outline-none focus:ring-1 focus:ring-ink/20 focus:border-ink transition-all shadow-sm" placeholder="e.g. Rahul Sharma" />
+                         <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-5 sm:p-6 bg-white border border-ink/10 rounded-xl text-sm sm:text-base outline-none focus:ring-1 focus:ring-ink/20 focus:border-ink transition-all shadow-sm" placeholder="Ankit Kushwah" />
                          {fieldErrors.name && <p className="text-[9px] text-rose-500 mt-2 font-bold ml-5 uppercase tracking-widest">{fieldErrors.name}</p>}
                       </div>
                       <div className="relative group">
                          <span className="absolute -top-2 left-5 px-2 bg-canvas text-[9px] font-extrabold uppercase tracking-widest z-10 text-ink/40">Secured Digital Email</span>
-                         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-5 sm:p-6 bg-white border border-ink/10 rounded-xl text-sm sm:text-base outline-none focus:ring-1 focus:ring-ink/20 focus:border-ink transition-all shadow-sm" placeholder="rahul@example.com" />
+                         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-5 sm:p-6 bg-white border border-ink/10 rounded-xl text-sm sm:text-base outline-none focus:ring-1 focus:ring-ink/20 focus:border-ink transition-all shadow-sm" placeholder="ankitkushwah2001@gmail.com" />
                          {fieldErrors.email && <p className="text-[9px] text-rose-500 mt-2 font-bold ml-5 uppercase tracking-widest">{fieldErrors.email}</p>}
                       </div>
                       <div className="relative group">
@@ -677,6 +861,24 @@ export function StudioConfigurator({ styles, sizes, papers }: StudioConfigurator
                          <input type="text" value={pincode} onChange={(e) => setPincode(e.target.value)} maxLength={6} className="w-full p-5 sm:p-6 bg-white border border-ink/10 rounded-xl text-sm sm:text-base outline-none focus:ring-1 focus:ring-ink/20 focus:border-ink transition-all shadow-sm font-mono tracking-widest" placeholder="000000" />
                          {fieldErrors.pincode && <p className="text-[9px] text-rose-500 mt-2 font-bold ml-5 uppercase tracking-widest">{fieldErrors.pincode}</p>}
                       </div>
+
+                      {pincode.replace(/\D/g, '').length === 6 && (
+                         <div className="sm:col-span-2 flex items-center gap-3 p-4 bg-emerald-50/50 border border-emerald-100/50 rounded-xl">
+                            {isCalculatingShipping ? (
+                              <p className="text-xs text-ink/40 font-bold uppercase tracking-wider animate-pulse flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-ink/20 animate-ping" />
+                                Calculating delivery charges for PIN {pincode}...
+                              </p>
+                            ) : (
+                              <div className="font-sans">
+                                <p className="text-[9px] font-extrabold text-emerald-800 uppercase tracking-widest">Matched Shipping Region</p>
+                                <p className="text-xs font-bold text-emerald-950 mt-0.5">
+                                  {shippingZoneName} — {shippingCharges === 0 ? 'Free Delivery Applied ✓' : `Delivery Rate: ₹${shippingCharges}`}
+                                </p>
+                              </div>
+                            )}
+                         </div>
+                      )}
                    </div>
                 </div>
 

@@ -11,7 +11,7 @@ const readClient = createClient({
 
 export async function POST(req: Request) {
   try {
-    const { code, total } = await req.json();
+    const { code, total, framePrice = 0 } = await req.json();
 
     if (!code || typeof code !== 'string' || !total || typeof total !== 'number') {
       return NextResponse.json({ valid: false, message: 'Invalid request' }, { status: 400 });
@@ -41,7 +41,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ valid: false, message: 'Coupon usage limit reached' }, { status: 200 });
     }
 
-    // Minimum order amount check
+    // Subtract frame price from subtotal if the coupon grants a free frame
+    const subtotalForDiscount = coupon.freeFrame ? Math.max(0, total - framePrice) : total;
+
+    // Minimum order amount check (validated against the original total before frame discounts)
     if (coupon.minimumOrderAmount && total < coupon.minimumOrderAmount) {
       return NextResponse.json({
         valid: false,
@@ -52,12 +55,24 @@ export async function POST(req: Request) {
     // Calculate discount
     let discountAmount = 0;
     if (coupon.type === 'percentage') {
-      discountAmount = Math.round((total * coupon.discount) / 100);
+      discountAmount = Math.round((subtotalForDiscount * coupon.discount) / 100);
     } else if (coupon.type === 'flat') {
-      discountAmount = Math.min(coupon.discount, total); // Can't discount more than total
+      discountAmount = Math.min(coupon.discount, subtotalForDiscount); // Can't discount more than subtotal
     }
 
-    const discountedTotal = Math.max(0, total - discountAmount);
+    const discountedTotal = Math.max(0, subtotalForDiscount - discountAmount);
+
+    const benefits = [];
+    if (coupon.discount > 0) {
+      benefits.push(coupon.type === 'percentage' ? `${coupon.discount}% off` : `₹${coupon.discount} off`);
+    }
+    if (coupon.freeDelivery) {
+      benefits.push('Free Shipping 🚚');
+    }
+    if (coupon.freeFrame) {
+      benefits.push('Free Premium Frame 🖼️');
+    }
+    const benefitsText = benefits.length > 0 ? benefits.join(' & ') : 'Discount applied';
 
     return NextResponse.json({
       valid: true,
@@ -65,7 +80,9 @@ export async function POST(req: Request) {
       discountedTotal,
       couponType: coupon.type,
       couponDiscount: coupon.discount,
-      message: `${coupon.type === 'percentage' ? `${coupon.discount}%` : `₹${coupon.discount}`} discount applied!`,
+      freeDelivery: Boolean(coupon.freeDelivery),
+      freeFrame: Boolean(coupon.freeFrame),
+      message: `${benefitsText} successfully applied!`,
     });
 
   } catch (error: any) {

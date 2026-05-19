@@ -176,7 +176,7 @@ function TrackOrderInner() {
 
              <div className="flex flex-col gap-6">
                <div className="mb-4">
-                 <p className="text-[10px] uppercase tracking-widest opacity-50 mb-8 border-b border-ink/10 pb-2">Production Timeline</p>
+                 <p className="text-[10px] uppercase tracking-widest opacity-50 mb-8 border-b border-ink/10 pb-2 text-left">Production Timeline</p>
                  <div className="w-full flex justify-between items-start relative px-2 md:px-0">
                    <div className="absolute top-[10px] left-0 w-full h-[2px] bg-ink/10 -z-10"></div>
                    {[
@@ -200,6 +200,78 @@ function TrackOrderInner() {
                    })}
                  </div>
                </div>
+
+               {/* Detailed Bill Breakdown */}
+               {(() => {
+                 let studioMeta: any = null;
+                 if (order.adminNotes) {
+                   try {
+                     studioMeta = JSON.parse(order.adminNotes);
+                   } catch {}
+                 }
+
+                 return (
+                   <div className="p-6 border border-ink/10 bg-white/50 space-y-4">
+                     <p className="text-[10px] uppercase tracking-widest opacity-50 border-b border-ink/5 pb-2 font-extrabold text-left">Investment Breakdown</p>
+                     
+                     <div className="space-y-2.5 text-xs text-ink/80 font-medium">
+                       {/* Base Commission Cost */}
+                       <div className="flex justify-between">
+                         <span className="text-left">
+                           {studioMeta?.styleName || 'Custom Artwork'} ({studioMeta?.sizeLabel || 'Custom Size'})
+                         </span>
+                         <span>
+                           ₹{studioMeta ? Math.round(studioMeta.basePrice * studioMeta.sizeMultiplier + studioMeta.paperExtraCost).toLocaleString() : order.price.toLocaleString()}
+                         </span>
+                       </div>
+
+                       {/* Premium Frame if requested */}
+                       {studioMeta?.addPhotoFrame && (
+                         <div className="flex justify-between items-center">
+                           <span className="text-left">Premium Photo Frame</span>
+                           <span className="flex items-center gap-1.5 font-semibold">
+                             {studioMeta.baseFramePrice > 0 && studioMeta.framePrice === 0 ? (
+                               <>
+                                 <span className="line-through text-ink/40 font-normal">₹{studioMeta.baseFramePrice}</span>
+                                 <span className="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded-sm text-[10px]">FREE (Promo)</span>
+                               </>
+                             ) : (
+                               `+₹${studioMeta.framePrice}`
+                             )}
+                           </span>
+                         </div>
+                       )}
+
+                       {/* Delivery / Shipping Charges */}
+                       {(order.shippingCharges !== undefined || studioMeta?.shippingCharges !== undefined) && (
+                         <div className="flex justify-between items-center">
+                           <span className="text-left">Delivery ({order.shippingZone || studioMeta?.shippingZone || 'Standard'})</span>
+                           <span className="flex items-center gap-1.5 font-semibold">
+                             {order.shippingCharges === 0 && order.couponCode ? (
+                               <>
+                                 <span className="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded-sm text-[10px]">FREE (Promo)</span>
+                               </>
+                             ) : (
+                               order.shippingCharges === 0 ? 'FREE' : `+₹${(order.shippingCharges || 0).toLocaleString()}`
+                             )}
+                           </span>
+                         </div>
+                       )}
+
+                       {/* Applied Coupons & Promos */}
+                       {order.couponCode && (
+                         <div className="flex justify-between items-center text-emerald-600 font-bold bg-emerald-50 px-3 py-2 border border-emerald-100 rounded-sm">
+                           <span className="flex items-center gap-2 text-left">
+                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                             Promo Applied ({order.couponCode})
+                           </span>
+                           <span>-₹{(order.discountAmount || 0).toLocaleString()}</span>
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 );
+               })()}
 
                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4 bg-canvas/40 p-4 sm:p-6 border border-ink/5">
                  <div className="text-center sm:text-left">
@@ -230,10 +302,10 @@ function TrackOrderInner() {
 
                 {(order.address || order.pincode) && (
                   <div className="p-6 border border-ink/10 bg-white/50 space-y-3">
-                    <p className="text-[10px] uppercase tracking-widest opacity-50 border-b border-ink/5 pb-2">Shipping Details</p>
+                    <p className="text-[10px] uppercase tracking-widest opacity-50 border-b border-ink/5 pb-2 text-left">Shipping Details</p>
                     <div className="flex flex-col gap-1">
-                      <p className="text-xs leading-relaxed opacity-80">{order.address || 'N/A'}</p>
-                      <p className="text-[10px] font-mono font-bold tracking-widest opacity-60">Pincode: {order.pincode || 'N/A'}</p>
+                      <p className="text-xs leading-relaxed opacity-80 text-left">{order.address || 'N/A'}</p>
+                      <p className="text-[10px] font-mono font-bold tracking-widest opacity-60 text-left">Pincode: {order.pincode || 'N/A'}</p>
                     </div>
                   </div>
                 )}

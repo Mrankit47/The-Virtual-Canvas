@@ -15,6 +15,7 @@ import paperType from './paperType';
 import { otpVerification } from './otpVerification';
 import orderUpdate from './orderUpdate';
 import sale from './sale';
+import shippingZone from './shippingZone';
 
 export const schemaTypes = [
   artwork,
@@ -32,7 +33,8 @@ export const schemaTypes = [
   processStep,
   otpVerification,
   orderUpdate,
-  sale
+  sale,
+  shippingZone
 ];
 
 export const schema: { types: SchemaTypeDefinition[] } = {

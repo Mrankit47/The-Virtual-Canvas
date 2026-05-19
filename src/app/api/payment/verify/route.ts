@@ -5,6 +5,7 @@ import { createClient } from '@sanity/client';
 import { env } from "@/config/env";
 import { verifyPaymentSignature } from "@/lib/razorpay";
 import { sendNotificationEmail } from "@/lib/email";
+import { sendOrderReceipt } from "@/lib/email/sendReceipt";
 
 const backendClient = createClient({
   projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
@@ -58,6 +59,19 @@ export async function POST(request: Request) {
       })
       .commit();
 
+    // Mark purchased artworks as out of stock dynamically
+    try {
+      if (order.orderType === 'cart' && order.cartItems && Array.isArray(order.cartItems)) {
+        await Promise.all(order.cartItems.map(async (item: any) => {
+          if (item.artworkId) {
+            await backendClient.patch(item.artworkId).set({ isOutOfStock: true }).commit();
+          }
+        }));
+      }
+    } catch (stockErr) {
+      console.error("Failed to mark artworks as out of stock post-payment:", stockErr);
+    }
+
     // 4. Create Marketplace Sale Records (if applicable)
     if (order.orderType === 'cart' && order.cartItems && Array.isArray(order.cartItems)) {
         const artistItems = order.cartItems.filter((item: any) => item.artistId);
@@ -104,6 +118,48 @@ export async function POST(request: Request) {
         }),
         sendNotificationEmail(session.user.email, 'payment_success', order.orderId)
     ]);
+
+    // Send Detailed Order Receipt Email on verified success
+    try {
+      let subtotal = order.price + (order.discountAmount || 0);
+      let addPhotoFrame = false;
+      let baseFramePrice = 0;
+      let framePrice = 0;
+      
+      if (order.adminNotes) {
+        try {
+          const studioMeta = JSON.parse(order.adminNotes);
+          if (studioMeta) {
+            subtotal = Math.round(studioMeta.basePrice * studioMeta.sizeMultiplier + studioMeta.paperExtraCost);
+            addPhotoFrame = !!studioMeta.addPhotoFrame;
+            baseFramePrice = studioMeta.baseFramePrice || 0;
+            framePrice = studioMeta.framePrice || 0;
+          }
+        } catch (e) {
+          console.error("Failed to parse adminNotes for receipt email", e);
+        }
+      }
+
+      await sendOrderReceipt({
+        orderId: order.orderId,
+        customerName: order.customerName,
+        artworkType: order.artworkType || 'Commission Artwork',
+        price: order.price,
+        email: order.email,
+        address: order.address,
+        pincode: order.pincode,
+        subtotal,
+        discountAmount: order.discountAmount || 0,
+        couponCode: order.couponCode,
+        shippingCharges: order.shippingCharges,
+        shippingZone: order.shippingZone,
+        addPhotoFrame,
+        baseFramePrice,
+        framePrice,
+      });
+    } catch (receiptErr) {
+      console.error("Failed to send post-payment verified receipt", receiptErr);
+    }
 
     return NextResponse.json({ success: true, order: updatedOrder });
   } catch (error: any) {

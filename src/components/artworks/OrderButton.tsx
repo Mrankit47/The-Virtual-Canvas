@@ -14,9 +14,10 @@ interface OrderButtonProps {
   price: number;
   imageUrl?: string; 
   postType?: string;
+  isOutOfStock?: boolean;
 }
 
-export function OrderButton({ artworkId, title, price, imageUrl = '', postType }: OrderButtonProps) {
+export function OrderButton({ artworkId, title, price, imageUrl = '', postType, isOutOfStock = false }: OrderButtonProps) {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const { addToast } = useUIStore();
@@ -24,6 +25,19 @@ export function OrderButton({ artworkId, title, price, imageUrl = '', postType }
   const router = useRouter();
 
   if (postType !== 'marketplace') return null;
+
+  if (isOutOfStock) {
+    return (
+      <div className="flex flex-col gap-3 w-full">
+        <button
+          disabled
+          className="w-full py-6 text-[10px] md:text-xs uppercase tracking-[0.4em] font-bold bg-ink/10 text-ink/30 cursor-not-allowed border border-ink/5 flex items-center justify-center rounded-sm"
+        >
+          Out of Stock
+        </button>
+      </div>
+    );
+  }
 
   const inCart = isInCart(artworkId);
 

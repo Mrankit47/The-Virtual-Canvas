@@ -20,6 +20,7 @@ interface Artwork {
   subcategory?: string;
   imageSource?: string;
   imageUrl?: string;
+  isOutOfStock?: boolean;
 }
 
 export default async function ArtworksPage() {
@@ -31,6 +32,7 @@ export default async function ArtworksPage() {
     subcategory,
     imageSource,
     imageUrl,
+    isOutOfStock,
     "image": {
       "asset": {
         "url": image.asset->url
@@ -68,7 +70,7 @@ export default async function ArtworksPage() {
                       src={optimizedUrl(getImageUrl(item))} 
                       alt={item.title} 
                       fill 
-                      className="object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-1000 ease-out group-hover:scale-110" 
+                      className={`object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-1000 ease-out group-hover:scale-110 ${item.isOutOfStock ? 'opacity-45 scale-95 blur-[2px]' : ''}`} 
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       placeholder="blur"
                       blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88eJNPAAIvwNIGP1SswAAAABJRU5ErkJggg=="
@@ -77,11 +79,19 @@ export default async function ArtworksPage() {
                   </div>
                   <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/5 transition-colors duration-700 pointer-events-none" />
                   
+                  {item.isOutOfStock && (
+                    <div className="absolute top-6 left-6 z-30 bg-rose-600 text-white font-mono text-[9px] uppercase tracking-[0.25em] px-3.5 py-1.5 font-bold shadow-md shadow-rose-950/20 select-none">
+                      Acquired
+                    </div>
+                  )}
+
                   {/* Premium Price Overlay (Always Visible) */}
                   <div className="absolute bottom-0 left-0 w-full p-8 transition-transform duration-700 ease-in-out bg-gradient-to-t from-ink/90 via-ink/40 to-transparent z-20">
                      <div className="flex items-center gap-3">
                         <div className="w-8 h-[1px] bg-canvas/40" />
-                        <span className="text-canvas text-2xl font-serif tracking-[0.05em] italic">₹{item.price.toLocaleString()}</span>
+                        <span className="text-canvas text-2xl font-serif tracking-[0.05em] italic">
+                          {item.isOutOfStock ? 'ACQUIRED' : `₹${item.price.toLocaleString()}`}
+                        </span>
                      </div>
                   </div>
                 </div>
