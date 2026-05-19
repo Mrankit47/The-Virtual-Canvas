@@ -4,6 +4,7 @@ import { env } from '@/config/env';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { sendOrderReceipt } from '@/lib/email/sendReceipt';
+import { calculateShipping } from '@/lib/shipping';
 
 // Token is validated inside the handler — not at module level
 const backendClient = createClient({
@@ -48,27 +49,43 @@ export async function POST(req: Request) {
     // Never trust the client's total
     const serverSubtotal = items.reduce((sum: number, item: CartItemRequest) => sum + (item.price || 0), 0);
 
-    // ── RE-VALIDATE COUPON on server ──────────────────────────────────────────
+    // ── RE-VALIDATE COUPON on server (Fetch First) ──────────────────────────
     let discountAmount = 0;
     let couponData: any = null;
 
     if (couponCode) {
       couponData = await backendClient.fetch(
-        `*[_type == "coupon" && code == $code][0]`,
+        `*[_type == "coupon" && code == $code && isActive == true][0]`,
         { code: couponCode.trim().toUpperCase() }
       );
 
-      if (couponData && couponData.isActive && new Date(couponData.expiry) >= new Date() &&
-          (!couponData.usageLimit || couponData.usedCount < couponData.usageLimit)) {
+      if (couponData && (!couponData.expiry || new Date(couponData.expiry) >= new Date()) &&
+          (!couponData.usageLimit || couponData.usedCount < couponData.usageLimit) &&
+          (!couponData.minimumOrderAmount || serverSubtotal >= couponData.minimumOrderAmount)) {
         if (couponData.type === 'percentage') {
           discountAmount = Math.round((serverSubtotal * couponData.discount) / 100);
         } else if (couponData.type === 'flat') {
           discountAmount = Math.min(couponData.discount, serverSubtotal);
         }
+      } else if (couponCode) {
+        return NextResponse.json({ error: 'Applied coupon is no longer valid.' }, { status: 400 });
       }
     }
 
-    const serverTotal = Math.max(0, serverSubtotal - discountAmount);
+    const freeDeliverySecured = Boolean(couponData?.freeDelivery);
+
+    // ── Server-Side Shipping Charges Calculation ──────────────────────────────
+    let shippingCharges = 0;
+    let shippingZoneName = '';
+    try {
+      const shippingResult = await calculateShipping(pincode, serverSubtotal);
+      shippingCharges = freeDeliverySecured ? 0 : shippingResult.rate;
+      shippingZoneName = shippingResult.zoneName;
+    } catch (err: any) {
+      return NextResponse.json({ error: 'Failed to calculate shipping charges. Invalid pincode.' }, { status: 400 });
+    }
+
+    const serverTotal = Math.max(0, serverSubtotal - discountAmount + shippingCharges);
 
     // Fraud check — client total must match server total within ±1 rupee (floating point tolerance)
     if (clientTotal !== undefined && Math.abs(clientTotal - serverTotal) > 1) {
@@ -77,8 +94,10 @@ export async function POST(req: Request) {
     }
 
     // ── DUPLICATE PURCHASE PROTECTION ────────────────────────────────────────
-    // Check if any artwork in the cart has already been purchased (paid)
+    // Check if any artwork in the cart has already been purchased (paid) or marked out of stock
     const artworkIds = items.map((i: CartItemRequest) => i.artworkId);
+    
+    // Check order histories first
     const alreadyPurchased: any[] = await backendClient.fetch(
       `*[_type == "order" && paymentStatus == "paid" && artworkId._ref in $ids] { artworkId }`,
       { ids: artworkIds }
@@ -87,6 +106,19 @@ export async function POST(req: Request) {
     if (alreadyPurchased.length > 0) {
       return NextResponse.json({
         error: 'One or more artworks in your cart have already been sold. Please remove them.',
+      }, { status: 409 });
+    }
+
+    // Check direct artwork stock state
+    const artworksToCheck: any[] = await backendClient.fetch(
+      `*[_type == "artwork" && _id in $ids && isOutOfStock == true] { _id, title }`,
+      { ids: artworkIds }
+    );
+
+    if (artworksToCheck.length > 0) {
+      const titles = artworksToCheck.map(a => `"${a.title}"`).join(', ');
+      return NextResponse.json({
+        error: `One or more artworks in your cart (${titles}) are currently out of stock. Please remove them.`,
       }, { status: 409 });
     }
 
@@ -109,10 +141,12 @@ export async function POST(req: Request) {
       totalAmount: serverTotal,
       couponCode: couponCode || undefined,
       discountAmount: discountAmount || undefined,
+      shippingCharges: shippingCharges,
+      shippingZone: shippingZoneName,
 
       // Required order fields (sensible defaults for cart orders)
       artworkType: 'digital',
-      description: `Cart purchase: ${items.map((i: CartItemRequest) => i.title).join(', ')}`,
+      description: `Cart purchase: ${items.map((i: CartItemRequest) => i.title).join(', ')}${shippingCharges > 0 ? ` (Shipping: ₹${shippingCharges})` : ' (Free Shipping)'}`,
       price: serverTotal,
 
       paymentStatus: 'pending',
@@ -131,6 +165,11 @@ export async function POST(req: Request) {
         email,
         address,
         pincode,
+        subtotal: serverSubtotal,
+        discountAmount: discountAmount,
+        couponCode: couponCode || undefined,
+        shippingCharges: shippingCharges,
+        shippingZone: shippingZoneName,
       });
     } catch (emailErr) {
       console.error('Receipt email failed (non-critical):', emailErr);

@@ -168,20 +168,28 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                 <img 
                     src={optimizedUrl(getImageUrl(art))} 
                     alt={art.title} 
-                    className="relative w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105" 
+                    className={`relative w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105 ${art.isOutOfStock ? 'opacity-40 scale-95 blur-[1px]' : ''}`} 
                 />
                 
                 {/* Labels */}
                 <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 max-w-[calc(100%-20px)]">
-                    <span className={`px-2 py-0.5 rounded-md text-[6px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border border-white/10 ${
-                        art.postType === 'marketplace' ? 'bg-green-500/90 text-white' : 'bg-white/90 text-ink'
-                    }`}>
-                        {art.postType === 'marketplace' ? 'For Sale' : 'Gallery'}
-                    </span>
-                    {art.isPhotography && (
-                         <span className="px-2 py-0.5 bg-blue-500/90 text-white rounded-md text-[6px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border border-white/10">
-                            Photography
+                    {art.isOutOfStock ? (
+                      <span className="px-2 py-0.5 bg-red-650 bg-red-600 text-white rounded-md text-[6px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border border-white/10 font-bold shadow-md shadow-red-950/20 select-none">
+                        Acquired
+                      </span>
+                    ) : (
+                      <>
+                        <span className={`px-2 py-0.5 rounded-md text-[6px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border border-white/10 ${
+                            art.postType === 'marketplace' ? 'bg-green-500/90 text-white' : 'bg-white/90 text-ink'
+                        }`}>
+                            {art.postType === 'marketplace' ? 'For Sale' : 'Gallery'}
                         </span>
+                        {art.isPhotography && (
+                             <span className="px-2 py-0.5 bg-blue-500/90 text-white rounded-md text-[6px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border border-white/10">
+                                Photography
+                            </span>
+                        )}
+                      </>
                     )}
                 </div>
               </div>
@@ -196,7 +204,13 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                     </div>
                     <div className="flex flex-col items-end gap-2 flex-shrink-0">
                         {art.postType === 'marketplace' && (
-                            <p className="text-sm font-bold text-ink/80 tracking-tight">₹{art.price}</p>
+                            <p className="text-sm font-bold text-ink/80 tracking-tight">
+                              {art.isOutOfStock ? (
+                                <span className="text-red-500 text-[10px] font-black uppercase tracking-wider">Acquired</span>
+                              ) : (
+                                `₹${art.price}`
+                              )}
+                            </p>
                         )}
                         <div className="w-4 h-[1px] bg-ink/30 group-hover:bg-ink group-hover:w-8 transition-all duration-500" />
                     </div>
@@ -205,53 +219,62 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                 {/* ACTION BUTTONS FOR USERS */}
                 {art.postType === 'marketplace' && !isManagement && (
                     <div className="flex gap-2">
+                      {art.isOutOfStock ? (
                         <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (!session) {
-                                    addToast('Please sign in to buy this artwork.', 'info');
-                                    router.push(`/login?callbackUrl=${encodeURIComponent(window.location.href)}`);
-                                    return;
-                                }
-                                addToCart({
-                                    artworkId: art._id,
-                                    title: art.title,
-                                    price: art.price,
-                                    imageUrl: getImageUrl(art),
-                                    artistId: art.artistId
-
-                                });
-                                router.push('/checkout');
-                            }}
-                            className="flex-1 py-3 bg-ink text-white text-[8px] font-black uppercase tracking-[0.2em] rounded-xl hover:shadow-xl active:scale-95 transition-all flex items-center justify-center"
+                            disabled
+                            className="flex-1 py-3 bg-ink/10 text-ink/30 text-[8px] font-black uppercase tracking-[0.2em] rounded-xl cursor-not-allowed border border-ink/5 flex items-center justify-center"
                         >
-                            Buy Now
+                            Out of Stock
                         </button>
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (isInCart(art._id)) {
-                                    router.push('/cart');
-                                    return;
-                                }
-                                addToCart({
-                                    artworkId: art._id,
-                                    title: art.title,
-                                    price: art.price,
-                                    imageUrl: getImageUrl(art),
-                                    artistId: art.artistId
-
-                                });
-                                addToast(`${art.title} added to cart`, 'success');
-                            }}
-                            className={`w-12 h-11 rounded-xl flex items-center justify-center transition-all border ${
-                                isInCart(art._id) 
-                                    ? 'bg-green-500 border-green-500 text-white' 
-                                    : 'bg-white border-ink/10 text-ink hover:bg-ink hover:text-white'
-                            }`}
-                        >
-                            <ShoppingCart size={16} />
-                        </button>
+                      ) : (
+                        <>
+                          <button 
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!session) {
+                                      addToast('Please sign in to buy this artwork.', 'info');
+                                      router.push(`/login?callbackUrl=${encodeURIComponent(window.location.href)}`);
+                                      return;
+                                  }
+                                  addToCart({
+                                      artworkId: art._id,
+                                      title: art.title,
+                                      price: art.price,
+                                      imageUrl: getImageUrl(art),
+                                      artistId: art.artistId
+                                  });
+                                  router.push('/checkout');
+                              }}
+                              className="flex-1 py-3 bg-ink text-white text-[8px] font-black uppercase tracking-[0.2em] rounded-xl hover:shadow-xl active:scale-95 transition-all flex items-center justify-center"
+                          >
+                              Buy Now
+                          </button>
+                          <button 
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (isInCart(art._id)) {
+                                      router.push('/cart');
+                                      return;
+                                  }
+                                  addToCart({
+                                      artworkId: art._id,
+                                      title: art.title,
+                                      price: art.price,
+                                      imageUrl: getImageUrl(art),
+                                      artistId: art.artistId
+                                  });
+                                  addToast(`${art.title} added to cart`, 'success');
+                              }}
+                              className={`w-12 h-11 rounded-xl flex items-center justify-center transition-all border ${
+                                  isInCart(art._id) 
+                                      ? 'bg-green-500 border-green-500 text-white' 
+                                      : 'bg-white border-ink/10 text-ink hover:bg-ink hover:text-white'
+                              }`}
+                          >
+                              <ShoppingCart size={16} />
+                          </button>
+                        </>
+                      )}
                     </div>
                 )}
               </div>

@@ -28,20 +28,60 @@ function CheckoutInner() {
 
   // Coupon States (initialized from search params if present)
   const [couponInput, setCouponInput] = useState(couponFromCart);
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmount: number;
+    freeDelivery?: boolean;
+  } | null>(
     couponFromCart ? { code: couponFromCart, discountAmount: discountFromCart } : null
   );
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [currentFinalTotal, setCurrentFinalTotal] = useState(totalFromCart || subtotal);
 
-  // Sync final total whenever appliedCoupon or subtotal changes
+  // Shipping States
+  const [shippingCharges, setShippingCharges] = useState(0);
+  const [shippingZoneName, setShippingZoneName] = useState('');
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+
+  // Dynamic Shipping Calculation when Pincode changes
   useEffect(() => {
-    if (appliedCoupon) {
-      setCurrentFinalTotal(Math.max(0, subtotal - appliedCoupon.discountAmount));
+    const cleanPin = form.pincode.replace(/\D/g, '');
+    if (cleanPin.length === 6) {
+      const fetchShipping = async () => {
+        try {
+          setIsCalculatingShipping(true);
+          const res = await fetch('/api/shipping/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pincode: cleanPin, subtotal }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setShippingCharges(data.rate);
+            setShippingZoneName(data.zoneName);
+          }
+        } catch (err) {
+          console.error('Failed to calculate shipping:', err);
+        } finally {
+          setIsCalculatingShipping(false);
+        }
+      };
+      fetchShipping();
     } else {
-      setCurrentFinalTotal(subtotal);
+      setShippingCharges(0);
+      setShippingZoneName('');
     }
-  }, [subtotal, appliedCoupon]);
+  }, [form.pincode, subtotal]);
+
+  // Sync final total whenever appliedCoupon, subtotal, or shippingCharges changes
+  useEffect(() => {
+    const finalShipping = appliedCoupon?.freeDelivery ? 0 : shippingCharges;
+    if (appliedCoupon) {
+      setCurrentFinalTotal(Math.max(0, subtotal - appliedCoupon.discountAmount + finalShipping));
+    } else {
+      setCurrentFinalTotal(subtotal + finalShipping);
+    }
+  }, [subtotal, appliedCoupon, shippingCharges]);
 
   // Load Razorpay script
   useEffect(() => {
@@ -82,7 +122,8 @@ function CheckoutInner() {
       if (data.valid) {
         setAppliedCoupon({
           code: couponInput.trim().toUpperCase(),
-          discountAmount: data.discountAmount
+          discountAmount: data.discountAmount,
+          freeDelivery: Boolean(data.freeDelivery)
         });
         addToast(data.message, 'success');
       } else {
@@ -286,6 +327,21 @@ function CheckoutInner() {
                     className="w-full bg-transparent border-b border-ink/20 py-3 outline-none focus:border-ink transition-colors font-sans text-sm font-mono tracking-widest"
                   />
                   {errors.pincode && <span className="text-red-500 text-[10px] uppercase tracking-widest">{errors.pincode}</span>}
+                  {isCalculatingShipping && (
+                    <span className="text-ink/40 text-[9px] uppercase tracking-wider animate-pulse mt-1">Calculating delivery charges...</span>
+                  )}
+                  {!isCalculatingShipping && shippingZoneName && (
+                    <span className="text-emerald-600 text-[9px] uppercase tracking-wider font-bold mt-1 inline-flex items-center gap-1">
+                      Delivery Zone: {shippingZoneName} (
+                      {appliedCoupon?.freeDelivery ? (
+                        <>
+                          <span className="line-through text-ink/40 font-normal">₹{shippingCharges}</span>
+                          <span className="ml-1">FREE (Promo) ✓</span>
+                        </>
+                      ) : (shippingCharges === 0 ? 'Free Shipping Applied ✓' : `+₹${shippingCharges}`)}
+                      )
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex justify-between mt-12 pt-8 border-t border-ink/10">
@@ -367,6 +423,19 @@ function CheckoutInner() {
                       <div className="flex justify-between text-sm text-green-600">
                         <span className="font-sans text-[10px] uppercase font-bold tracking-widest">Coupon Savings</span>
                         <span className="font-serif font-bold text-green-700">−₹{appliedCoupon.discountAmount.toLocaleString()}.00</span>
+                      </div>
+                    )}
+                    {form.pincode.replace(/\D/g, '').length === 6 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-ink/40">Delivery ({shippingZoneName || 'Calculating...'})</span>
+                        <span className="font-serif text-ink/65 font-semibold">
+                          {appliedCoupon?.freeDelivery ? (
+                            <>
+                              <span className="line-through text-ink/40 font-normal text-xs mr-1.5">₹{shippingCharges.toLocaleString()}.00</span>
+                              <span className="text-emerald-700 font-bold">FREE (Promo)</span>
+                            </>
+                          ) : (shippingCharges === 0 ? 'FREE' : `+₹${shippingCharges.toLocaleString()}.00`)}
+                        </span>
                       </div>
                     )}
                     <div className="flex justify-between mt-2 pt-4 border-t border-ink/5">

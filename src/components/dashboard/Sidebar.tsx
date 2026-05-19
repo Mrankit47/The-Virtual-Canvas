@@ -7,7 +7,7 @@ import { signOut } from 'next-auth/react';
 import { 
   LayoutDashboard, ShoppingBag, User, LogOut, Upload, Wallet,
   Settings, MessageSquare, Compass, Database, ChevronDown,
-  Image, Camera, Palette
+  Image, Camera, Palette, Users
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -41,6 +41,7 @@ export default function Sidebar({ role, onClose }: SidebarProps) {
 
   const adminLinks = [
     { name: 'Manage Artists', href: '/admin/artists', icon: Settings },
+    { name: 'Manage Users', href: '/admin/users', icon: Users },
     { name: 'All Communications', href: '/admin/messages', icon: MessageSquare },
     { name: 'CMF Dashboard', href: '/studio', icon: Database },
   ];

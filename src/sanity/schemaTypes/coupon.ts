@@ -15,8 +15,9 @@ export default defineType({
       name: 'discount',
       title: 'Discount Value',
       type: 'number',
-      description: 'e.g. 20 (for 20% off) or 200 (for flat ₹200 off)',
-      validation: (Rule) => Rule.required().positive(),
+      description: 'e.g. 20 (for 20% off) or 200 (for flat ₹200 off). Set to 0 if this is purely a Free Delivery / Free Frame coupon.',
+      initialValue: 0,
+      validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
       name: 'type',
@@ -67,6 +68,20 @@ export default defineType({
       description: 'Minimum cart total to apply this coupon (optional)',
       initialValue: 0,
     }),
+    defineField({
+      name: 'freeDelivery',
+      title: 'Free Delivery / Shipping?',
+      type: 'boolean',
+      description: 'Tick to grant 100% free delivery when applied.',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'freeFrame',
+      title: 'Free Premium Photo Frame?',
+      type: 'boolean',
+      description: 'Tick to grant a free premium wood frame (₹0) when applied.',
+      initialValue: false,
+    }),
   ],
   preview: {
     select: {
@@ -76,10 +91,17 @@ export default defineType({
       isActive: 'isActive',
       usedCount: 'usedCount',
       usageLimit: 'usageLimit',
+      freeDelivery: 'freeDelivery',
+      freeFrame: 'freeFrame',
     },
-    prepare({ title, discount, type, isActive, usedCount, usageLimit }) {
+    prepare({ title, discount, type, isActive, usedCount, usageLimit, freeDelivery, freeFrame }) {
+      const benefits = [];
+      if (discount > 0) benefits.push(type === 'percentage' ? `${discount}% off` : `₹${discount} off`);
+      if (freeDelivery) benefits.push('Free Delivery 🚚');
+      if (freeFrame) benefits.push('Free Frame 🖼️');
+      const benefitsText = benefits.length > 0 ? benefits.join(' + ') : 'No Price Benefits';
       return {
-        title: `${title} — ${type === 'percentage' ? `${discount}% off` : `₹${discount} off`}`,
+        title: `${title} — ${benefitsText}`,
         subtitle: `${isActive ? '✅ Active' : '❌ Inactive'} | Used: ${usedCount}/${usageLimit}`,
       };
     },

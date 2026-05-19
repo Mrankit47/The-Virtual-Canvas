@@ -7,7 +7,7 @@ import { User, Mail, ShieldCheck, BadgeCheck } from 'lucide-react';
 export const revalidate = 0; // Force dynamic fetching to see new registrations immediately
 
 export default async function AdminArtistsPage() {
-  const artists = await client.fetch(`*[_type == "userProfile" && role == "artist"]{_id, name, email}`);
+  const artists = await client.fetch(`*[_type == "userProfile" && role == "artist"]{_id, name, email, image}`);
 
   return (
     <div className="space-y-10">
@@ -37,8 +37,12 @@ export default async function AdminArtistsPage() {
           ) : artists.map((artist: any) => (
             <div key={artist._id} className="bg-gray-50/50 border border-ink/5 p-5 rounded-3xl space-y-5 group transition-all hover:shadow-lg">
               <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-ink text-white flex items-center justify-center shadow-lg shadow-ink/10 group-hover:scale-105 transition-transform">
-                      <User size={20} />
+                  <div className="w-12 h-12 rounded-2xl bg-ink/5 text-ink flex items-center justify-center shadow-lg shadow-ink/10 group-hover:scale-105 transition-transform overflow-hidden border border-ink/5">
+                      {artist.image ? (
+                        <img src={artist.image} alt={artist.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={20} />
+                      )}
                   </div>
                   <div className="min-w-0">
                       <h3 className="text-sm font-black text-ink leading-tight truncate">{artist.name}</h3>
@@ -72,8 +76,12 @@ export default async function AdminArtistsPage() {
                 <tr key={artist._id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-ink/5 text-ink/20 flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-all shadow-sm">
-                            <User size={18} />
+                        <div className="w-10 h-10 rounded-xl bg-ink/5 text-ink/30 flex items-center justify-center transition-all shadow-sm overflow-hidden border border-ink/5 shrink-0">
+                            {artist.image ? (
+                              <img src={artist.image} alt={artist.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <User size={18} />
+                            )}
                         </div>
                         <div>
                             <h3 className="text-sm font-black text-ink leading-tight">{artist.name}</h3>

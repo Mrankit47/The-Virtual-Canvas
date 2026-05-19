@@ -7,7 +7,9 @@ import AdminOrderTable from "@/components/dashboard/AdminOrderTable";
 import StatsCard from "@/components/dashboard/StatsCard";
 import { ShoppingBag, DollarSign, BarChart3, CheckCircle2, Clock, Ticket } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
 
+const uncachedClient = client.withConfig({ useCdn: false });
 
 export default async function AdminDashboard() {
   const session: any = await getServerSession(authOptions);
@@ -17,16 +19,16 @@ export default async function AdminDashboard() {
   }
 
   const [orders, coupons, artists] = await Promise.all([
-    client.fetch(`*[_type == "order"] | order(createdAt desc) {
+    uncachedClient.fetch(`*[_type == "order"] | order(createdAt desc) {
       _id, orderId, customerName, userEmail, assignedArtist->{_id, name, email},
       orderStatus, paymentStatus, price, totalAmount,
       orderType, couponCode, discountAmount,
       cartItems, createdAt
     }`),
-    client.fetch(`*[_type == "coupon"] | order(usedCount desc) {
+    uncachedClient.fetch(`*[_type == "coupon"] | order(usedCount desc) {
       code, discount, type, isActive, usedCount, usageLimit, expiry
     }`),
-    client.fetch(`*[_type == "userProfile" && role == "artist"]{_id, name, email}`),
+    uncachedClient.fetch(`*[_type == "userProfile" && role == "artist"]{_id, name, email}`),
   ]);
 
   const totalOrders = orders.length;

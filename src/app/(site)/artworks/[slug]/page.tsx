@@ -18,6 +18,7 @@ interface Artwork {
   subcategory?: string;
   postType?: string;
   imageUrl?: string;
+  isOutOfStock?: boolean;
   image: {
     asset: {
       url: string;
@@ -36,6 +37,7 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
     subcategory,
     imageUrl,
     postType,
+    isOutOfStock,
     "image": {
       "asset": {
         "url": image.asset->url
@@ -117,8 +119,17 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
                <div className="flex flex-col gap-4">
                   {artwork.postType === 'marketplace' && (
                     <p className="text-[10px] uppercase tracking-widest opacity-50 flex items-center gap-3">
-                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                      Available for acquisition
+                      {artwork.isOutOfStock ? (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                          Out of stock (Acquired)
+                        </>
+                      ) : (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                          Available for acquisition
+                        </>
+                      )}
                     </p>
                   )}
                   
@@ -128,6 +139,7 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
                     title={artwork.title} 
                     price={artwork.price} 
                     postType={artwork.postType}
+                    isOutOfStock={!!artwork.isOutOfStock}
                   />
 
                </div>

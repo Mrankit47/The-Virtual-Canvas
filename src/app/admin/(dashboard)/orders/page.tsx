@@ -1,32 +1,52 @@
 import { client } from '@/lib/sanity';
-import { env } from '@/config/env';
 import AdminOrderTable from "@/components/dashboard/AdminOrderTable";
 
+export const dynamic = 'force-dynamic';
 
+const uncachedClient = client.withConfig({ useCdn: false });
 
 export default async function AdminOrdersManagementPage() {
   const [orders, artists] = await Promise.all([
-    client.fetch(`*[_type == "order"] | order(createdAt desc) {
-      _id, orderId, customerName, userEmail, assignedArtist->{_id, name, email},
-      orderStatus, paymentStatus, price, totalAmount,
-      orderType, cartItems, createdAt
+    uncachedClient.fetch(`*[_type == "order"] | order(createdAt desc) {
+      _id, 
+      orderId, 
+      customerName, 
+      email, 
+      userEmail, 
+      price, 
+      totalAmount, 
+      discountAmount, 
+      couponCode,
+      orderType, 
+      cartItems, 
+      createdAt, 
+      address, 
+      pincode, 
+      phone, 
+      artworkType, 
+      description, 
+      referenceImage, 
+      paymentStatus, 
+      orderStatus,
+      assignedArtist->{_id, name, email},
+      artworkId->{_id, title, price, isArtistUpload, artist->{_id, name, email, role}},
+      "cartItemDetails": *[_type == "artwork" && _id in ^.cartItems[].artworkId] { _id, title, price, isArtistUpload, artist->{_id, name, email, role} }
     }`),
-    client.fetch(`*[_type == "userProfile" && role == "artist"]{_id, name, email}`),
+    uncachedClient.fetch(`*[_type == "userProfile" && role == "artist"]{_id, name, email}`),
   ]);
 
   return (
     <div className="space-y-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-playfair text-ink">Global Order Management</h1>
-          <p className="text-sm text-ink/40 mt-1 uppercase tracking-widest font-medium">Manage all platform commissions and status</p>
+          <h1 className="text-3xl font-black font-serif text-ink tracking-tight">Global Order Management</h1>
+          <p className="text-[10px] sm:text-xs text-ink/30 mt-1 uppercase tracking-[0.2em] font-black leading-none">
+            Manage all platform commissions, sales channels, and logistic parameters
+          </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-ink/5 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-ink/5">
-          <h2 className="text-lg font-bold font-playfair text-ink underline decoration-ink/10 underline-offset-8 decoration-4">All Active & Past Orders</h2>
-        </div>
+      <div className="bg-white rounded-[32px] border border-ink/5 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <AdminOrderTable initialOrders={orders} artists={artists} />
         </div>

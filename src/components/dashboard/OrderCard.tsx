@@ -196,13 +196,15 @@ export default function OrderCard({ order, role }: OrderCardProps) {
 
             {/* Price & Primary Action */}
             <div className="flex flex-row xl:flex-col gap-4 sm:gap-6 items-center xl:items-end justify-between xl:justify-center">
-                <div className="text-left xl:text-right shrink-0">
-                    <p className="text-[10px] uppercase tracking-widest font-black opacity-20 mb-1">Contract Value</p>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-xs opacity-30 font-serif">₹</span>
-                        <p className="text-2xl sm:text-3xl font-serif font-black text-ink tracking-tighter">{(order.price || order.totalAmount || 0).toLocaleString()}</p>
-                    </div>
-                </div>
+                {role !== 'artist' && (
+                  <div className="text-left xl:text-right shrink-0">
+                      <p className="text-[10px] uppercase tracking-widest font-black opacity-20 mb-1">Contract Value</p>
+                      <div className="flex items-baseline gap-1">
+                          <span className="text-xs opacity-30 font-serif">₹</span>
+                          <p className="text-2xl sm:text-3xl font-serif font-black text-ink tracking-tighter">{(order.price || order.totalAmount || 0).toLocaleString()}</p>
+                      </div>
+                  </div>
+                )}
 
                 <div className="flex-1 sm:flex-initial">
                     {role === 'user' && order.orderStatus === 'pending' && (

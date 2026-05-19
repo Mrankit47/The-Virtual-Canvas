@@ -26,6 +26,13 @@ export default defineType({
       validation: (Rule) => Rule.required().positive(),
     }),
     defineField({
+      name: 'framePrice',
+      title: 'Photo Frame Price',
+      type: 'number',
+      description: 'Optional price for the photo frame of this size. e.g. 150 for A5, 200 for A4, 250 for A3',
+      validation: (Rule) => Rule.min(0),
+    }),
+    defineField({
       name: 'isActive',
       title: 'Active',
       type: 'boolean',

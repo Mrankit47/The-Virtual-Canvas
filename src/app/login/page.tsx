@@ -302,22 +302,7 @@ function LoginContent() {
             </div>
         </div>
 
-        {(role === "user" || isSignUp) && (
-            <div className="flex p-1 bg-ink/5 rounded-2xl mb-8">
-                <button 
-                    onClick={() => { setMethod("password"); setOtpSent(false); }}
-                    className={`flex-1 h-11 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${method === "password" ? "bg-canvas shadow-sm text-ink" : "text-ink/40 hover:text-ink/60"}`}
-                >
-                    <Mail className="w-3.5 h-3.5" /> Email
-                </button>
-                <button 
-                    onClick={() => { setMethod("otp"); setOtpSent(false); }}
-                    className={`flex-1 h-11 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${method === "otp" ? "bg-canvas shadow-sm text-ink" : "text-ink/40 hover:text-ink/60"}`}
-                >
-                    <Smartphone className="w-3.5 h-3.5" /> Mobile
-                </button>
-            </div>
-        )}
+        {/* Method selection (email/mobile toggle) has been temporarily removed to disable mobile OTP auth */}
 
         <div className="min-h-[220px]">
         <AnimatePresence mode="wait">
