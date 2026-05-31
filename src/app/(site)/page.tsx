@@ -36,12 +36,12 @@ export default function Home() {
         {/* Slow scaling, elegant ambient background TVC text */}
         <motion.div 
           style={{ y: y1 }}
-          initial={{ opacity: 0, scale: 0.85, filter: 'blur(15px)' }}
-          animate={!isMounting ? { opacity: 0.05, scale: 1, filter: 'blur(0px)' } : { opacity: 0, scale: 0.85, filter: 'blur(15px)' }}
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={!isMounting ? { opacity: 0.05, scale: 1 } : { opacity: 0, scale: 0.85 }}
           transition={{ duration: 2.2, ease: premiumEase, delay: 0.2 }}
           className="absolute inset-0 pointer-events-none flex items-center justify-center -z-10"
         >
-           <span className="font-serif text-[40vw] leading-none tracking-tighter text-ink whitespace-nowrap opacity-10 blur-[2px]">T V C</span>
+           <span className="font-serif text-[40vw] leading-none tracking-tighter text-ink whitespace-nowrap opacity-10">T V C</span>
         </motion.div>
 
         <motion.div style={{ opacity }} className="relative z-10 w-full">
@@ -65,10 +65,10 @@ export default function Home() {
             ))}
           </h1>
 
-          {/* Subheading Description with smooth slide-up + blur reveal */}
+          {/* Subheading Description with smooth slide-up reveal */}
           <motion.p 
-            initial={{ opacity: 0, y: 15, filter: 'blur(4px)' }}
-            animate={!isMounting ? { opacity: 0.5, y: 0, filter: 'blur(0px)' } : { opacity: 0, y: 15, filter: 'blur(4px)' }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={!isMounting ? { opacity: 0.5, y: 0 } : { opacity: 0, y: 15 }}
             transition={{ delay: 0.6, duration: 1.2, ease: premiumEase }}
             className="font-sans text-[10px] md:text-[11px] uppercase tracking-[0.3em] lg:tracking-[0.4em] max-w-[280px] sm:max-w-sm md:max-w-lg lg:max-w-xl mx-auto mb-10 lg:mb-12 leading-loose text-center text-ink"
           >
