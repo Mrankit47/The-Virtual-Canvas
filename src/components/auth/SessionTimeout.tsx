@@ -12,6 +12,7 @@ export default function SessionTimeout() {
   const { addToast } = useUIStore();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastResetRef = useRef<number>(0);
 
   const handleLogout = useCallback(() => {
     signOut({ callbackUrl: "/login?reason=idle" });
@@ -41,7 +42,14 @@ export default function SessionTimeout() {
       "click",
     ];
 
-    const handleActivity = () => resetTimers();
+    const handleActivity = () => {
+      const now = Date.now();
+      // Throttle: reset timers at most once every 5 seconds (5000ms)
+      if (now - lastResetRef.current > 5000) {
+        lastResetRef.current = now;
+        resetTimers();
+      }
+    };
 
     if (status === "authenticated") {
       events.forEach((event) => window.addEventListener(event, handleActivity));

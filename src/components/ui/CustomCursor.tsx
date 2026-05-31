@@ -1,20 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { motion, useSpring } from 'framer-motion';
 import { useUIStore } from '@/store/useUIStore';
 
 export function CustomCursor() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const cursorType = useUIStore((state) => state.cursorType);
 
   // Smooth springs for cursor trailing effect
-  const cursorX = useSpring(mousePosition.x, { stiffness: 500, damping: 28, mass: 0.5 });
-  const cursorY = useSpring(mousePosition.y, { stiffness: 500, damping: 28, mass: 0.5 });
+  const cursorX = useSpring(0, { stiffness: 500, damping: 28, mass: 0.5 });
+  const cursorY = useSpring(0, { stiffness: 500, damping: 28, mass: 0.5 });
 
   useEffect(() => {
     const updateMousePosition = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
     };

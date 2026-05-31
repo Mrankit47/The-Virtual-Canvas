@@ -15,15 +15,34 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto !important;
   overflow-x: hidden;
+}
+
+/* Recommended Lenis Smooth Scroll Integration */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
 }
 
 body {
   color: var(--foreground);
   background-color: var(--background);
-  /* Subtle Film Grain Noise Texture for Premium Artistic Feel */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+  /* High-Performance Repeating Static PNG Grain Texture (Cached by GPU) */
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAV25fgAAAABlBMVEUAAAD///+l2Z/dAAAAbElEQVR4XqXQQRIAIAgCQeT/j+6gYLI67aEqg5u5wP+6m5mEwL1xU5MQuDNuxqQnIHBx3LSpRz7fXQ0rVjzy+f74FSt+eX13NaxY8cjru6thxYpLXt9dDStWXPL67mr4U6xfPH2/7l4u8MABsHl1y3YAAAAASUVORK5CYII=");
+  background-size: 100px 100px;
+  background-repeat: repeat;
   overflow-x: hidden;
   position: relative;
   width: 100%;
