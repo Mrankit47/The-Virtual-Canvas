@@ -38,6 +38,22 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
     return Array.from(uniqueArtists).sort();
   }, [initialArtworks]);
 
+  // Derived list of unique categories based on active tab type (Photography vs Artwork)
+  const availableCategories = useMemo(() => {
+    const isPhotographyTab = activeTab === 'photography';
+    const relevantArtworks = initialArtworks.filter(art => 
+      isPhotographyTab ? art.isPhotography === true : !art.isPhotography
+    );
+    const uniqueCats = new Set(relevantArtworks.map(art => art.category).filter(Boolean));
+    return Array.from(uniqueCats).sort();
+  }, [initialArtworks, activeTab]);
+
+  // Reset category and artist selections when changing tabs to avoid empty states
+  useEffect(() => {
+    setSelectedCategory('All');
+    setSelectedArtist('All');
+  }, [activeTab]);
+
   // Prevent scrolling when lightbox is open
   useEffect(() => {
     if (selectedImage) {
@@ -52,7 +68,7 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
     return initialArtworks.filter(art => {
       const matchesTab = 
         activeTab === 'all' ? !art.isPhotography :
-        activeTab === 'gallery' ? art.postType === 'gallery' :
+        activeTab === 'gallery' ? (art.postType === 'gallery' && !art.isPhotography) :
         activeTab === 'marketplace' ? art.postType === 'marketplace' :
         activeTab === 'photography' ? art.isPhotography === true : true;
       
@@ -128,7 +144,7 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                         className="w-full sm:w-48 h-12 bg-white border border-ink/10 rounded-2xl pl-12 pr-10 text-xs font-bold focus:outline-none focus:border-ink appearance-none shadow-sm cursor-pointer"
                     >
                         <option value="All">All Categories</option>
-                        {categories.map(c => <option key={c._id} value={c.title}>{c.title}</option>)}
+                        {availableCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
                 </div>
             </div>
