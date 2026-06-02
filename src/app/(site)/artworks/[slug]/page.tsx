@@ -5,6 +5,9 @@ import { optimizedUrl } from '@/lib/utils';
 import { getImageUrl } from '@/lib/imageResolver';
 import { notFound } from 'next/navigation';
 import { OrderButton } from '@/components/artworks/OrderButton';
+import { LikeButton } from '@/components/gallery/LikeButton';
+import { CommentSection } from '@/components/gallery/CommentSection';
+import { CommentCount } from '@/components/gallery/CommentCount';
 
 export const revalidate = 60; // ISR cache regeneration
 
@@ -19,6 +22,8 @@ interface Artwork {
   postType?: string;
   imageUrl?: string;
   isOutOfStock?: boolean;
+  likes?: string[];
+  comments?: any[];
   image: {
     asset: {
       url: string;
@@ -38,6 +43,8 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
     imageUrl,
     postType,
     isOutOfStock,
+    "likes": coalesce(likes, []),
+    "comments": coalesce(comments, []),
     "image": {
       "asset": {
         "url": image.asset->url
@@ -91,9 +98,15 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
             
             {/* Header info */}
             <header className="mb-12 border-b border-ink/10 pb-8 flex flex-col gap-4">
-               <div className="flex flex-col gap-1">
-                  <span className="font-sans text-[10px] uppercase tracking-[0.4em] text-ink opacity-40 font-bold">{artwork.subcategory || 'Original Collection'}</span>
-                  <h1 className="font-serif text-5xl md:text-6xl tracking-tighter text-ink leading-tight">{artwork.title}</h1>
+               <div className="flex justify-between items-start gap-4">
+                  <div className="flex flex-col gap-1">
+                     <span className="font-sans text-[10px] uppercase tracking-[0.4em] text-ink opacity-40 font-bold">{artwork.subcategory || 'Original Collection'}</span>
+                     <h1 className="font-serif text-5xl md:text-6xl tracking-tighter text-ink leading-tight">{artwork.title}</h1>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0 mt-6">
+                     <LikeButton itemId={artwork._id} initialLikes={artwork.likes} />
+                     <CommentCount itemId={artwork._id} initialComments={artwork.comments} />
+                  </div>
                </div>
                {artwork.postType === 'marketplace' && (
                  <div className="mt-6 flex items-baseline gap-1.5 font-serif text-ink">
@@ -112,6 +125,12 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
                <p className="font-sans text-sm md:text-base leading-relaxed text-ink/80 opacity-90 first-letter:text-4xl first-letter:font-serif first-letter:mr-3 first-letter:float-left first-letter:leading-none first-letter:opacity-50">
                   {artwork.description}
                </p>
+            </div>
+
+            {/* Comments Section */}
+            <div className="mb-12 border-t border-ink/10 pt-8 flex flex-col min-h-[300px]">
+               <h3 className="text-[10px] uppercase tracking-widest opacity-40 mb-6 font-bold">Discussion</h3>
+               <CommentSection itemId={artwork._id} initialComments={artwork.comments} />
             </div>
 
             {/* CTA SECTION */}

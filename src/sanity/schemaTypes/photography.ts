@@ -102,6 +102,15 @@ export default defineType({
       initialValue: () => new Date().toISOString(),
       fieldset: 'details',
     }),
+    defineField({
+      name: 'likes',
+      title: 'Liked By (User IDs)',
+      type: 'array',
+      of: [{ type: 'string' }],
+      initialValue: [],
+      readOnly: true,
+      fieldset: 'details',
+    }),
   ],
   preview: {
     select: {

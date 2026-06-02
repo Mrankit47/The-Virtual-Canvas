@@ -42,7 +42,8 @@ export const GET_PHOTOGRAPHY_QUERY = groq`
     imageUrl,
     "image": image.asset->url,
     "imageLqip": image.asset->metadata.lqip,
-    isFeatured
+    isFeatured,
+    "likes": coalesce(likes, [])
   }
 `;
 

@@ -8,6 +8,8 @@ import { optimizedUrl } from '@/lib/utils';
 import { useState, useEffect, useCallback } from 'react';
 import { isValidImageSrc } from '@/lib/safeImage';
 import { ImageErrorBoundary } from '@/components/ui/ImageErrorBoundary';
+import { LikeButton } from './LikeButton';
+import { CommentSection } from './CommentSection';
 
 export default function Lightbox() {
   const { lightboxIsOpen, activeArtwork, artworksContext, closeLightbox, nextArtwork, prevArtwork } = useGalleryStore();
@@ -116,14 +118,22 @@ export default function Lightbox() {
               className="w-full md:w-96 text-canvas flex flex-col gap-4 text-center md:text-left shrink-0 pb-8 md:pb-0 z-10"
             >
               <h2 className="font-serif text-3xl md:text-4xl tracking-tighter">{activeArtwork.title}</h2>
-              <div className="flex gap-3 items-center justify-center md:justify-start text-[10px] md:text-xs uppercase tracking-widest opacity-60">
+              <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start text-[10px] md:text-xs uppercase tracking-widest opacity-60">
                 <span>{typeof activeArtwork.category === 'object' ? activeArtwork.category.title : activeArtwork.category}</span>
                 {activeArtwork.price && <span>• ₹{activeArtwork.price}</span>}
+                <div className="h-3 w-[1px] bg-canvas/30" />
+                <LikeButton itemId={activeArtwork._id} initialLikes={activeArtwork.likes} dark />
               </div>
               {activeArtwork.description && (
                 <p className="text-xs md:text-sm opacity-80 leading-relaxed font-sans md:mt-4 max-h-[20vh] overflow-y-auto pr-2 scrollbar-hide">
                   {activeArtwork.description}
                 </p>
+              )}
+              {!(activeArtwork._type === 'photography' || activeArtwork.isPhotography === true) && (
+                <div className="mt-6 pt-6 border-t border-canvas/10 flex flex-col flex-grow min-h-[300px]">
+                  <h3 className="text-[10px] uppercase tracking-widest opacity-40 mb-4 font-bold text-left">Discussion</h3>
+                  <CommentSection itemId={activeArtwork._id} initialComments={activeArtwork.comments} dark />
+                </div>
               )}
             </motion.div>
           </AnimatePresence>

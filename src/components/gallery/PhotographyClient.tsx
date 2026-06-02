@@ -6,6 +6,7 @@ import { SanityImage } from '@/components/ui/SanityImage';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useGalleryStore } from '@/store/useGalleryStore';
 import { getImageUrl } from '@/lib/imageResolver';
+import { LikeButton } from './LikeButton';
 
 export function PhotographyClient({ photos }: { photos: any[] }) {
   const [mounted, setMounted] = useState(false);
@@ -163,11 +164,16 @@ export function PhotographyClient({ photos }: { photos: any[] }) {
                     
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                     
-                    <div className="absolute bottom-0 left-0 p-5 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none flex flex-col gap-1 ease-[cubic-bezier(0.22,1,0.36,1)]">
-                      <h3 className="font-serif text-xl md:text-2xl tracking-tighter text-[#f5f5f0]">{photo.title}</h3>
-                      <span className="text-[8px] uppercase tracking-[0.2em] text-[#f5f5f0]/60">
-                        {photo.location || (typeof photo.category === 'object' ? photo.category.title : photo.category)}
-                      </span>
+                    <div className="absolute bottom-0 left-0 w-full p-5 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 flex justify-between items-end gap-4 ease-[cubic-bezier(0.22,1,0.36,1)] pointer-events-none z-10">
+                      <div className="flex flex-col gap-1">
+                        <h3 className="font-serif text-xl md:text-2xl tracking-tighter text-[#f5f5f0]">{photo.title}</h3>
+                        <span className="text-[8px] uppercase tracking-[0.2em] text-[#f5f5f0]/60">
+                          {photo.location || (typeof photo.category === 'object' ? photo.category.title : photo.category)}
+                        </span>
+                      </div>
+                      <div className="pointer-events-auto shrink-0 mb-1">
+                        <LikeButton itemId={photo._id} initialLikes={photo.likes} dark />
+                      </div>
                     </div>
                   </motion.div>
                 );

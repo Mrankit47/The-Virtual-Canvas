@@ -20,7 +20,9 @@ export default async function ArtistArtworksPage() {
       "image": image.asset->url,
       "artistName": artist->name,
       "artistId": artist->_id,
-      "category": category->title
+      "category": category->title,
+      "likes": coalesce(likes, []),
+      "comments": coalesce(comments, [])
     }`),
     client.fetch(`*[_type == "category"] | order(order asc, title asc) {
       _id,

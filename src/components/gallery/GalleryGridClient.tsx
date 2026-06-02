@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { optimizedUrl } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getImageUrl } from '@/lib/imageResolver';
+import { LikeButton } from './LikeButton';
+import { CommentCount } from './CommentCount';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +23,8 @@ interface GalleryItem {
   imageUrl?: string;
   image?: string;
   category?: Category; // optional — backward compatible
+  likes?: string[];
+  comments?: any[];
 }
 
 interface GalleryGridClientProps {
@@ -157,7 +161,10 @@ export function GalleryGridClient({ items, categories = [] }: GalleryGridClientP
                       </span>
                     )}
                   </div>
-                  <div className="w-4 h-[1px] bg-ink/30 group-hover:bg-ink group-hover:w-8 transition-all duration-500 flex-shrink-0" />
+                  <div className="flex items-center gap-3.5 flex-shrink-0">
+                    <LikeButton itemId={item._id} initialLikes={item.likes} />
+                    <CommentCount itemId={item._id} initialComments={item.comments} />
+                  </div>
                 </div>
               </motion.div>
             );
