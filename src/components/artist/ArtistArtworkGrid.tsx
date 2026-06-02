@@ -10,6 +10,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getImageUrl } from '@/lib/imageResolver';
 import { optimizedUrl } from '@/lib/utils';
+import { LikeButton } from '@/components/gallery/LikeButton';
+import { CommentCount } from '@/components/gallery/CommentCount';
 
 
 interface ArtistArtworkGridProps {
@@ -228,7 +230,14 @@ export function ArtistArtworkGrid({ initialArtworks, categories }: ArtistArtwork
                               )}
                             </p>
                         )}
-                        <div className="w-4 h-[1px] bg-ink/30 group-hover:bg-ink group-hover:w-8 transition-all duration-500" />
+                        <div className="flex items-center gap-3.5 mt-1">
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <LikeButton itemId={art._id} initialLikes={art.likes} />
+                          </div>
+                          {!art.isPhotography && (
+                            <CommentCount itemId={art._id} initialComments={art.comments} />
+                          )}
+                        </div>
                     </div>
                 </div>
 

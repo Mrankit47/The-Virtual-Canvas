@@ -16,7 +16,9 @@ export default async function GalleryPage() {
       price,
       "image": image.asset->url,
       "imageLqip": image.asset->metadata.lqip,
-      "category": category->{ title, "slug": slug.current }
+      "category": category->{ title, "slug": slug.current },
+      "likes": coalesce(likes, []),
+      "comments": coalesce(comments, [])
     }`),
     client.fetch(`*[_type == "category"] | order(order asc, title asc) {
       title,

@@ -50,6 +50,33 @@ export default {
       to: [{ type: 'category' }],
       description: 'Assign this image to a gallery category (optional)',
     },
+    {
+      name: 'likes',
+      title: 'Liked By (User IDs)',
+      type: 'array',
+      of: [{ type: 'string' }],
+      initialValue: [],
+      readOnly: true,
+    },
+    {
+      name: 'comments',
+      title: 'Comments',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          name: 'comment',
+          fields: [
+            { name: 'userId', type: 'string', title: 'User ID' },
+            { name: 'userName', type: 'string', title: 'User Name' },
+            { name: 'userImage', type: 'string', title: 'User Profile Image' },
+            { name: 'text', type: 'text', title: 'Comment Text' },
+            { name: 'createdAt', type: 'datetime', title: 'Created At' },
+          ],
+        },
+      ],
+      initialValue: [],
+    },
   ],
   preview: {
     select: {

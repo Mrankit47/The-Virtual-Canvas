@@ -7,6 +7,8 @@ interface GalleryState {
   lightboxIsOpen: boolean;
   activeArtwork: any | null; 
   artworksContext: any[]; 
+  likesMap: Record<string, string[]>;
+  commentsMap: Record<string, any[]>;
   setCategory: (category: string) => void;
   setSubcategory: (subcategory: string) => void;
   setSearchQuery: (query: string) => void;
@@ -14,6 +16,8 @@ interface GalleryState {
   closeLightbox: () => void;
   nextArtwork: () => void;
   prevArtwork: () => void;
+  setLikesForItem: (itemId: string, likes: string[]) => void;
+  setCommentsForItem: (itemId: string, comments: any[]) => void;
 }
 
 export const useGalleryStore = create<GalleryState>((set, get) => ({
@@ -23,6 +27,8 @@ export const useGalleryStore = create<GalleryState>((set, get) => ({
   lightboxIsOpen: false,
   activeArtwork: null,
   artworksContext: [],
+  likesMap: {},
+  commentsMap: {},
   
   setCategory: (category) => set({ selectedCategory: category, selectedSubcategory: 'All' }),
   setSubcategory: (subcategory) => set({ selectedSubcategory: subcategory }),
@@ -51,5 +57,13 @@ export const useGalleryStore = create<GalleryState>((set, get) => ({
     } else {
       set({ activeArtwork: artworksContext[artworksContext.length - 1] }); 
     }
-  }
+  },
+
+  setLikesForItem: (itemId, likes) => set((state) => ({
+    likesMap: { ...state.likesMap, [itemId]: likes }
+  })),
+
+  setCommentsForItem: (itemId, comments) => set((state) => ({
+    commentsMap: { ...state.commentsMap, [itemId]: comments }
+  }))
 }));

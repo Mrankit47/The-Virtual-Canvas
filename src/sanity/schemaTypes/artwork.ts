@@ -200,6 +200,35 @@ export default defineType({
       initialValue: false,
       fieldset: 'artistInfo',
     }),
+    defineField({
+      name: 'likes',
+      title: 'Liked By (User IDs)',
+      type: 'array',
+      of: [{ type: 'string' }],
+      initialValue: [],
+      readOnly: true,
+      fieldset: 'details',
+    }),
+    defineField({
+      name: 'comments',
+      title: 'Comments',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          name: 'comment',
+          fields: [
+            { name: 'userId', type: 'string', title: 'User ID' },
+            { name: 'userName', type: 'string', title: 'User Name' },
+            { name: 'userImage', type: 'string', title: 'User Profile Image' },
+            { name: 'text', type: 'text', title: 'Comment Text' },
+            { name: 'createdAt', type: 'datetime', title: 'Created At' },
+          ],
+        },
+      ],
+      initialValue: [],
+      fieldset: 'details',
+    }),
   ],
   preview: {
     select: {
