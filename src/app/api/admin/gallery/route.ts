@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
+import { triggerArtworkAutomation } from "@/services/aiAutomation";
 
 const backendClient = createClient({
   projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
@@ -53,6 +54,14 @@ export async function POST(request: Request) {
     } else {
       if (!imageUrl) return NextResponse.json({ error: "Image is required" }, { status: 400 });
       const result = await backendClient.create(doc);
+      
+      console.log(`✅ [Gallery Upload] Gallery upload success: ${result.title} (ID: ${result._id})`);
+      
+      // Trigger AI platform ingestion in background (non-blocking)
+      triggerArtworkAutomation(result.title, result.imageUrl || imageUrl).catch((error) => {
+        console.error("❌ [Gallery Upload] Background AI trigger failed:", error);
+      });
+
       return NextResponse.json({ success: true, item: result });
     }
   } catch (error: any) {
