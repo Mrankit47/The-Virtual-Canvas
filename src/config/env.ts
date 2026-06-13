@@ -17,6 +17,8 @@ const envSchema = z.object({
   EMAIL_PORT: z.coerce.number().default(465),
   NEXTAUTH_SECRET: z.string().optional().transform(v => v?.trim()),
   NEXTAUTH_URL: z.string().optional().transform(v => v?.trim()),
+  AI_PLATFORM_URL: z.string().optional().transform(v => v?.trim()),
+  AI_WEBHOOK_KEY: z.string().optional().transform(v => v?.trim()),
 });
 
 const _env = envSchema.safeParse({
@@ -34,6 +36,8 @@ const _env = envSchema.safeParse({
   EMAIL_PORT: process.env.EMAIL_PORT,
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+  AI_PLATFORM_URL: process.env.AI_PLATFORM_URL,
+  AI_WEBHOOK_KEY: process.env.AI_WEBHOOK_KEY,
 });
 
 if (!_env.success) {
