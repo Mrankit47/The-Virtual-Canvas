@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Plus, Trash2, Loader2, Image as ImageIcon, CheckCircle2, X, Pencil, Eye, Star } from 'lucide-react';
+import { Plus, Trash2, Loader2, Image as ImageIcon, CheckCircle2, X, Pencil, Eye, Star, Sparkles } from 'lucide-react';
 import { useUIStore } from '@/store/useUIStore';
 import { uploadToCloudinary } from '@/lib/cloudinaryUpload';
 import { getImageUrl } from '@/lib/imageResolver';
@@ -15,6 +15,7 @@ export default function AdminArtworksPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -123,6 +124,60 @@ export default function AdminArtworksPage() {
     } catch (err: any) {
       addToast(err.message || "Failed to process request", "error");
     } finally { setUploading(false); }
+  };
+
+  const handleAIFill = async () => {
+    if (!formData.image) {
+      addToast("Please upload an image first to use AI Auto-Fill", "error");
+      return;
+    }
+
+    try {
+      setIsAnalyzing(true);
+      addToast("Analyzing image with AI...", "info");
+
+      const reader = new FileReader();
+      reader.readAsDataURL(formData.image);
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        try {
+          const res = await fetch('/api/admin/analyze-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              imageBase64: base64, 
+              mimeType: formData.image?.type 
+            }),
+          });
+          
+          if (!res.ok) throw new Error("Failed to analyze image");
+          
+          const data = await res.json();
+          
+          setFormData(prev => ({
+            ...prev,
+            title: prev.title || data.title || '',
+            description: prev.description || data.description || '',
+            tags: prev.tags || data.tags || '',
+            medium: prev.medium || data.medium || '',
+            alt: prev.alt || data.alt || prev.title || data.title || ''
+          }));
+          
+          addToast("Fields auto-filled successfully!", "success");
+        } catch (error: any) {
+          addToast(error.message, "error");
+        } finally {
+          setIsAnalyzing(false);
+        }
+      };
+      reader.onerror = () => {
+        addToast("Failed to read image file", "error");
+        setIsAnalyzing(false);
+      }
+    } catch (err: any) {
+      addToast(err.message, "error");
+      setIsAnalyzing(false);
+    }
   };
 
   const openEditModal = (art: any) => {
@@ -313,9 +368,20 @@ export default function AdminArtworksPage() {
 
               {/* 2. Media & Asset */}
               <div className="space-y-6 pt-10 border-t border-ink/5">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1.5 h-1.5 bg-ink rounded-full" />
-                  <h4 className="text-xs uppercase tracking-[0.2em] font-black text-ink">Media & Asset</h4>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-ink rounded-full" />
+                    <h4 className="text-xs uppercase tracking-[0.2em] font-black text-ink">Media & Asset</h4>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={handleAIFill}
+                    disabled={isAnalyzing || !formData.image}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isAnalyzing ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    AI Auto-Fill
+                  </button>
                 </div>
                 
                 <div className="space-y-4">
