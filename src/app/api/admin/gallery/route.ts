@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       console.log(`✅ [Gallery Upload] Gallery upload success: ${result.title} (ID: ${result._id})`);
       
       // Trigger AI platform ingestion in background (non-blocking)
-      triggerArtworkAutomation(result.title, result.imageUrl || imageUrl).catch((error) => {
+      triggerArtworkAutomation(result.title, result.imageUrl || imageUrl, 'gallery').catch((error) => {
         console.error("❌ [Gallery Upload] Background AI trigger failed:", error);
       });
 

@@ -3,7 +3,8 @@ import { env } from '@/config/env';
 interface IngestionPayload {
   title: string;
   image_url: string;
-  source: 'gallery';
+  category: 'gallery' | 'photography';
+  source: 'website';
 }
 
 /**
@@ -12,8 +13,13 @@ interface IngestionPayload {
  * 
  * @param title The title of the artwork
  * @param imageUrl The public URL of the uploaded image
+ * @param category The category/section of the upload (defaults to 'gallery')
  */
-export async function triggerArtworkAutomation(title: string, imageUrl: string): Promise<void> {
+export async function triggerArtworkAutomation(
+  title: string,
+  imageUrl: string,
+  category: 'gallery' | 'photography' = 'gallery'
+): Promise<void> {
   const platformUrl = env.AI_PLATFORM_URL;
   const apiKey = env.AI_WEBHOOK_KEY;
 
@@ -26,7 +32,8 @@ export async function triggerArtworkAutomation(title: string, imageUrl: string):
   const body: IngestionPayload = {
     title,
     image_url: imageUrl,
-    source: 'gallery',
+    category,
+    source: 'website',
   };
 
   console.log(`[AI Trigger] AI trigger started: title="${title}", image_url="${imageUrl}"`);
