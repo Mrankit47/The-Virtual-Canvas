@@ -130,7 +130,8 @@ export async function POST(request: Request) {
         const publicUrl = result.imageUrl || imageUrl;
         if (publicUrl) {
           // Trigger AI platform ingestion in background (non-blocking)
-          triggerArtworkAutomation(result.title, publicUrl).catch((error) => {
+          const category = result.isPhotography ? 'photography' : 'gallery';
+          triggerArtworkAutomation(result.title, publicUrl, category).catch((error) => {
             console.error("❌ [Gallery Upload] Background AI trigger failed:", error);
           });
         }
