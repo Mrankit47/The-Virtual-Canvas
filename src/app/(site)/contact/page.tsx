@@ -7,6 +7,44 @@ import { useForm } from 'react-hook-form';
 import { Loader2, ArrowUpRight, Send } from 'lucide-react';
 import { useState } from 'react';
 import { useUIStore } from '@/store/useUIStore';
+import JsonLd from '@/components/seo/JsonLd';
+
+const contactSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "ContactPage",
+      "@id": "https://thevirtualcanvas.com/contact#webpage",
+      "url": "https://thevirtualcanvas.com/contact",
+      "name": "Contact Studio | The Virtual Canvas",
+      "description": "Start a dialogue for custom artwork commissions, collaborations, or business inquiries with The Virtual Canvas studio.",
+      "isPartOf": {
+        "@id": "https://thevirtualcanvas.com/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://thevirtualcanvas.com/contact/#breadcrumb"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://thevirtualcanvas.com/contact/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://thevirtualcanvas.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Contact",
+          "item": "https://thevirtualcanvas.com/contact"
+        }
+      ]
+    }
+  ]
+};
 
 interface ContactFormValues {
   name: string;
@@ -47,6 +85,7 @@ export default function ContactPage() {
 
   return (
     <PageTransition>
+      <JsonLd schema={contactSchema} />
       <main className="min-h-screen w-full relative pt-24 md:pt-36 bg-canvas selection:bg-ink selection:text-canvas">
         <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 grid grid-cols-1 lg:grid-cols-2 gap-20 lg:gap-32 items-start pb-32 md:pb-48">
           

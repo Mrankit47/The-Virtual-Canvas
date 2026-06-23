@@ -8,6 +8,44 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUIStore } from '@/store/useUIStore';
 import { PageTransition } from '@/components/layout/PageTransition';
+import JsonLd from '@/components/seo/JsonLd';
+
+const cartSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://thevirtualcanvas.com/cart#webpage",
+      "url": "https://thevirtualcanvas.com/cart",
+      "name": "Shopping Cart | The Virtual Canvas",
+      "description": "View and manage your curated selection of artworks in your shopping cart before proceeding to checkout.",
+      "isPartOf": {
+        "@id": "https://thevirtualcanvas.com/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://thevirtualcanvas.com/cart/#breadcrumb"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://thevirtualcanvas.com/cart/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://thevirtualcanvas.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Cart",
+          "item": "https://thevirtualcanvas.com/cart"
+        }
+      ]
+    }
+  ]
+};
 
 export default function CartPage() {
   const { items, removeFromCart, total, itemCount } = useCart();
@@ -59,6 +97,7 @@ export default function CartPage() {
   if (itemCount === 0) {
     return (
       <PageTransition>
+        <JsonLd schema={cartSchema} />
         <main className="min-h-[85vh] flex flex-col items-center justify-center px-6 pt-32 pb-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -88,6 +127,7 @@ export default function CartPage() {
 
   return (
     <PageTransition>
+      <JsonLd schema={cartSchema} />
       <main className="min-h-screen pt-24 md:pt-40 pb-24 px-4 sm:px-6 md:px-12 max-w-[1200px] mx-auto">
         <header className="mb-10 md:mb-16">
           <p className="font-sans text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-ink/40 mb-2 md:mb-3">Your Collection</p>

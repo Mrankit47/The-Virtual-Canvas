@@ -1,10 +1,49 @@
 import { PageTransition } from '@/components/layout/PageTransition';
 import Image from 'next/image';
 import Link from 'next/link';
+import JsonLd from '@/components/seo/JsonLd';
+
+const aboutSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "AboutPage",
+      "@id": "https://thevirtualcanvas.com/about#webpage",
+      "url": "https://thevirtualcanvas.com/about",
+      "name": "Founding Vision & Philosophy | The Virtual Canvas",
+      "description": "Learn about the founding vision and artistic philosophy of The Virtual Canvas. Bridging traditional mastery with digital exploration through a specialized network of master artists.",
+      "isPartOf": {
+        "@id": "https://thevirtualcanvas.com/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://thevirtualcanvas.com/about/#breadcrumb"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://thevirtualcanvas.com/about/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://thevirtualcanvas.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "About",
+          "item": "https://thevirtualcanvas.com/about"
+        }
+      ]
+    }
+  ]
+};
 
 export default function AboutPage() {
   return (
     <PageTransition>
+      <JsonLd schema={aboutSchema} />
       <main className="min-h-screen w-full relative pt-24 md:pt-36 bg-canvas selection:bg-ink selection:text-canvas">
         {/* ── Hero Section ────────────────────────────────────────────────── */}
         <section className="px-6 md:px-12 lg:px-20 mb-20 md:mb-40">

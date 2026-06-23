@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { optimizedUrl } from '@/lib/utils';
 import { getImageUrl } from '@/lib/imageResolver';
 import Link from 'next/link';
+import JsonLd from '@/components/seo/JsonLd';
 
 export const revalidate = 60; // ISR cache regeneration
 
@@ -40,8 +41,66 @@ export default async function ArtworksPage() {
     }
   }`);
 
+  const artworksSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://thevirtualcanvas.com/artworks#webpage",
+        "url": "https://thevirtualcanvas.com/artworks",
+        "name": "Masterpieces Catalog | The Virtual Canvas",
+        "description": "Browse our curated selection of original artworks available for acquisition. Certified premium sketches, paintings, and drawings.",
+        "isPartOf": {
+          "@id": "https://thevirtualcanvas.com/#website"
+        },
+        "breadcrumb": {
+          "@id": "https://thevirtualcanvas.com/artworks/#breadcrumb"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://thevirtualcanvas.com/artworks/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://thevirtualcanvas.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Artworks",
+            "item": "https://thevirtualcanvas.com/artworks"
+          }
+        ]
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "The Virtual Canvas Artworks Collection",
+        "itemListElement": artworks.map((item, index) => ({
+          "@type": "Offer",
+          "position": index + 1,
+          "itemOffered": {
+            "@type": "Product",
+            "name": item.title,
+            "url": `https://thevirtualcanvas.com/artworks/${item.slug.current}`,
+            "image": item.image?.asset?.url || item.imageUrl || '',
+            "offers": {
+              "@type": "Offer",
+              "price": item.price,
+              "priceCurrency": "INR",
+              "availability": item.isOutOfStock ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"
+            }
+          }
+        }))
+      }
+    ]
+  };
+
   return (
     <PageTransition>
+      <JsonLd schema={artworksSchema} />
       <main className="min-h-screen w-full relative pt-40 px-6 md:px-12 max-w-[1600px] mx-auto pb-24 font-sans">
         
         <header className="mb-16 md:mb-32 flex flex-col items-center text-center max-w-[90%] sm:max-w-xl md:max-w-2xl lg:max-w-4xl mx-auto">

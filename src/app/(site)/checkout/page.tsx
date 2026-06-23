@@ -8,6 +8,44 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { env } from '@/config/env';
 import Link from 'next/link';
+import JsonLd from '@/components/seo/JsonLd';
+
+const checkoutSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://thevirtualcanvas.com/checkout#webpage",
+      "url": "https://thevirtualcanvas.com/checkout",
+      "name": "Secure Checkout | The Virtual Canvas",
+      "description": "Securely checkout your ordered artworks via Razorpay on The Virtual Canvas.",
+      "isPartOf": {
+        "@id": "https://thevirtualcanvas.com/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://thevirtualcanvas.com/checkout/#breadcrumb"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://thevirtualcanvas.com/checkout/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://thevirtualcanvas.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Checkout",
+          "item": "https://thevirtualcanvas.com/checkout"
+        }
+      ]
+    }
+  ]
+};
 
 function CheckoutInner() {
   const { items, itemCount, clearCart } = useCart();
@@ -501,6 +539,7 @@ function CheckoutInner() {
 export default function CheckoutPage() {
   return (
     <PageTransition>
+      <JsonLd schema={checkoutSchema} />
       <Suspense fallback={<div className="min-h-screen pt-40 flex items-center justify-center"><p className="text-ink/40 text-xs uppercase tracking-widest">Loading checkout...</p></div>}>
         <CheckoutInner />
       </Suspense>
