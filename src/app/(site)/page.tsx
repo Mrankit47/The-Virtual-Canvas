@@ -6,6 +6,107 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import ArtLoader from '@/components/ui/ArtLoader';
+import JsonLd from '@/components/seo/JsonLd';
+
+const homeSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://thevirtualcanvas.com/#organization",
+      "name": "The Virtual Canvas",
+      "url": "https://thevirtualcanvas.com/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://thevirtualcanvas.com/favicon-32x32.png",
+        "width": 32,
+        "height": 32
+      },
+      "description": "Premium digital art portfolio and custom artwork ordering platform by professional artists. Explore pencil sketches, oil paintings, and fine photography.",
+      "sameAs": [
+        "https://www.instagram.com/art_by_ankiit",
+        "https://youtube.com/@artbyankiit",
+        "https://whatsapp.com/channel/0029VbBOESkEAKWIxItclO10"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "support@thevirtualcanvas.com",
+        "url": "https://thevirtualcanvas.com/contact"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://thevirtualcanvas.com/#website",
+      "url": "https://thevirtualcanvas.com/",
+      "name": "The Virtual Canvas",
+      "publisher": {
+        "@id": "https://thevirtualcanvas.com/#organization"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://thevirtualcanvas.com/#webpage",
+      "url": "https://thevirtualcanvas.com/",
+      "name": "The Virtual Canvas | Fine Art Portfolio & Custom Artwork",
+      "isPartOf": {
+        "@id": "https://thevirtualcanvas.com/#website"
+      },
+      "about": {
+        "@id": "https://thevirtualcanvas.com/#organization"
+      },
+      "mainEntity": {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What services does The Virtual Canvas offer?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The Virtual Canvas offers premium custom artwork commissions (including pencil sketches, charcoal drawings, acrylics, and oil paintings), an online fine art gallery, and a curated fine photography showcase."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How can I order custom artwork?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You can configure your custom artwork on our 'Order Now' page, where you choose the style (sketch, watercolor, acrylic, oil, etc.), paper size, frame, and upload a reference image. We will match your request with a specialized artist to create your masterpiece."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do you offer international shipping?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, we ship our certified art archives globally with secure packaging to ensure your custom commission or purchased gallery piece arrives in pristine condition."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How long does a custom painting or sketch commission take?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Each piece is hand-crafted with uncompromising fidelity. Typically, custom commissions take between 1 to 4 weeks depending on the complexity, size, and selected medium, followed by global shipping."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://thevirtualcanvas.com/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://thevirtualcanvas.com/"
+        }
+      ]
+    }
+  ]
+};
 
 export default function Home() {
   const { data: session } = useSession();
@@ -29,6 +130,7 @@ export default function Home() {
 
   return (
     <>
+      <JsonLd schema={homeSchema} />
       <ArtLoader isVisible={isMounting} variant="fullscreen" size="lg" />
       <PageTransition>
         <main className="flex flex-col items-center justify-center min-h-[90vh] px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-20 lg:py-24 xl:py-32 text-center select-none relative overflow-hidden">

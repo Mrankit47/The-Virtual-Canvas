@@ -5,6 +5,44 @@ import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { PageTransition } from '@/components/layout/PageTransition';
+import JsonLd from '@/components/seo/JsonLd';
+
+const successSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://thevirtualcanvas.com/cart-success#webpage",
+      "url": "https://thevirtualcanvas.com/cart-success",
+      "name": "Order Confirmed | The Virtual Canvas",
+      "description": "Your artwork order has been confirmed successfully.",
+      "isPartOf": {
+        "@id": "https://thevirtualcanvas.com/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://thevirtualcanvas.com/cart-success/#breadcrumb"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://thevirtualcanvas.com/cart-success/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://thevirtualcanvas.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Cart Success",
+          "item": "https://thevirtualcanvas.com/cart-success"
+        }
+      ]
+    }
+  ]
+};
 
 function SuccessInner() {
   const searchParams = useSearchParams();
@@ -83,6 +121,7 @@ function SuccessInner() {
 export default function CartSuccessPage() {
   return (
     <PageTransition>
+      <JsonLd schema={successSchema} />
       <Suspense fallback={<div className="min-h-screen pt-40 flex items-center justify-center"><p className="text-ink/40 text-xs uppercase tracking-widest">Loading...</p></div>}>
         <SuccessInner />
       </Suspense>

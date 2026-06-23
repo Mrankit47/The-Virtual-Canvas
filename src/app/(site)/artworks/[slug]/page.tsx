@@ -8,6 +8,7 @@ import { OrderButton } from '@/components/artworks/OrderButton';
 import { LikeButton } from '@/components/gallery/LikeButton';
 import { CommentSection } from '@/components/gallery/CommentSection';
 import { CommentCount } from '@/components/gallery/CommentCount';
+import JsonLd from '@/components/seo/JsonLd';
 
 export const revalidate = 60; // ISR cache regeneration
 
@@ -54,8 +55,94 @@ export default async function ArtworkDetail({ params }: { params: { slug: string
 
   if (!artwork) notFound();
 
+  const imageUrl = artwork.image?.asset?.url || artwork.imageUrl || '';
+  const itemUrl = `https://thevirtualcanvas.com/artworks/${encodeURIComponent(params.slug)}`;
+
+  const detailSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Product",
+        "@id": `${itemUrl}#product`,
+        "name": artwork.title,
+        "description": artwork.description,
+        "image": imageUrl,
+        "url": itemUrl,
+        "offers": {
+          "@type": "Offer",
+          "price": artwork.price,
+          "priceCurrency": "INR",
+          "url": itemUrl,
+          "availability": artwork.isOutOfStock ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "price": artwork.price,
+            "priceCurrency": "INR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "VisualArtwork",
+        "@id": `${itemUrl}#artwork`,
+        "name": artwork.title,
+        "description": artwork.description,
+        "image": imageUrl,
+        "artMedium": artwork.medium || "Certified Archive Medium",
+        "artform": artwork.subcategory || "Artwork",
+        "width": artwork.dimensions ? {
+          "@type": "QuantitativeValue",
+          "value": artwork.dimensions
+        } : undefined,
+        "creator": {
+          "@type": "Organization",
+          "name": "The Virtual Canvas",
+          "url": "https://thevirtualcanvas.com/"
+        }
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${itemUrl}#webpage`,
+        "url": itemUrl,
+        "name": `${artwork.title} | The Virtual Canvas`,
+        "description": artwork.description,
+        "isPartOf": {
+          "@id": "https://thevirtualcanvas.com/#website"
+        },
+        "breadcrumb": {
+          "@id": `${itemUrl}#breadcrumb`
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${itemUrl}#breadcrumb`,
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://thevirtualcanvas.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Artworks",
+            "item": "https://thevirtualcanvas.com/artworks"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": artwork.title,
+            "item": itemUrl
+          }
+        ]
+      }
+    ]
+  };
+
   return (
     <PageTransition>
+      <JsonLd schema={detailSchema} />
       <main className="min-h-screen pt-40 md:pt-48 pb-24 px-6 md:px-12 max-w-[1400px] mx-auto overflow-hidden">
         
         <div className="flex flex-col lg:flex-row gap-16 lg:gap-24">

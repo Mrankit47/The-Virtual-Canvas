@@ -1,8 +1,47 @@
 import React from 'react';
+import JsonLd from '@/components/seo/JsonLd';
+
+const refundSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://thevirtualcanvas.com/refund-policy#webpage",
+      "url": "https://thevirtualcanvas.com/refund-policy",
+      "name": "Refund & Cancellation Policy | The Virtual Canvas",
+      "description": "Refund and cancellation guidelines for custom artwork orders and purchased gallery pieces on The Virtual Canvas.",
+      "isPartOf": {
+        "@id": "https://thevirtualcanvas.com/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://thevirtualcanvas.com/refund-policy/#breadcrumb"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://thevirtualcanvas.com/refund-policy/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://thevirtualcanvas.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Refund Protocol",
+          "item": "https://thevirtualcanvas.com/refund-policy"
+        }
+      ]
+    }
+  ]
+};
 
 export default function RefundPolicyPage() {
   return (
     <section className="min-h-screen flex items-center justify-center py-20 px-6 bg-canvas">
+      <JsonLd schema={refundSchema} />
       <div className="max-w-2xl w-full">
         <h1 className="text-4xl font-semibold mb-2 text-ink">Refund & Cancellation Policy</h1>
         <p className="text-sm text-gray-400 mb-8">Last updated: 2026</p>

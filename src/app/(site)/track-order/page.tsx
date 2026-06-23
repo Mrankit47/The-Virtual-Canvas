@@ -5,8 +5,45 @@ import { PageTransition } from '@/components/layout/PageTransition';
 import { getOrderTracking } from '@/app/actions/trackOrder';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-
 import { env } from '@/config/env';
+import JsonLd from '@/components/seo/JsonLd';
+
+const trackOrderSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://thevirtualcanvas.com/track-order#webpage",
+      "url": "https://thevirtualcanvas.com/track-order",
+      "name": "Track Order Production Status | The Virtual Canvas",
+      "description": "Track the production status, timeline, and delivery status of your custom sketch or painting commission from The Virtual Canvas.",
+      "isPartOf": {
+        "@id": "https://thevirtualcanvas.com/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://thevirtualcanvas.com/track-order/#breadcrumb"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://thevirtualcanvas.com/track-order/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://thevirtualcanvas.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Track Order",
+          "item": "https://thevirtualcanvas.com/track-order"
+        }
+      ]
+    }
+  ]
+};
 
 function TrackOrderInner() {
   const searchParams = useSearchParams();
@@ -320,6 +357,7 @@ function TrackOrderInner() {
 export default function TrackOrderPage() {
   return (
     <PageTransition>
+      <JsonLd schema={trackOrderSchema} />
       <Suspense fallback={<div className="pt-40 text-center uppercase tracking-widest text-[10px] opacity-40">Loading...</div>}>
          <TrackOrderInner />
       </Suspense>
