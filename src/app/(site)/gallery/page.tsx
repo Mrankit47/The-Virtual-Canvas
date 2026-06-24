@@ -1,8 +1,15 @@
+import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { ArtCarousel3D } from '@/components/ui/ArtCarousel3D';
 import { GalleryGridClient } from '@/components/gallery/GalleryGridClient';
 import JsonLd from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Art Gallery Exhibition',
+  description: 'An immersive digital exhibition of sketches, paintings, drawings, and digital art portfolios. Explore high-fidelity visual masterpieces.',
+};
+
 
 export const revalidate = 60; // ISR cache regeneration
 

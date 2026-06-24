@@ -1,5 +1,12 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import JsonLd from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Terms & Conditions',
+  description: 'Terms and conditions of The Virtual Canvas. Rules, guidelines, and intellectual property terms for users and artists.',
+};
+
 
 const termsSchema = {
   "@context": "https://schema.org",

@@ -1,5 +1,12 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import JsonLd from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Privacy policy of The Virtual Canvas. Learn how we handle your personal data and order information securely.',
+};
+
 
 const privacySchema = {
   "@context": "https://schema.org",

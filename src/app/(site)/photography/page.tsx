@@ -1,8 +1,15 @@
+import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
 import { GET_PHOTOGRAPHY_QUERY } from '@/sanity/queries';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { PhotographyClient } from '@/components/gallery/PhotographyClient';
 import JsonLd from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Fine Photography Showcase',
+  description: 'Explore the fine photography collection at The Virtual Canvas. Captured moments frozen in time with unique perspective and high visual fidelity.',
+};
+
 
 export const revalidate = 60;
 

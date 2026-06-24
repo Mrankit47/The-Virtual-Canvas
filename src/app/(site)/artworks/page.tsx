@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
 import { PageTransition } from '@/components/layout/PageTransition';
 import Image from 'next/image';
@@ -5,6 +6,12 @@ import { optimizedUrl } from '@/lib/utils';
 import { getImageUrl } from '@/lib/imageResolver';
 import Link from 'next/link';
 import JsonLd from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Masterpieces Catalog',
+  description: 'Browse our curated selection of original artworks available for acquisition. Certified premium sketches, paintings, and drawings.',
+};
+
 
 export const revalidate = 60; // ISR cache regeneration
 

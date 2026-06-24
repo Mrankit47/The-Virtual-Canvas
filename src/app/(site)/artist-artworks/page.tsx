@@ -1,7 +1,14 @@
+import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { ArtistArtworkGrid } from '@/components/artist/ArtistArtworkGrid';
 import JsonLd from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Artist Showcase Catalog',
+  description: 'Discover unique masterpieces from our creator community. Browse original sketches and paintings by independent master artists.',
+};
+
 
 export const revalidate = 0; // Fresh data for marketplace
 

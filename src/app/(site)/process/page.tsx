@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { ProcessTimeline } from '@/components/process/ProcessTimeline';
@@ -5,6 +6,12 @@ import { ProcessComparison } from '@/components/process/ProcessComparison';
 import { GET_PROCESS_STEPS_QUERY } from '@/sanity/queries';
 import { getImageUrl } from '@/lib/imageResolver';
 import JsonLd from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Our Creation Process',
+  description: 'Witness the step-by-step evolution of custom sketches and paintings. Learn how we bridge traditional master techniques with digital fidelity.',
+};
+
 
 export const revalidate = 60; // ISR cache regeneration
 
