@@ -328,7 +328,7 @@ export default function CommissionForm({ initialStyles }: CommissionFormProps) {
                  <div className="w-14 h-14 sm:w-16 sm:h-16 border border-ink/20 flex items-center justify-center mb-6 bg-white/50 backdrop-blur-sm shadow-sm">
                    <span className="font-serif text-xl sm:text-2xl tracking-[0.1em] text-ink opacity-80">TVC</span>
                  </div>
-                 <h1 className="font-serif text-2xl sm:text-3xl md:text-5xl tracking-[0.2em] mb-4 text-ink uppercase">The Virtual Canvas</h1>
+                 <p className="font-serif text-2xl sm:text-3xl md:text-5xl tracking-[0.2em] mb-4 text-ink uppercase font-bold">The Virtual Canvas</p>
                  <p className="font-sans text-[8px] sm:text-[10px] md:text-xs uppercase tracking-[0.4em] opacity-50">Official Order Receipt</p>
                </div>
 

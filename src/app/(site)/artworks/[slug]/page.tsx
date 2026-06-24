@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
 import { PageTransition } from '@/components/layout/PageTransition';
 import Image from 'next/image';
@@ -11,6 +12,43 @@ import { CommentCount } from '@/components/gallery/CommentCount';
 import JsonLd from '@/components/seo/JsonLd';
 
 export const revalidate = 60; // ISR cache regeneration
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  try {
+    const artwork = await client.fetch(
+      `*[_type == "artwork" && slug.current == $slug][0] {
+        title,
+        description,
+        "imageUrl": image.asset->url
+      }`,
+      { slug: decodeURIComponent(params.slug) }
+    );
+
+    if (!artwork) return {};
+
+    const fallbackDescription = `Explore ${artwork.title} at The Virtual Canvas.`;
+
+    return {
+      title: artwork.title,
+      description: artwork.description || fallbackDescription,
+      openGraph: {
+        title: `${artwork.title} | The Virtual Canvas`,
+        description: artwork.description || fallbackDescription,
+        images: artwork.imageUrl ? [{ url: artwork.imageUrl }] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${artwork.title} | The Virtual Canvas`,
+        description: artwork.description || fallbackDescription,
+        images: artwork.imageUrl ? [artwork.imageUrl] : [],
+      },
+    };
+  } catch (error) {
+    console.error('generateMetadata error:', error);
+    return {};
+  }
+}
+
 
 interface Artwork {
   _id: string;

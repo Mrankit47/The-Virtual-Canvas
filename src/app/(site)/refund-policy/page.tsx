@@ -1,5 +1,12 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import JsonLd from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Refund & Cancellation Policy',
+  description: 'Refund and cancellation guidelines for custom artwork orders and purchased gallery pieces on The Virtual Canvas.',
+};
+
 
 const refundSchema = {
   "@context": "https://schema.org",

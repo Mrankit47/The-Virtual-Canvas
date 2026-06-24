@@ -1,5 +1,12 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import JsonLd from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Shipping & Delivery Policy',
+  description: 'Global logistics and shipping details for custom sketch and painting orders from The Virtual Canvas.',
+};
+
 
 const shippingSchema = {
   "@context": "https://schema.org",

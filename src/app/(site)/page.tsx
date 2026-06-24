@@ -113,8 +113,8 @@ export default function Home() {
   const [isMounting, setIsMounting] = useState(true);
   
   useEffect(() => {
-    // Artificial delay for high-end entrance feel
-    const timer = setTimeout(() => setIsMounting(false), 2200);
+    // Artificial delay for high-end entrance feel - optimized for performance/SEO
+    const timer = setTimeout(() => setIsMounting(false), 600);
     return () => clearTimeout(timer);
   }, []);
 

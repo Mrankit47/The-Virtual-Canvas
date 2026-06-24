@@ -1,7 +1,14 @@
+import type { Metadata } from 'next';
 import { PageTransition } from '@/components/layout/PageTransition';
 import Image from 'next/image';
 import Link from 'next/link';
 import JsonLd from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'Founding Vision & Philosophy',
+  description: 'Learn about the founding vision and artistic philosophy of The Virtual Canvas. Bridging traditional mastery with digital exploration through a specialized network of master artists.',
+};
+
 
 const aboutSchema = {
   "@context": "https://schema.org",
