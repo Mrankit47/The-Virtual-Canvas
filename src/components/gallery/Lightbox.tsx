@@ -119,7 +119,7 @@ export default function Lightbox() {
             >
               <h2 className="font-serif text-3xl md:text-4xl tracking-tighter">{activeArtwork.title}</h2>
               <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start text-[10px] md:text-xs uppercase tracking-widest opacity-60">
-                <span>{typeof activeArtwork.category === 'object' ? activeArtwork.category.title : activeArtwork.category}</span>
+                <span>{(activeArtwork.category && typeof activeArtwork.category === 'object') ? activeArtwork.category.title : activeArtwork.category}</span>
                 {activeArtwork.price && <span>• ₹{activeArtwork.price}</span>}
                 <div className="h-3 w-[1px] bg-canvas/30" />
                 <LikeButton itemId={activeArtwork._id} initialLikes={activeArtwork.likes} dark />
