@@ -18,13 +18,13 @@ export function PhotographyClient({ photos }: { photos: any[] }) {
   const uniqueCategories = Array.from(new Set(
     photos
       .filter(p => !!p.category)
-      .map(p => typeof p.category === 'object' ? p.category.title : p.category)
+      .map(p => (p.category && typeof p.category === 'object') ? p.category.title : p.category)
   )).sort() as string[];
 
   const filteredPhotos = activeCategory === 'all' 
     ? photos 
     : photos.filter(p => {
-        const catValue = typeof p.category === 'object' ? p.category.title : p.category;
+        const catValue = (p.category && typeof p.category === 'object') ? p.category.title : p.category;
         return catValue === activeCategory;
       });
 
@@ -168,7 +168,7 @@ export function PhotographyClient({ photos }: { photos: any[] }) {
                       <div className="flex flex-col gap-1">
                         <h3 className="font-serif text-xl md:text-2xl tracking-tighter text-[#f5f5f0]">{photo.title}</h3>
                         <span className="text-[8px] uppercase tracking-[0.2em] text-[#f5f5f0]/60">
-                          {photo.location || (typeof photo.category === 'object' ? photo.category.title : photo.category)}
+                          {photo.location || ((photo.category && typeof photo.category === 'object') ? photo.category.title : photo.category)}
                         </span>
                       </div>
                       <div className="pointer-events-auto shrink-0 mb-1">
