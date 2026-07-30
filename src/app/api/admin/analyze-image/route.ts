@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-const apiKey = process.env.GEMINI_API_KEY;
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+const geminiApiKey = process.env.GEMINI_API_KEY;
+const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
+
+const groqApiKey = process.env.GROQ_API_KEY;
+const groq = groqApiKey ? new Groq({ apiKey: groqApiKey }) : null;
 
 export async function POST(req: Request) {
   try {
@@ -14,8 +18,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!genAI) {
-      return NextResponse.json({ error: 'Gemini API key is not configured' }, { status: 500 });
+    if (!genAI && !groq) {
+      return NextResponse.json({ error: 'Neither Gemini nor Groq API key is configured' }, { status: 500 });
     }
 
     const body = await req.json();
@@ -26,6 +30,7 @@ export async function POST(req: Request) {
     }
 
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const cleanMimeType = mimeType || 'image/jpeg';
 
     const prompt = `
       You are an expert art curator and gallery manager. Analyze the provided image and extract the following details to fill out an artwork upload form. 
@@ -40,36 +45,93 @@ export async function POST(req: Request) {
       - "suggestedCategory": The most likely category (e.g., "Nature", "Abstract", "Portrait", "Architecture").
     `;
 
-    let result;
-    let lastError;
-    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+    let responseText: string | null = null;
+    let lastError: any = null;
 
-    for (const modelName of modelsToTry) {
-      try {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        result = await model.generateContent([
-          prompt,
-          {
-            inlineData: {
-              data: base64Data,
-              mimeType: mimeType || 'image/jpeg'
+    // 1. Try Gemini API Models First
+    if (genAI) {
+      const geminiModels = [
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-pro-latest',
+        'gemini-1.5-flash'
+      ];
+
+      for (const modelName of geminiModels) {
+        try {
+          const model = genAI.getGenerativeModel({ model: modelName });
+          const result = await model.generateContent([
+            prompt,
+            {
+              inlineData: {
+                data: base64Data,
+                mimeType: cleanMimeType
+              }
             }
+          ]);
+          responseText = result.response.text();
+          if (responseText) {
+            console.log(`[Analyze Image] Success with Gemini model: ${modelName}`);
+            break;
           }
-        ]);
-        break; // If successful, break out of the loop
-      } catch (err: any) {
-        lastError = err;
-        console.warn(`Failed with model ${modelName}:`, err.message);
-        // Continue to the next model
+        } catch (err: any) {
+          lastError = err;
+          console.warn(`[Analyze Image] Gemini model ${modelName} failed:`, err.message);
+        }
       }
     }
 
-    if (!result) {
-      throw new Error(`All models failed. Last error: ${lastError?.message}`);
+    // 2. Fallback to Groq API Vision Models if Gemini failed or is not configured
+    if (!responseText && groq) {
+      console.log('[Analyze Image] Fallback to Groq API triggered');
+      const groqModels = [
+        'llama-3.2-11b-vision-preview',
+        'llama-3.2-90b-vision-preview'
+      ];
+
+      for (const modelName of groqModels) {
+        try {
+          const completion = await groq.chat.completions.create({
+            model: modelName,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: prompt },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:${cleanMimeType};base64,${base64Data}`
+                    }
+                  }
+                ]
+              }
+            ],
+            response_format: { type: 'json_object' }
+          });
+
+          const content = completion.choices[0]?.message?.content;
+          if (content) {
+            responseText = content;
+            console.log(`[Analyze Image] Success with Groq vision model: ${modelName}`);
+            break;
+          }
+        } catch (err: any) {
+          lastError = err;
+          console.warn(`[Analyze Image] Groq model ${modelName} failed:`, err.message);
+        }
+      }
     }
 
-    const responseText = result.response.text();
-    
+    if (!responseText) {
+      const isQuotaError = lastError?.message?.includes('429') || lastError?.message?.includes('Quota') || lastError?.message?.includes('quota');
+      return NextResponse.json(
+        { error: `All Gemini and Groq AI models failed. Last error: ${lastError?.message || 'Unknown error'}` },
+        { status: isQuotaError ? 429 : 500 }
+      );
+    }
+
     // Clean up potential markdown formatting from the response
     const cleanJsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
     
@@ -77,7 +139,7 @@ export async function POST(req: Request) {
     try {
       parsedData = JSON.parse(cleanJsonString);
     } catch (parseError) {
-      console.error("Failed to parse Gemini response:", responseText);
+      console.error("Failed to parse AI response:", responseText);
       return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
     }
 

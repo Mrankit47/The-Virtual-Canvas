@@ -20,6 +20,7 @@ const envSchema = z.object({
   AI_PLATFORM_URL: z.string().optional().transform(v => v?.trim()),
   AI_WEBHOOK_KEY: z.string().optional().transform(v => v?.trim()),
   GEMINI_API_KEY: z.string().optional().transform(v => v?.trim()),
+  GROQ_API_KEY: z.string().optional().transform(v => v?.trim()),
 });
 
 const _env = envSchema.safeParse({
@@ -40,6 +41,7 @@ const _env = envSchema.safeParse({
   AI_PLATFORM_URL: process.env.AI_PLATFORM_URL,
   AI_WEBHOOK_KEY: process.env.AI_WEBHOOK_KEY,
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  GROQ_API_KEY: process.env.GROQ_API_KEY,
 });
 
 if (!_env.success) {
