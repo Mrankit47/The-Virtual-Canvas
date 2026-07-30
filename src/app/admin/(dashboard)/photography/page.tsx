@@ -86,7 +86,8 @@ export default function AdminPhotographyPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
               imageBase64: base64, 
-              mimeType: formData.image?.type 
+              mimeType: formData.image?.type,
+              fileName: formData.image?.name
             }),
           });
           
