@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Plus, Trash2, Loader2, Image as ImageIcon, CheckCircle2, X, Pencil, Eye, Star, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Loader2, Image as ImageIcon, CheckCircle2, X, Pencil, Eye, Star, Sparkles, Camera } from 'lucide-react';
 import { useUIStore } from '@/store/useUIStore';
 import { uploadToCloudinary } from '@/lib/cloudinaryUpload';
 import { getImageUrl } from '@/lib/imageResolver';
+import { CameraCaptureModal } from '@/components/ui/CameraCaptureModal';
 
 export default function AdminArtworksPage() {
   const { data: session } = useSession();
@@ -14,6 +15,7 @@ export default function AdminArtworksPage() {
   const [artworks, setArtworks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -385,10 +387,20 @@ export default function AdminArtworksPage() {
                 </div>
                 
                 <div className="space-y-4">
-                  <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-2 font-black">Image</label>
+                  <div className="flex items-center justify-between ml-2">
+                    <label className="text-[10px] uppercase tracking-widest text-ink/40 font-black">Image</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCameraModal(true)}
+                      className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg transition-colors"
+                    >
+                      <Camera size={13} />
+                      Take Photo
+                    </button>
+                  </div>
                   <div className="relative group cursor-pointer">
                     <input type="file" accept="image/*" onChange={e => setFormData({...formData, image: e.target.files?.[0] || null})} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                    <div className="h-40 border-2 border-dashed border-ink/10 rounded-[32px] flex flex-col items-center justify-center gap-4 group-hover:border-ink/20 bg-gray-50/50 transition-all">
+                    <div className="h-40 border-2 border-dashed border-ink/10 rounded-[32px] flex flex-col items-center justify-center gap-3 group-hover:border-ink/20 bg-gray-50/50 transition-all">
                       {formData.image ? (
                         <div className="flex items-center gap-3 text-green-600 font-bold bg-green-50 px-6 py-3 rounded-2xl">
                           <CheckCircle2 size={24} />
@@ -396,8 +408,12 @@ export default function AdminArtworksPage() {
                         </div>
                       ) : (
                         <>
-                          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-ink/20"><Plus size={24} /></div>
-                          <p className="text-[10px] uppercase tracking-widest font-black text-ink/30">Drag or paste image here</p>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm text-ink/40"><Plus size={20} /></div>
+                            <span className="text-xs font-bold text-ink/30">OR</span>
+                            <div className="w-10 h-10 bg-purple-100 rounded-2xl flex items-center justify-center shadow-sm text-purple-600"><Camera size={20} /></div>
+                          </div>
+                          <p className="text-[10px] uppercase tracking-widest font-black text-ink/30">Drag or click to upload, or use camera</p>
                         </>
                       )}
                     </div>
@@ -486,6 +502,17 @@ export default function AdminArtworksPage() {
           </div>
         </div>
       )}
+
+      {/* Camera Capture Modal */}
+      <CameraCaptureModal
+        isOpen={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        title="Capture Artwork Photo"
+        onCapture={(file) => {
+          setFormData((prev) => ({ ...prev, image: file }));
+          addToast("Photo captured from camera!", "success");
+        }}
+      />
 
       {/* Lightbox */}
       {selectedImage && (
