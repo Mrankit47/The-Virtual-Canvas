@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Plus, Trash2, Loader2, Image as ImageIcon, Filter, CheckCircle2, X, Pencil, Eye } from 'lucide-react';
+import { Plus, Trash2, Loader2, Image as ImageIcon, Filter, CheckCircle2, X, Pencil, Eye, Camera } from 'lucide-react';
 import { useUIStore } from '@/store/useUIStore';
 import { uploadToCloudinary } from '@/lib/cloudinaryUpload';
+import { CameraCaptureModal } from '@/components/ui/CameraCaptureModal';
 
 export default function MyArtworksPage() {
   const { data: session } = useSession();
@@ -13,6 +14,7 @@ export default function MyArtworksPage() {
   const [artworks, setArtworks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'artwork' | 'photography'>('all');
@@ -484,24 +486,36 @@ export default function MyArtworksPage() {
                         )}
 
                         <div className="space-y-2">
-                            <label className="text-[10px] uppercase tracking-widest text-ink/40 ml-2 font-black">Artwork Image</label>
+                            <div className="flex items-center justify-between ml-2">
+                                <label className="text-[10px] uppercase tracking-widest text-ink/40 font-black">Artwork Image</label>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCameraModal(true)}
+                                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg transition-colors"
+                                >
+                                    <Camera size={13} />
+                                    Take Photo
+                                </button>
+                            </div>
                             <div className="relative group cursor-pointer">
                                 <input 
                                     type="file" accept="image/*" onChange={e => setFormData({...formData, image: e.target.files?.[0] || null})}
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 />
-                                <div className="h-40 border-2 border-dashed border-ink/10 rounded-[32px] flex flex-col items-center justify-center gap-4 group-hover:border-ink/20 transition-all bg-gray-50/50">
+                                <div className="h-40 border-2 border-dashed border-ink/10 rounded-[32px] flex flex-col items-center justify-center gap-3 group-hover:border-ink/20 transition-all bg-gray-50/50">
                                     {formData.image ? (
-                                        <div className="flex items-center gap-3 text-green-600 font-bold">
-                                            <CheckCircle2 size={24} />
-                                            <span>{formData.image.name}</span>
+                                        <div className="flex items-center gap-3 text-green-600 font-bold bg-green-50 px-5 py-2.5 rounded-2xl">
+                                            <CheckCircle2 size={20} />
+                                            <span className="truncate max-w-[200px]">{formData.image.name}</span>
                                         </div>
                                     ) : (
                                         <>
-                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-ink/20 group-hover:text-ink/40 transition-colors">
-                                                <Plus size={24} />
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm text-ink/40"><Plus size={20} /></div>
+                                                <span className="text-xs font-bold text-ink/30">OR</span>
+                                                <div className="w-10 h-10 bg-purple-100 rounded-2xl flex items-center justify-center shadow-sm text-purple-600"><Camera size={20} /></div>
                                             </div>
-                                            <p className="text-[10px] uppercase tracking-widest font-black text-ink/30">Click or drag to upload masterpiece</p>
+                                            <p className="text-[10px] uppercase tracking-widest font-black text-ink/30">Click to upload from drive or use camera</p>
                                         </>
                                     )}
                                 </div>
@@ -521,6 +535,17 @@ export default function MyArtworksPage() {
             </div>
         </div>
       )}
+
+      {/* Camera Capture Modal */}
+      <CameraCaptureModal
+        isOpen={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        title="Capture Masterpiece Photo"
+        onCapture={(file) => {
+          setFormData((prev) => ({ ...prev, image: file }));
+          addToast("Photo captured from camera!", "success");
+        }}
+      />
 
       {/* Lightbox Modal */}
       {selectedImage && (
