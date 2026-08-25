@@ -57,6 +57,21 @@ import Script from 'next/script';
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-TR9X9N5PMY"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-TR9X9N5PMY');
+          `}
+        </Script>
+      </head>
       <body className="antialiased w-full min-h-screen flex flex-col bg-canvas text-ink selection:bg-ink selection:text-canvas text-sm md:text-base font-sans overflow-x-hidden">
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
           <NextAuthProvider>
