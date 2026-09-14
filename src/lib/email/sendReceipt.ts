@@ -19,6 +19,7 @@ interface ReceiptData {
   addPhotoFrame?: boolean;
   baseFramePrice?: number;
   framePrice?: number;
+  paymentStatus?: string;
 }
 
 export async function sendOrderReceipt(data: ReceiptData) {
@@ -67,7 +68,7 @@ export async function sendOrderReceipt(data: ReceiptData) {
               </td>
               <td style="padding: 20px; border: 1px solid #eaeaea; background: #fff; text-align: right; vertical-align: top;">
                 <p style="font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: #999; margin: 0 0 10px 0;">Payment Status</p>
-                <span style="background-color: #fef3c7; color: #b45309; padding: 6px 12px; font-size: 9px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; border-radius: 20px;">Pending Verification</span>
+                <span style="background-color: #d1fae5; color: #047857; padding: 6px 12px; font-size: 9px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; border-radius: 20px;">${data.paymentStatus || 'PAID ✓'}</span>
               </td>
             </tr>
             <tr>

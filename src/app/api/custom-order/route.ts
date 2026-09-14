@@ -3,7 +3,6 @@ import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { sendOrderReceipt } from '@/lib/email/sendReceipt';
 import { calculateShipping } from '@/lib/shipping';
 import crypto from 'crypto';
 import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
@@ -237,29 +236,6 @@ export async function POST(req: Request) {
         expiresAt,
       }),
     });
-
-    // ── Send Receipt Email (non-blocking) ─────────────────────────────────────
-    try {
-      await sendOrderReceipt({
-        orderId: newOrder.orderId as string,
-        customerName,
-        artworkType: `${style.title} — ${size.label} — ${paper.title}`,
-        price: serverComputedPrice,
-        email,
-        address,
-        pincode,
-        subtotal: Math.round(style.basePrice * size.multiplier + paper.extraCost),
-        discountAmount: calculatedDiscount,
-        couponCode: couponCode || undefined,
-        shippingCharges: shippingCharges,
-        shippingZone: shippingZoneName,
-        addPhotoFrame: !!addPhotoFrame,
-        baseFramePrice,
-        framePrice: finalFramePrice,
-      });
-    } catch (emailErr) {
-      console.error('Studio receipt email failed (non-critical):', emailErr);
-    }
 
     return NextResponse.json({
       success: true,

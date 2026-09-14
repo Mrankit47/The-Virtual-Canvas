@@ -3,7 +3,6 @@ import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { sendOrderReceipt } from '@/lib/email/sendReceipt';
 import { calculateShipping } from '@/lib/shipping';
 import crypto from 'crypto';
 import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
@@ -161,8 +160,10 @@ export async function POST(req: Request) {
       shippingCharges: shippingCharges,
       shippingZone: shippingZoneName,
 
-      // Required order fields (sensible defaults for cart orders)
-      artworkType: 'digital',
+      subtotal: serverSubtotal,
+
+      // Required order fields
+      artworkType: `${items.length} artwork${items.length > 1 ? 's' : ''}`,
       description: `Cart purchase: ${items.map((i: CartItemRequest) => i.title).join(', ')}${shippingCharges > 0 ? ` (Shipping: ₹${shippingCharges})` : ' (Free Shipping)'}`,
       price: serverTotal,
 
@@ -171,26 +172,6 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-
-    // ── Send Receipt Email ────────────────────────────────────────────────────
-    try {
-      await sendOrderReceipt({
-        orderId: newOrder.orderId as string,
-        customerName,
-        artworkType: `${items.length} artwork${items.length > 1 ? 's' : ''}`,
-        price: serverTotal,
-        email,
-        address,
-        pincode,
-        subtotal: serverSubtotal,
-        discountAmount: discountAmount,
-        couponCode: couponCode || undefined,
-        shippingCharges: shippingCharges,
-        shippingZone: shippingZoneName,
-      });
-    } catch (emailErr) {
-      console.error('Receipt email failed (non-critical):', emailErr);
-    }
 
     return NextResponse.json({
       success: true,
