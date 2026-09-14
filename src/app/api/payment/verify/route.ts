@@ -121,7 +121,7 @@ export async function POST(request: Request) {
 
     // Send Detailed Order Receipt Email on verified success
     try {
-      let subtotal = order.price + (order.discountAmount || 0);
+      let subtotal = order.subtotal || (order.price + (order.discountAmount || 0) - (order.shippingCharges || 0));
       let addPhotoFrame = false;
       let baseFramePrice = 0;
       let framePrice = 0;
@@ -140,10 +140,15 @@ export async function POST(request: Request) {
         }
       }
 
+      let artworkType = order.artworkType;
+      if (!artworkType && order.cartItems && Array.isArray(order.cartItems)) {
+        artworkType = `${order.cartItems.length} artwork${order.cartItems.length > 1 ? 's' : ''}`;
+      }
+
       await sendOrderReceipt({
         orderId: order.orderId,
         customerName: order.customerName,
-        artworkType: order.artworkType || 'Commission Artwork',
+        artworkType: artworkType || 'Commission Artwork',
         price: order.price,
         email: order.email,
         address: order.address,
@@ -156,6 +161,7 @@ export async function POST(request: Request) {
         addPhotoFrame,
         baseFramePrice,
         framePrice,
+        paymentStatus: 'PAID ✓',
       });
     } catch (receiptErr) {
       console.error("Failed to send post-payment verified receipt", receiptErr);

@@ -1,7 +1,6 @@
 import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
 import { orderFormSchema } from '@/lib/validations/order';
-import { sendOrderReceipt } from '@/lib/email/sendReceipt';
 import { getServerSession } from "next-auth";
 import { authOptions } from '@/lib/auth';
 import crypto from 'crypto';
@@ -83,20 +82,6 @@ export async function POST(req: Request) {
       orderStatus: 'pending',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    });
-    
-    // Background Email Transmission
-    await sendOrderReceipt({
-      orderId: newOrder.orderId as string,
-      customerName,
-      artworkType,
-      price,
-      email,
-      address,
-      pincode,
-      subtotal: price + (discountAmount || 0),
-      discountAmount: discountAmount || 0,
-      couponCode: couponCode || undefined,
     });
 
     // 9. Return Valid Response

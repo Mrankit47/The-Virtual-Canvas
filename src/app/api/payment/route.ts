@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     });
 
     const razorpay = new Razorpay({
-      key_id: env.NEXT_PUBLIC_RAZORPAY_KEY,
+      key_id: process.env.RAZORPAY_KEY || env.NEXT_PUBLIC_RAZORPAY_KEY || '',
       key_secret: env.RAZORPAY_KEY_SECRET,
     });
 
