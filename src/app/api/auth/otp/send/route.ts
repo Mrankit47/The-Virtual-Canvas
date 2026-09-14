@@ -1,16 +1,30 @@
 import { createClient } from '@sanity/client';
 import { NextResponse } from "next/server";
+import { env } from '@/config/env';
+import crypto from 'crypto';
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
+
+const limiter = rateLimit({
+  interval: 5 * 60 * 1000, // 5 minutes
+  uniqueTokenPerInterval: 500,
+});
 
 const backendClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  dataset: env.NEXT_PUBLIC_SANITY_DATASET,
   apiVersion: '2024-03-22',
   useCdn: false,
-  token: process.env.SANITY_API_WRITE_TOKEN,
+  token: env.SANITY_API_WRITE_TOKEN,
 });
 
 export async function POST(req: Request) {
     try {
+        const ip = getClientIp(req);
+        const { success } = await limiter.check(3, ip);
+        if (!success) {
+            return rateLimitResponse(300);
+        }
+
         const { mobile, mode } = await req.json();
 
         if (!mobile || !/^\d{10}$/.test(mobile.replace(/^\+91/, ''))) {
@@ -33,14 +47,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User already registered. Please login." }, { status: 400 });
         }
 
-        // 2. Generate 6-digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        // 2. Generate secure 6-digit OTP
+        const otp = crypto.randomInt(100000, 1000000).toString();
         const expiry = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
 
-        if (process.env.MOCK_OTP === 'true') {
-            console.log("\n------------------------------");
-            console.log(`🚀 MOCK OTP for ${cleanMobile}: ${otp}`);
-            console.log("------------------------------\n");
+        if (process.env.NODE_ENV !== 'production' && process.env.MOCK_OTP === 'true') {
+            console.log(`[DEV] Mock OTP generated for testing`);
         } else {
             // 3. Send SMS via Fast2SMS (Using Quick SMS route)
             const fast2smsRes = await fetch("https://www.fast2sms.com/dev/bulkV2", {
@@ -77,6 +89,6 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, message: "OTP sent successfully" });
     } catch (error: any) {
         console.error("OTP Send Error:", error);
-        return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to send OTP. Please try again later." }, { status: 500 });
     }
 }

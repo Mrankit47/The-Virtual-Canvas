@@ -43,7 +43,8 @@ export async function GET() {
 
     return NextResponse.json(artworks);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Admin Artwork Fetch Error:", error);
+    return NextResponse.json({ error: "Failed to fetch artworks" }, { status: 500 });
   }
 }
 
@@ -141,7 +142,7 @@ export async function POST(request: Request) {
     }
   } catch (error: any) {
     console.error("Admin Artwork Create Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create or update artwork" }, { status: 500 });
   }
 }
 
@@ -158,6 +159,7 @@ export async function DELETE(request: Request) {
     await backendClient.delete(id);
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Admin Artwork Delete Error:", error);
+    return NextResponse.json({ error: "Failed to delete artwork" }, { status: 500 });
   }
 }

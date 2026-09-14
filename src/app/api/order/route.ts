@@ -4,6 +4,13 @@ import { orderFormSchema } from '@/lib/validations/order';
 import { sendOrderReceipt } from '@/lib/email/sendReceipt';
 import { getServerSession } from "next-auth";
 import { authOptions } from '@/lib/auth';
+import crypto from 'crypto';
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
+
+const limiter = rateLimit({
+  interval: 60 * 1000, // 1 minute
+  uniqueTokenPerInterval: 500,
+});
 
 // 4. Add Dynamic Rendering to prevent build-time static generation failures
 export const dynamic = "force-dynamic";
@@ -11,6 +18,17 @@ export const dynamic = "force-dynamic";
 // 1. Fix API Route Structure (Export async functions)
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const { success } = await limiter.check(10, ip);
+    if (!success) {
+      return rateLimitResponse(60);
+    }
+
+    const session: any = await getServerSession(authOptions);
+    if (!session?.user) {
+      return Response.json({ success: false, error: 'Authentication required. Please log in to place an order.' }, { status: 401 });
+    }
+
     // 3. Prevent Build-Time Execution: Logic inside handler
     // 5. Fix Environment Variables: Check inside handler
     if (!env.SANITY_API_WRITE_TOKEN) {
@@ -25,8 +43,6 @@ export async function POST(req: Request) {
       useCdn: false,
       token: env.SANITY_API_WRITE_TOKEN,
     });
-
-    const session: any = await getServerSession(authOptions);
     
     // 2. Fix Request Handling: Use req.json()
     const body = await req.json();
@@ -43,7 +59,7 @@ export async function POST(req: Request) {
       paymentProof, couponCode, discountAmount
     } = parsed.data;
 
-    const orderId = `TVC-${Math.floor(100 + Math.random() * 900)}-${Date.now().toString().slice(-4)}`;
+    const orderId = `TVC-${crypto.randomInt(100, 1000)}-${Date.now().toString().slice(-4)}`;
 
     // 10. Optimize for Vercel: Perform DB operation
     const newOrder = await backendClient.create({

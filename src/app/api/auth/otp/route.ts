@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
+import crypto from 'crypto';
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
+
+const limiter = rateLimit({
+  interval: 5 * 60 * 1000, // 5 minutes
+  uniqueTokenPerInterval: 500,
+});
 
 const backendClient = createClient({
   projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
@@ -12,6 +19,12 @@ const backendClient = createClient({
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+    const { success } = await limiter.check(3, ip);
+    if (!success) {
+      return rateLimitResponse(300);
+    }
+
     const { mobile, mode } = await request.json(); // mode: 'login' or 'register'
 
     if (!mobile) {
@@ -32,13 +45,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "User already exists with this mobile number" }, { status: 400 });
     }
 
-    // 2. Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // 2. Generate secure 6-digit OTP
+    const otp = crypto.randomInt(100000, 1000000).toString();
     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
 
-    // 3. Save OTP (If user exists, patch it. If not, we might need a temporary doc or just skip saving if we verify differently)
-    // Actually, for registration OTP, we should probably save it in a temporary 'otpVerification' document or use a session-based approach.
-    // For simplicity, I'll create a temporary document or use a fixed 'otpVerification' type.
+    // 3. Save OTP
     if (user) {
         await backendClient.patch(user._id).set({ otp, otpExpiry }).commit();
     } else {
@@ -52,10 +63,7 @@ export async function POST(request: Request) {
         });
     }
 
-    // 4. Mock SMS Send (Log to console)
-    console.log(`\n--- [MOCK SMS] ---\nTO: ${mobile}\nOTP: ${otp}\n------------------\n`);
-
-    return NextResponse.json({ message: "OTP sent successfully (Check terminal)" });
+    return NextResponse.json({ message: "OTP sent successfully" });
   } catch (error) {
     console.error("OTP Error:", error);
     return NextResponse.json({ error: "Failed to send OTP" }, { status: 500 });

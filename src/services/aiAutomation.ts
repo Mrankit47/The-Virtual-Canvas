@@ -36,7 +36,7 @@ export async function triggerArtworkAutomation(
     source: 'website',
   };
 
-  console.log(`[AI Trigger] AI trigger started: title="${title}", image_url="${imageUrl}"`);
+  console.log(`[AI Trigger] AI trigger started for artwork: title="${title}"`);
 
   const maxRetries = 3;
   let attempt = 0;

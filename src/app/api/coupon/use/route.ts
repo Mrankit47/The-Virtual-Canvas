@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
+
+const limiter = rateLimit({
+  interval: 60 * 1000, // 1 minute
+  uniqueTokenPerInterval: 500,
+});
 
 const backendClient = createClient({
   projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
@@ -12,6 +20,17 @@ const backendClient = createClient({
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const { success } = await limiter.check(5, ip);
+    if (!success) {
+      return rateLimitResponse(60);
+    }
+
+    const session: any = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { code } = await req.json();
     if (!code) return NextResponse.json({ error: 'Code required' }, { status: 400 });
 
@@ -21,6 +40,7 @@ export async function POST(req: Request) {
     );
 
     if (!coupon) return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
+    if (!coupon.isActive) return NextResponse.json({ error: 'Coupon is not active' }, { status: 400 });
 
     await backendClient
       .patch(coupon._id)

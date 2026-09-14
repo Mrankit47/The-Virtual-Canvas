@@ -5,6 +5,13 @@ import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
 import { sendOTPEmail } from "@/lib/email";
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
+
+const limiter = rateLimit({
+  interval: 60 * 1000, // 1 minute
+  uniqueTokenPerInterval: 500,
+});
 
 const backendClient = createClient({
   projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
@@ -16,6 +23,12 @@ const backendClient = createClient({
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+    const { success } = await limiter.check(5, ip);
+    if (!success) {
+      return rateLimitResponse(60);
+    }
+
     const session: any = await getServerSession(authOptions);
     if (!session || !session.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,8 +41,8 @@ export async function POST(request: Request) {
     if (action === 'send-otp') {
         if (!targetField) return NextResponse.json({ error: "Target field required" }, { status: 400 });
         
-        // Generate 6-digit OTP
-        const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        // Generate secure 6-digit OTP
+        const generatedOtp = crypto.randomInt(100000, 1000000).toString();
         const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 mins
 
         // Save OTP to user profile
@@ -58,8 +71,7 @@ export async function POST(request: Request) {
         if (email) updateData.email = email.toLowerCase().trim();
         if (mobile) updateData.mobileNumber = mobile.trim();
         if (password) {
-            const salt = await bcrypt.genSalt(10);
-            updateData.password = await bcrypt.hash(password.trim(), salt);
+            updateData.password = await bcrypt.hash(password.trim(), 12);
         }
 
         await backendClient.patch(userId).set(updateData).commit();
@@ -89,6 +101,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error("Profile Update Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to update profile" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update profile. Please try again." }, { status: 500 });
   }
 }

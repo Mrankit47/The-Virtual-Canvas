@@ -33,7 +33,6 @@ export const authOptions: NextAuthOptions = {
                 // 1. Handle Email/Password Login
                 if (type === "password" && email && password) {
                     const normalizedEmail = email.toLowerCase().trim();
-                    console.log(`[Auth] Attempting login for: ${normalizedEmail} with role: ${role}`);
 
                     const user = await backendClient.fetch(
                         `*[_type == "userProfile" && email == $email][0]`,
@@ -41,12 +40,10 @@ export const authOptions: NextAuthOptions = {
                     );
 
                     if (!user) {
-                        console.error(`[Auth] User not found: ${normalizedEmail}`);
                         throw new Error("Invalid credentials or method");
                     }
 
                     if (!user.password) {
-                        console.error(`[Auth] User found but has no password (maybe Google login?): ${normalizedEmail}`);
                         throw new Error("Invalid credentials or method");
                     }
 
@@ -54,17 +51,13 @@ export const authOptions: NextAuthOptions = {
                     const isMatch = await bcrypt.compare(normalizedPassword, user.password);
                     
                     if (!isMatch) {
-                        console.error(`[Auth] Password mismatch for: ${normalizedEmail} (Input length: ${normalizedPassword.length}, Hash starts with: ${user.password.substring(0, 10)}...)`);
                         throw new Error("Invalid password");
                     }
 
                     // 1a. Role Enforcement
                     if (role && user.role !== role) {
-                        console.error(`[Auth] Role mismatch for ${normalizedEmail}. Expected: ${role}, Found: ${user.role}`);
                         throw new Error(`Your account does not have ${role} permissions.`);
                     }
-
-                    console.log(`[Auth] Login successful for: ${normalizedEmail} (Role: ${user.role})`);
 
                     return {
                         id: user._id,

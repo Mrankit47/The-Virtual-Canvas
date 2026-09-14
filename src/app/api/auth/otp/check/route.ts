@@ -1,8 +1,20 @@
 import { client } from '@/lib/sanity';
 import { NextResponse } from "next/server";
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
+
+const limiter = rateLimit({
+  interval: 60 * 1000, // 1 minute
+  uniqueTokenPerInterval: 500,
+});
 
 export async function POST(req: Request) {
     try {
+        const ip = getClientIp(req);
+        const { success } = await limiter.check(5, ip);
+        if (!success) {
+            return rateLimitResponse(60);
+        }
+
         const { mobile, mode } = await req.json();
 
         // Check if user exists with this mobile number (Safe check)
