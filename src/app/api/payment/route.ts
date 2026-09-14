@@ -1,6 +1,14 @@
 import Razorpay from "razorpay";
 import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
+
+const limiter = rateLimit({
+  interval: 60 * 1000, // 1 minute
+  uniqueTokenPerInterval: 500,
+});
 
 // 3. Add at top of file:
 export const dynamic = "force-dynamic";
@@ -8,6 +16,17 @@ export const dynamic = "force-dynamic";
 // 4. Ensure correct App Router syntax:
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const { success } = await limiter.check(10, ip);
+    if (!success) {
+      return rateLimitResponse(60);
+    }
+
+    const session: any = await getServerSession(authOptions);
+    if (!session?.user) {
+      return Response.json({ success: false, error: "Authentication required" }, { status: 401 });
+    }
+
     // 5. Replace any req.body usage with:
     const { amount, orderId, couponCode } = await req.json();
 
@@ -39,6 +58,13 @@ export async function POST(req: Request) {
 
     if (!order) {
        return Response.json({ success: false, error: "Order not found" }, { status: 404 });
+    }
+
+    // Ownership check
+    const orderEmail = (order.userEmail || order.email || '').toLowerCase().trim();
+    const sessionEmail = (session.user.email || '').toLowerCase().trim();
+    if (orderEmail && sessionEmail && orderEmail !== sessionEmail) {
+      return Response.json({ success: false, error: "Unauthorized access to order" }, { status: 403 });
     }
 
     if (order.paymentStatus === "paid") {
@@ -89,16 +115,9 @@ export async function POST(req: Request) {
     // 7 & 9. Return clean, production-ready Response
     return Response.json(razorpayOrder);
   } catch (error: any) {
-    // 7. Wrap logic in try-catch
-    console.error("❌ Razorpay Order Creation Detailed Error (Route):", {
-        message: error.message,
-        stack: error.stack,
-        ...error
-    });
-
-    const errorMessage = error.message || (error.error && error.error.description) || "Failed to create payment order";
+    console.error("❌ Razorpay Order Creation Error:", error);
     return Response.json(
-      { success: false, error: errorMessage },
+      { success: false, error: "Failed to process payment request. Please try again later." },
       { status: 500 }
     );
   }

@@ -32,7 +32,6 @@ interface CommissionFormProps {
 
 export default function CommissionForm({ initialStyles }: CommissionFormProps) {
   const { data: session, status } = useSession();
-  console.log("UPI:", process.env.NEXT_PUBLIC_UPI_ID);
   const { currentStep, nextStep, prevStep, setStep } = useOrderStore();
   const { addToast } = useUIStore();
   const [isSubmitting, setIsSubmitting] = useState(false);

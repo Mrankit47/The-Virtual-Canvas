@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
+
+const limiter = rateLimit({
+  interval: 60 * 1000, // 1 minute
+  uniqueTokenPerInterval: 500,
+});
 
 const readClient = createClient({
   projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
@@ -11,6 +17,12 @@ const readClient = createClient({
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const { success } = await limiter.check(10, ip);
+    if (!success) {
+      return rateLimitResponse(60);
+    }
+
     const { code, total, framePrice = 0 } = await req.json();
 
     if (!code || typeof code !== 'string' || !total || typeof total !== 'number') {

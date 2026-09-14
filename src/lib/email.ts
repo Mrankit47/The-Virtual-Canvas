@@ -73,9 +73,9 @@ export async function sendNotificationEmail(
       subject: subjects[type],
       html,
     });
-    console.log(`✅ [Email Success] Sent to ${to} for event: ${type}. MessageId: ${info.messageId}`);
+    console.log(`✅ [Email Success] Sent notification for event: ${type}. MessageId: ${info.messageId}`);
   } catch (error: any) {
-    console.error(`❌ [Email Error] Failed to send ${type} email to ${to}:`, error.message);
+    console.error(`❌ [Email Error] Failed to send ${type} notification`);
   }
 }
 
@@ -103,13 +103,13 @@ export async function sendOTPEmail(to: string, otp: string, action: string) {
     await transporter.sendMail({
       from: `"The Virtual Canvas" <${env.EMAIL_USER}>`,
       to,
-      subject: `Verification Code: ${otp}`,
+      subject: `Your Verification Code - The Virtual Canvas`,
       html,
     });
-    console.log(`✅ [OTP Email Success] Sent to ${to}`);
+    console.log(`✅ [OTP Email Success] Verification email sent successfully`);
     return true;
   } catch (error: any) {
-    console.error(`❌ [OTP Email Error] Failed to send OTP to ${to}:`, error.message);
+    console.error(`❌ [OTP Email Error] Failed to send verification email`);
     return false;
   }
 }

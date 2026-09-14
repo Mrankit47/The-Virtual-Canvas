@@ -5,6 +5,13 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { sendOrderReceipt } from '@/lib/email/sendReceipt';
 import { calculateShipping } from '@/lib/shipping';
+import crypto from 'crypto';
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
+
+const limiter = rateLimit({
+  interval: 60 * 1000, // 1 minute
+  uniqueTokenPerInterval: 500,
+});
 
 // Token is validated inside the handler — not at module level
 const backendClient = createClient({
@@ -40,11 +47,21 @@ interface StudioOrderBody {
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const { success } = await limiter.check(10, ip);
+    if (!success) {
+      return rateLimitResponse(60);
+    }
+
+    const session: any = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required. Please log in to place an order.' }, { status: 401 });
+    }
+
     if (!env.SANITY_API_WRITE_TOKEN) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    const session: any = await getServerSession(authOptions);
     const body: StudioOrderBody = await req.json();
 
     const { 
@@ -163,7 +180,7 @@ export async function POST(req: Request) {
     }
 
     // ── Generate Order ID ─────────────────────────────────────────────────────
-    const orderId = `TVC-STUDIO-${Math.floor(100 + Math.random() * 900)}-${Date.now().toString().slice(-5)}`;
+    const orderId = `TVC-STUDIO-${crypto.randomInt(100, 1000)}-${Date.now().toString().slice(-5)}`;
 
     // Order expiry: 15 minutes from now
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();

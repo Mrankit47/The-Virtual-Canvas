@@ -24,7 +24,14 @@ export function verifyPaymentSignature(
     .update(text)
     .digest('hex');
 
-  const isMatch = generatedSignature === signature;
-  console.log(`🔍 Payment Verification: ${isMatch ? 'PASSED' : 'FAILED'}`);
-  return isMatch;
+  try {
+    const generatedBuffer = Buffer.from(generatedSignature, 'utf-8');
+    const signatureBuffer = Buffer.from(signature, 'utf-8');
+    if (generatedBuffer.length !== signatureBuffer.length) {
+      return false;
+    }
+    return crypto.timingSafeEqual(generatedBuffer, signatureBuffer);
+  } catch {
+    return false;
+  }
 }

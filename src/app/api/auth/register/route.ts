@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from '@sanity/client';
 import { env } from '@/config/env';
 import bcrypt from 'bcryptjs';
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/security/rateLimit";
+
+const limiter = rateLimit({
+  interval: 15 * 60 * 1000, // 15 minutes
+  uniqueTokenPerInterval: 500,
+});
 
 const backendClient = createClient({
   projectId: env.NEXT_PUBLIC_SANITY_PROJECT_ID,
@@ -13,12 +19,16 @@ const backendClient = createClient({
 
 export async function POST(request: Request) {
   try {
-    let { name, email, mobile, password, role, type } = await request.json();
-
-    // Default to 'user' if not provided, and strictly prevent 'admin' from public signup
-    if (!role || role === 'admin') {
-        role = 'user';
+    const ip = getClientIp(request);
+    const { success } = await limiter.check(5, ip);
+    if (!success) {
+      return rateLimitResponse(900);
     }
+
+    let { name, email, mobile, password, type } = await request.json();
+
+    // Strictly enforce role as 'user' for public registration
+    const role = 'user';
 
     // 1. Validation
     if (!name) return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -63,7 +73,15 @@ export async function POST(request: Request) {
       role: role || "user",
     });
 
-    return NextResponse.json({ message: "Registration successful", user: newUser });
+    return NextResponse.json({
+      message: "Registration successful",
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+      },
+    });
   } catch (error) {
     console.error("Registration Error:", error);
     return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
